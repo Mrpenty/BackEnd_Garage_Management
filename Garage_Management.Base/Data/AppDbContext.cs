@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Garage_Management.Infrastructure.Data
+namespace Garage_Management.Base.Data
 {
     public class AppDbContext : DbContext
     {

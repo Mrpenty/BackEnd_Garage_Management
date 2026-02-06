@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Garage_Management.Application\Garage_Management.Application.csproj" />
-    <ProjectReference Include="..\Garage_Management.Infrastructure\Garage_Management.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

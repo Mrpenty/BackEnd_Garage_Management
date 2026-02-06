@@ -1,3 +1,4 @@
+using Garage_Management.Base.Entities.Inventories;
 using System;
 
 namespace Garage_Management.Base.Entities.Warranties
@@ -7,7 +8,6 @@ namespace Garage_Management.Base.Entities.Warranties
     /// </summary>
     public class WarrantySparePart
     {
-      >
         public int WarrantySparePartId { get; set; }
 
         /// <summary>
@@ -18,7 +18,7 @@ namespace Garage_Management.Base.Entities.Warranties
         /// <summary>
         /// Thông tin phụ tùng
         /// </summary>
-        public SparePart SparePart { get; set; } = null!;
+        public Inventory Inventory { get; set; } = null!;
 
         /// <summary>
         /// Chính sách bảo hành áp dụng

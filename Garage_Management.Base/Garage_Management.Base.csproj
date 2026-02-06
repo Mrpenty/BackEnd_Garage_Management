@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <Folder Include="Common\Models\" />
+    <Folder Include="Data\Configurations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
   </ItemGroup>
 
 </Project>
