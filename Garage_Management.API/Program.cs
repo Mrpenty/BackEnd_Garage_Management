@@ -1,7 +1,7 @@
 using FluentValidation;
 using Garage_Management.Application;
+using Garage_Management.Base.Data;
 using Garage_Management.Infrastructure;
-using Garage_Management.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
