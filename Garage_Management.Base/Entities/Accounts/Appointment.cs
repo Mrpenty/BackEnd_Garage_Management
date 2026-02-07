@@ -12,13 +12,8 @@ namespace Garage_Management.Base.Entities.Accounts
     /// </summary>
     public class Appointment : AuditableEntity
     {
-      
         public int AppointmentId { get; set; }
-
-     
         public int CustomerId { get; set; }
-
-       
         public Customer Customer { get; set; } = null!;
 
         /// <summary>

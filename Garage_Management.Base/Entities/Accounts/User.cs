@@ -16,13 +16,8 @@ namespace Garage_Management.Base.Entities.Accounts
     /// </summary>
     public class User : AuditableEntity
     {
-       
         public int UserId { get; set; }
-
-      
         public string Username { get; set; } = string.Empty;
-
-        
         public string PasswordHash { get; set; } = string.Empty;
 
         /// <summary>

@@ -7,7 +7,6 @@ namespace Garage_Management.Base.Entities.Inventories
     /// </summary>
     public class SparePartBrand
     {
-       
         public int SparePartBrandId { get; set; }
 
         /// <summary>

@@ -63,7 +63,6 @@ namespace Garage_Management.Base.Entities.JobCards
         /// <summary>
         /// Người tạo phiếu 
         /// </summary>
-        public int CreatedBy { get; set; }
         public User CreatedByUser { get; set; } = null!;
 
         // Navigation

@@ -14,13 +14,10 @@ namespace Garage_Management.Base.Entities.Accounts
     /// </summary>
     public class Employee : AuditableEntity
     {
- 
         public int EmployeeId { get; set; }
 
         // Liên kết với tài khoản hệ thống (User)
         public int UserId { get; set; }
-
-     
         public User User { get; set; } = null!;
 
         // Thông tin cá nhân
