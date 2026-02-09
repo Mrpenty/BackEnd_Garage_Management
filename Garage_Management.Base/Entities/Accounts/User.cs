@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Base.Common.Base;
 using Garage_Management.Base.Entities.JobCards;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,23 +15,24 @@ namespace Garage_Management.Base.Entities.Accounts
     /// <summary>
     /// Bảng User - Tài khoản đăng nhập hệ thống cho nhân viên / khách hàng
     /// </summary>
-    public class User : AuditableEntity
+    public class User : IdentityUser<int>
     {
-        public int UserId { get; set; }
         public string Username { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Địa chỉ email dùng cho tài khoản 
-        /// </summary>
-       
-        public string Email { get; set; } = string.Empty;
+        ///// <summary>
+        ///// Địa chỉ email dùng cho tài khoản 
+        ///// </summary>
 
-        /// <summary>
-        /// Số điện thoại liên hệ cho tài khoản
-        /// </summary>
-   
-        public string? PhoneNumber { get; set; }
+        //public string Email { get; set; } = string.Empty;
+
+        ///// <summary>
+        ///// Số điện thoại liên hệ cho tài khoản
+        ///// </summary>
+
+        //public string? PhoneNumber { get; set; }
+
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
 
         /// <summary>
         /// Vai trò (Role) của người dùng trong hệ thống
@@ -43,6 +45,35 @@ namespace Garage_Management.Base.Entities.Accounts
         /// Cờ đánh dấu tài khoản đang hoạt động hay đã bị khóa
         /// </summary>
         public bool IsActive { get; set; } = true;
+        /// <summary>
+        /// Thời điểm tạo bản ghi.
+        /// </summary>
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// Người tạo bản ghi (UserId).
+        /// </summary>
+        public int? CreatedBy { get; set; }
+
+        /// <summary>
+        /// Thời điểm cập nhật gần nhất.
+        /// </summary>
+        public DateTime? UpdatedAt { get; set; }
+
+        /// <summary>
+        /// Người cập nhật gần nhất 
+        /// </summary>
+        public int? UpdatedBy { get; set; }
+
+        /// <summary>
+        /// Thời điểm xóa mềm 
+        /// </summary>
+        public DateTime? DeletedAt { get; set; }
+
+        /// <summary>
+        /// Người thực hiện xóa mềm 
+        /// </summary>
+        public int? DeletedBy { get; set; }
 
         // Navigation properties
         /// <summary>
@@ -50,19 +81,5 @@ namespace Garage_Management.Base.Entities.Accounts
         /// </summary>
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
-        /// <summary>
-        /// Các phiếu sửa chữa do người dùng này tạo
-        /// </summary>
-        public ICollection<JobCard> CreatedJobCards { get; set; } = new List<JobCard>();
-
-        /// <summary>
-        /// Các phiếu sửa chữa do người dùng này cập nhật
-        /// </summary>
-        public ICollection<JobCard> UpdatedJobCards { get; set; } = new List<JobCard>();
-
-        /// <summary>
-        /// Các phân công thợ máy mà người dùng này là thợ được gán
-        /// </summary>
-        public ICollection<JobCardMechanic> AssignedMechanics { get; set; } = new List<JobCardMechanic>();
     }
 }

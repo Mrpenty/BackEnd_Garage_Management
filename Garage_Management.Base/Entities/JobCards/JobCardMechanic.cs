@@ -11,9 +11,7 @@ namespace Garage_Management.Base.Entities.JobCards
     public class JobCardMechanic
     {
         public int JobCardId { get; set; }
-
         public int UserId { get; set; }    
-
 
         /// <summary>
         /// Phiếu sửa chữa mà thợ này được phân công
