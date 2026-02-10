@@ -130,7 +130,7 @@ namespace Garage_Management.Application.Repositories.Accounts
             {
                 throw new DirectoryNotFoundException("Không tìm thấy user với phone number: " + user.PhoneNumber);
             }
-            userIdentity.RoleId = user.RoleId;
+            //userIdentity.RoleId = user.RoleId;
             userIdentity.UpdatedAt = DateTime.UtcNow;
             var result = userManager.UpdateAsync(userIdentity);
             return Task.FromResult(result.Result.Succeeded);

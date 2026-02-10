@@ -54,7 +54,7 @@ namespace Garage_Management.Base.Entities.Accounts
         /// <summary>
         /// Các phiếu sửa chữa mà lễ tân tạo ra 
         /// </summary>
-        public ICollection<JobCard> CreatedJobCards { get; set; } = new List<JobCard>();
+       // public ICollection<JobCard> CreatedJobCards { get; set; } = new List<JobCard>();
 
         /// <summary>
         /// Các phiếu sửa chữa mà supervisor giám sát

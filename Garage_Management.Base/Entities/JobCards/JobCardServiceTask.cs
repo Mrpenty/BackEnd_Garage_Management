@@ -32,7 +32,7 @@ namespace Garage_Management.Base.Entities.JobCards
         /// <summary>
         /// Có phải công việc tùy chọn không (khách hàng có thể chọn/không chọn)
         /// </summary>
-        public bool IsOptional { get; set; } = false;
+        public bool? IsOptional { get; set; } = false;
 
         /// <summary>
         /// Thời gian bắt đầu thực hiện công việc này
@@ -53,7 +53,7 @@ namespace Garage_Management.Base.Entities.JobCards
         /// Thợ máy được giao thực hiện công việc này
         /// </summary>
         public int? PerformedById { get; set; }
-        public User? PerformedBy { get; set; }
+        public Employee? PerformedBy { get; set; }
 
     }
 }

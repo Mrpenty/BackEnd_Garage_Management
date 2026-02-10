@@ -41,6 +41,7 @@ namespace Garage_Management.Base.Data.Configurations.Accounts
 
             builder.Property(a => a.Description)
                 .HasMaxLength(500);
+
         }
     }
 }

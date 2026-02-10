@@ -1,4 +1,5 @@
 using FluentValidation;
+using Garage_Management.API.Extensions;
 using Garage_Management.Application;
 using Garage_Management.Base.Data;
 using Garage_Management.Infrastructure;
@@ -7,10 +8,8 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Conction string + DbContext
-var connectionString =
-    builder.Configuration.GetConnectionString("Mycnn")
-        ?? throw new InvalidOperationException("Mycnn"
-        + "'Mycnn' not found.");
+var connectionString = builder.Configuration.GetConnectionString("Mycnn")
+    ?? throw new InvalidOperationException("Connection string 'Mycnn' not found.");
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -23,7 +22,11 @@ builder.Services.AddInfrastructureDependency(connectionString);
 builder.Services.AddApplicationServices();
 builder.Services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyReference).Assembly);
 // Add services extensions
-
+builder.Services.AddIdentityServices();
+builder.Services.AddCorsServices(builder.Configuration, builder.Environment);
+builder.Services.AddSwaggerServices();
+builder.Services.AddDependencyInjectionServices();
+builder.Services.AddAuthenticationServices(builder.Configuration);
 
 
 
@@ -42,7 +45,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -25,11 +25,6 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
                 .HasForeignKey(jl => jl.JobCardId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Quan hệ N-1: User thực hiện hành động
-            builder.HasOne(jl => jl.User)
-                .WithMany()
-                .HasForeignKey(jl => jl.UserId)
-                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

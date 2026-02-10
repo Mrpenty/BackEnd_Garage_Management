@@ -12,27 +12,27 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
     {
         public void Configure(EntityTypeBuilder<JobCardMechanic> builder)
         {
-            builder.HasKey(jm => new { jm.JobCardId, jm.UserId });
+            builder.HasKey(jm => new { jm.JobCardId, jm.EmployeeId });
             builder.Property(jm => jm.Note)
                 .HasMaxLength(500);
 
-            // Quan hệ N-1: JobCardMechanic thuộc một JobCard
+            // Quan hệ N-1: JobCardMechanic thuộc một JobCard (xóa phiếu → xóa phân công)
             builder.HasOne(jm => jm.JobCard)
                 .WithMany(j => j.Mechanics)
                 .HasForeignKey(jm => jm.JobCardId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Quan hệ N-1: Thợ máy (User) được phân công
-            builder.HasOne(jm => jm.User)
-                .WithMany(u => u.AssignedMechanics)
-                .HasForeignKey(jm => jm.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction);
+            // Employee → JobCardMechanic: Restrict (không cho xóa nhân viên nếu còn phân công)
+            builder.HasOne(jm => jm.Employee)                   
+                   .WithMany(e => e.AssignedJobCards)
+                   .HasForeignKey(jm => jm.EmployeeId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             // Quan hệ N-1: Người phân công thợ (audit)
             builder.HasOne(jm => jm.AssignedByUser)
                 .WithMany()
                 .HasForeignKey(jm => jm.AssignedBy)
                 .OnDelete(DeleteBehavior.SetNull);
+
         }
     }
 }

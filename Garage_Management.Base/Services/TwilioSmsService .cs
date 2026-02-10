@@ -16,8 +16,8 @@ namespace Garage_Management.Base.Services
 
         public TwilioSmsService(IConfiguration configuration)
         {
-            _accountSid = configuration["Twilio:AccountSid"];
-            _authToken = configuration["Twilio:AuthToken"];
+            _accountSid = configuration["Twilio:AccountSid"]!;
+            _authToken = configuration["Twilio:AuthToken"]!;
             _twilioPhoneNumber = configuration["Twilio:PhoneNumber"];
         }
 
@@ -71,7 +71,7 @@ namespace Garage_Management.Base.Services
             }
 
             // Xóa OTP sau khi verify thành công
-            _cache.Remove(cacheKey);
+             _cache.Remove(cacheKey);
             return true;
         }
         public async Task SendNotificationAsync(string phoneNumber, string notification)

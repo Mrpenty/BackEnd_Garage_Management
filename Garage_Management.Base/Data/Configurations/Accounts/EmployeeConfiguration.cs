@@ -20,24 +20,6 @@ namespace Garage_Management.Base.Data.Configurations.Accounts
                 .WithOne()
                 .HasForeignKey<Employee>(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // Quan hệ N-1: Người tạo bản ghi (audit)
-            builder.HasOne(e => e.CreatedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Quan hệ N-1: Người cập nhật (audit)
-            builder.HasOne(e => e.UpdatedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.UpdatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Quan hệ N-1: Người xóa mềm (audit)
-            builder.HasOne(e => e.DeletedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.DeletedBy)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

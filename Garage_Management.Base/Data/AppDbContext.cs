@@ -20,7 +20,7 @@ namespace Garage_Management.Base.Data
         }
 
         // DbSet - Accounts
-        public DbSet<User> Users => Set<User>();
+       // public DbSet<User> Users => Set<User>();
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Appointment> Appointments => Set<Appointment>();
@@ -66,6 +66,7 @@ namespace Garage_Management.Base.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            InitialSeed.Seed(modelBuilder);
         }
     }
 }

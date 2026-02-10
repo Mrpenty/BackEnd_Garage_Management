@@ -34,7 +34,7 @@ namespace Garage_Management.Base.Services
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                new(ClaimTypes.Name, user.Username ?? string.Empty),
+                new(ClaimTypes.Name, user.UserName ?? string.Empty),
                 new(ClaimTypes.Email, user.Email),
             };
             const string issuer = "MGMS.API";

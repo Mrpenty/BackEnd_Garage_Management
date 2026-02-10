@@ -17,8 +17,6 @@ namespace Garage_Management.Base.Entities.Accounts
     /// </summary>
     public class User : IdentityUser<int>
     {
-        public string Username { get; set; } = string.Empty;
-
         ///// <summary>
         ///// Địa chỉ email dùng cho tài khoản 
         ///// </summary>

@@ -24,7 +24,7 @@ namespace Garage_Management.API.Extensions
                         ValidateAudience = true,
                         ValidAudience = configuration["Jwt:Audience"],
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
                         NameClaimType = JwtRegisteredClaimNames.Sub,
                         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
                         ValidateLifetime = true // Đảm bảo kiểm tra thời gian hết hạn

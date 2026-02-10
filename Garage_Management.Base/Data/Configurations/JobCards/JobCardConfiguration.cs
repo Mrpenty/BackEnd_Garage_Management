@@ -39,7 +39,7 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
             builder.HasOne(j => j.Supervisor)
                 .WithMany()
                 .HasForeignKey(j => j.SupervisorId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Quan hệ 1-N: JobCard có nhiều JobCardService
             builder.HasMany(j => j.Services)

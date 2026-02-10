@@ -58,12 +58,13 @@ namespace Garage_Management.Base.Entities.JobCards
         /// supervisor cho phiếu sửa chữa
         /// </summary>
         public int? SupervisorId { get; set; }
-        public User? Supervisor { get; set; }
+        public Employee? Supervisor { get; set; }
 
         /// <summary>
         /// Người tạo phiếu 
         /// </summary>
-        public User CreatedByUser { get; set; } = null!;
+        public int? CreatedByEmployeeId { get; set; }
+        public Employee CreatedByUser { get; set; } = null!;
 
         // Navigation
         /// <summary>
