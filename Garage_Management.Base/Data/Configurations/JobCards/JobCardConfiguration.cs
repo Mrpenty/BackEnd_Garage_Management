@@ -41,11 +41,11 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
                 .HasForeignKey(j => j.SupervisorId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Quan hệ N-1: Người tạo phiếu (audit)
-            builder.HasOne(j => j.CreatedByUser)
-                .WithMany(u => u.CreatedJobCards)
-                .HasForeignKey(j => j.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Quan hệ 1-N: JobCard có nhiều JobCardService
+            builder.HasMany(j => j.Services)
+                   .WithOne(js => js.JobCard)
+                   .HasForeignKey(js => js.JobCardId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
