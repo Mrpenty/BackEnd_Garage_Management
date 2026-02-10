@@ -5,7 +5,7 @@ using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 
-namespace Garage_Management.Base.Service
+namespace Garage_Management.Base.Services
 {
     public class TwilioSmsService : ISmsService
     {

@@ -35,13 +35,6 @@ namespace Garage_Management.Base.Entities.Accounts
         public DateTime? RefreshTokenExpiryTime { get; set; }
 
         /// <summary>
-        /// Vai trò (Role) của người dùng trong hệ thống
-        /// </summary>
-        public int RoleId { get; set; }
-      
-        public Role Role { get; set; } = null!;
-
-        /// <summary>
         /// Cờ đánh dấu tài khoản đang hoạt động hay đã bị khóa
         /// </summary>
         public bool IsActive { get; set; } = true;

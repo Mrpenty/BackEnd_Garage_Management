@@ -22,9 +22,8 @@ builder.Services.AddControllers();
 builder.Services.AddInfrastructureDependency(connectionString);
 builder.Services.AddApplicationServices();
 builder.Services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyReference).Assembly);
-
-
 // Add services extensions
+
 
 
 

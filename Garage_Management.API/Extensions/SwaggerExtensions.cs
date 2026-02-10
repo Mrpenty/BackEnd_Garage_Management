@@ -33,7 +33,7 @@ namespace Garage_Management.API.Extensions
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Real Estate Management API V1");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Garage Management System API V1");
                 });
             }
             return app;

@@ -11,7 +11,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Garage_Management.Base.Service
+namespace Garage_Management.Base.Services
 {
     public class GenerateToken : IGenerateToken
     {
@@ -33,12 +33,12 @@ namespace Garage_Management.Base.Service
 
             var claims = new List<Claim>
             {
-                new(ClaimTypes.NameIdentifier, user.UserId.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                new(ClaimTypes.NameIdentifier, user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 new(ClaimTypes.Name, user.Username ?? string.Empty),
                 new(ClaimTypes.Email, user.Email),
             };
-            const string issuer = "EAM.API";
-            const string audience = "EAM.Client";
+            const string issuer = "MGMS.API";
+            const string audience = "MGMS.Client";
 
             var token = new JwtSecurityToken(
                 issuer: issuer,
