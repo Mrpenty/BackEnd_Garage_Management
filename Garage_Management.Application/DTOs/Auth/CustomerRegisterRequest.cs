@@ -9,6 +9,10 @@ namespace Garage_Management.Application.DTOs.Auth
 {
     public class CustomerRegisterRequest
     {
+        public string FirstName { get; set; } = string.Empty;
+
+        public string LastName { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         public string PhoneNumber { get; set; } = string.Empty;
@@ -18,10 +22,19 @@ namespace Garage_Management.Application.DTOs.Auth
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$",
             ErrorMessage = "Mật khẩu phải có ít nhất 1 chữ hoa, 1 chữ thường và 1 số")]
         public string Password { get; set; } = string.Empty;
+    }
 
-        //[Required(ErrorMessage = "Vui lòng nhập xác nhận mật khẩu")]
-        //[Compare("Password", ErrorMessage = "MSG08")] 
-        //public string ConfirmPassword { get; set; } = string.Empty;
+    public class VerifyOtpRequest
+    {
+        [Required]
+        public int UserId { get; set; }
 
+        [Required]
+        public string Otp { get; set; } = string.Empty;
+    }
+    public class ResendOtpRequest
+    {
+        [Required]
+        public string PhoneNumber { get; set; } = string.Empty;
     }
 }

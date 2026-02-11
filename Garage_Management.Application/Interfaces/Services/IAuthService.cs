@@ -19,8 +19,16 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <summary>
         /// Gửi mã OTP đến số điện thoại của khách hàng
         /// </summary>
-        Task<ApiResponse<User>> SendOtpAsync(string phoneOrEmail, CancellationToken cancellationToken = default);
+        Task<ApiResponse<User>> SendOtpLoginAsync(string phoneOrEmail, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Duyệt OTP đến số điện thoại dk của khách hàng
+        /// </summary>
+        Task<ApiResponse<User>> VerifyOtpAndActivateAsync(VerifyOtpRequest request, CancellationToken ct = default);
 
+        /// <summary>
+        /// Gửi lại mã OTP đến số điện thoại của khách hàng
+        /// </summary>
+        Task<ApiResponse<object>> ResendOtpAsync(ResendOtpRequest request, CancellationToken ct = default);
         /// <summary>
         /// Đăng nhập cho nhân viên gara (Email + Password)
         /// </summary>
@@ -34,7 +42,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <summary>
         /// Đăng xuất người dùng hiện tại
         /// </summary>
-        Task LogoutAsync();
+        Task<ApiResponse<object>> LogoutAsync();
 
         /// <summary>
         /// Yêu cầu đặt lại mật khẩu (gửi link hoặc OTP reset)
@@ -44,6 +52,6 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <summary>
         /// Thực hiện đặt lại mật khẩu mới bằng token
         /// </summary>
-      //  Task<ApiResponse<User>> ResetPasswordAsync(ResetPasswordRequest dto, CancellationToken cancellationToken = default);
+        Task<ApiResponse<User>> ChangePasswordAsync(ChangePasswordRequest dto, CancellationToken cancellationToken = default);
     }
 }

@@ -8,9 +8,9 @@ namespace Garage_Management.Base.Interface
 {
     public interface ISmsService
     {
-        Task SendOtpAsync(string phoneNumber, string otp);
+        Task<(bool Success, string Message)> SendOtpAsync(string phoneNumber);
         Task SendSmsAsync(string phoneNumber, string message);
         Task SendNotificationAsync(string phoneNumber, string notification);
-        Task<bool> VerifyOtpAsync(int userId, string otp);
+        Task<(bool IsValid, string Message)> VerifyOtpAsync(string phoneNumber, string code);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Garage_Management.Base.Entities.Accounts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,11 @@ namespace Garage_Management.Base.Common.Models
         public static ApiResponse<T> ErrorResponse(string message)
         {
             return new ApiResponse<T> { Success = false, Message = message };
+        }
+
+        public static ApiResponse<User> SuccessResponse(object value, string v)
+        {
+            throw new NotImplementedException();
         }
     }
 }
