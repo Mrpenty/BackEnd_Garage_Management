@@ -14,25 +14,22 @@ namespace Garage_Management.Application.Repositories.Accounts
 {
     public class UserRepository : BaseRepository<User>, IUserRepository
     {
-        private readonly UserManager<User> userManager;
-        private readonly RoleManager<User> roleManager;
-        public UserRepository(AppDbContext dbContext) : base(dbContext)
-        {
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
 
+        public UserRepository(AppDbContext dbContext,UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager): base(dbContext)
+        {
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
         }
         public async Task<bool> CheckPasswordAsync(User user, string password)
-        {   
-            var res = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
-            if (res == null)
-            {
-                return false;
-            }
-            var result = await userManager.CheckPasswordAsync(res, password);
-            return result;
+        {
+            ArgumentNullException.ThrowIfNull(user);    
+            return await _userManager.CheckPasswordAsync(user, password);
         }
         public async Task<User> CreateAsync(User entity, CancellationToken cancellationToken)
         {
-            var result = await userManager.CreateAsync(entity, entity.PasswordHash).ConfigureAwait(false);
+            var result = await _userManager.CreateAsync(entity, entity.PasswordHash).ConfigureAwait(false);
             if (!result.Succeeded)
             {
                 throw new InvalidOperationException("Tạo user thất bại: " + string.Join("; ", result.Errors.Select(static e => e.Description)));
@@ -42,33 +39,33 @@ namespace Garage_Management.Application.Repositories.Accounts
         }
         public async Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
-            var res = await userManager.Users.AnyAsync(u => u.Email == email, cancellationToken);
+            var res = await _userManager.Users.AnyAsync(u => u.Email == email, cancellationToken);
             return res;
         }
         public async Task<bool> ExistsByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default)
         {
-            var res = await userManager.Users.AnyAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
+            var res = await _userManager.Users.AnyAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
             return res;
         }
         public async Task<string> GeneratePasswordResetTokenAsync(User user)
         {
-            var userIdentity = await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == user.PhoneNumber);
+            var userIdentity = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == user.PhoneNumber);
             if (userIdentity is null)
             {
                 throw new DirectoryNotFoundException("Không tìm thấy user với phone number: " + user.PhoneNumber);
             }
 
-            var result = await userManager.GeneratePasswordResetTokenAsync(userIdentity);
+            var result = await _userManager.GeneratePasswordResetTokenAsync(userIdentity);
             return result;
         }
         public async Task<string?> GetRoleNameByUser(User user)
         {
-            var userIdentity = await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == user.PhoneNumber);
+            var userIdentity = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == user.PhoneNumber);
             if (userIdentity is null)
             {
                 throw new DirectoryNotFoundException("Không tìm thấy user với phone number: " + user.PhoneNumber);
             }
-            var roles = await userManager.GetRolesAsync(userIdentity);
+            var roles = await _userManager.GetRolesAsync(userIdentity);
             return roles.FirstOrDefault();
         }
         public Task<User?> GetUserByUsernameAsync(string username)
@@ -81,29 +78,29 @@ namespace Garage_Management.Application.Repositories.Accounts
         }
         public async Task<bool> ResetPasswordAsync(User user, string token, string newPassword)
         {
-            var userIdentity = await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == user.PhoneNumber);
+            var userIdentity = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == user.PhoneNumber);
             if (userIdentity is null)
             {
                 throw new DirectoryNotFoundException("Không tìm thấy user với phone number: " + user.PhoneNumber);
             }
 
-            var he = await userManager.ResetPasswordAsync(userIdentity, token, newPassword);
+            var he = await _userManager.ResetPasswordAsync(userIdentity, token, newPassword);
             return he.Succeeded;
         }
         public async Task<bool> SetAuthenTokenAsync(User user, string authProvider, string authTokenName, string token)
         {
-            var result = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
+            var result = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
             if (result is null)
             {
                 throw new DirectoryNotFoundException("Không tìm thấy user với phone number: " + user.PhoneNumber);
             }
 
-            var setTokenResult = await userManager.SetAuthenticationTokenAsync(result, authProvider, authTokenName, token);
+            var setTokenResult = await _userManager.SetAuthenticationTokenAsync(result, authProvider, authTokenName, token);
             return setTokenResult.Succeeded;
         }
         public Task<bool> SoftDeleteAsync(int userId, int? deletedBy, CancellationToken cancellationToken = default)
         {
-           var user = userManager.Users.FirstOrDefault(u => u.Id == userId);
+           var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null)
             {
                 throw new DirectoryNotFoundException("Không tìm thấy user với Id: " + userId);
@@ -111,7 +108,7 @@ namespace Garage_Management.Application.Repositories.Accounts
             user.IsActive = false;
             user.DeletedAt = DateTime.UtcNow;
             user.DeletedBy = deletedBy;
-            var result = userManager.UpdateAsync(user);
+            var result = _userManager.UpdateAsync(user);
             return Task.FromResult(result.Result.Succeeded);
         }
         public Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default)
@@ -119,21 +116,30 @@ namespace Garage_Management.Application.Repositories.Accounts
             if (user == null) throw new ArgumentNullException(nameof(user));
 
             user.UpdatedAt = DateTime.UtcNow;
-            var result = userManager.UpdateAsync(user);
+            var result = _userManager.UpdateAsync(user);
             return Task.FromResult(result.Result.Succeeded);
 
         }
-        public Task<bool> UpdateRole(User user)
+        public async Task<bool> UpdateRole(User user)
         {
-            var userIdentity = userManager.Users.FirstOrDefault(u => u.PhoneNumber == user.PhoneNumber);
-            if (userIdentity == null)
+            ArgumentNullException.ThrowIfNull(user);
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Any())
             {
-                throw new DirectoryNotFoundException("Không tìm thấy user với phone number: " + user.PhoneNumber);
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
             }
-            //userIdentity.RoleId = user.RoleId;
-            userIdentity.UpdatedAt = DateTime.UtcNow;
-            var result = userManager.UpdateAsync(userIdentity);
-            return Task.FromResult(result.Result.Succeeded);
+
+            var role = await _roleManager.FindByNameAsync("Customer"); 
+            if (role != null)
+            {
+                await _userManager.AddToRoleAsync(user, role.Name!);
+            }
+
+            user.UpdatedAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            return true;
         }
     }
 }

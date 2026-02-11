@@ -1,6 +1,7 @@
 using FluentValidation;
 using Garage_Management.API.Extensions;
 using Garage_Management.Application;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
 using Garage_Management.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddInfrastructureDependency(connectionString);
 builder.Services.AddApplicationServices();
 builder.Services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyReference).Assembly);
+builder.Services.Configure<JwtConfiguration>(builder.Configuration.GetSection("Jwt"));
 // Add services extensions
 builder.Services.AddIdentityServices();
 builder.Services.AddCorsServices(builder.Configuration, builder.Environment);

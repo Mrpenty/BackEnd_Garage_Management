@@ -22,6 +22,20 @@ namespace Garage_Management.API.Extensions
                     BearerFormat = "JWT",
                     Scheme = "Bearer"
                 });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type=ReferenceType.SecurityScheme,
+                            Id="Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
             });
             return services;
         }
