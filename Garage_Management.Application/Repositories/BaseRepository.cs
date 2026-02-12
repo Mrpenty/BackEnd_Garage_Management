@@ -1,5 +1,6 @@
-﻿using Garage_Management.Base.Interface;
-using Garage_Management.Infrastructure.Data;
+﻿using Garage_Management.Base.Data;
+using Garage_Management.Base.Interface;
+//using Garage_Management.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
