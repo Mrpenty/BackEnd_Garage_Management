@@ -12,7 +12,6 @@ namespace Garage_Management.Base.Entities.Inventories
     /// </summary>
     public class Inventory : AuditableEntity
     {
-     
         public int SparePartId { get; set; }
 
         /// <summary>

@@ -28,17 +28,17 @@ namespace Garage_Management.Base.Entities.JobCards
         /// <summary>
         /// Người thực hiện hành động
         /// </summary>
-        public int? UserId { get; set; }
+        public Employee? UserId { get; set; }
 
         /// <summary>
         /// Tài khoản người dùng thực hiện
         /// </summary>
-        public User? User { get; set; }
+        public Employee? User { get; set; }
 
         /// <summary>
         /// Mô tả hành động (tạo phiếu, cập nhật trạng thái, thêm dịch vụ, v.v.)
         /// </summary>
-        public string Action { get; set; } = string.Empty;
+        public string? Action { get; set; } = string.Empty;
 
         /// <summary>
         /// Ghi chú chi tiết thêm (nếu cần)

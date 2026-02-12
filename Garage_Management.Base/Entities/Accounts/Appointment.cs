@@ -12,13 +12,8 @@ namespace Garage_Management.Base.Entities.Accounts
     /// </summary>
     public class Appointment : AuditableEntity
     {
-      
         public int AppointmentId { get; set; }
-
-     
         public int CustomerId { get; set; }
-
-       
         public Customer Customer { get; set; } = null!;
 
         /// <summary>
@@ -39,7 +34,7 @@ namespace Garage_Management.Base.Entities.Accounts
         /// <summary>
         /// Tài khoản người dùng của nhân viên tạo lịch hẹn
         /// </summary>
-        public User? CreatedByUser { get; set; }
+        public Employee? CreatedByUser { get; set; }
 
         /// <summary>
         /// Thời gian hẹn (ngày + giờ) mà khách hàng đến gara
@@ -56,16 +51,6 @@ namespace Garage_Management.Base.Entities.Accounts
         /// Ghi chú từ khách hàng hoặc nhân viên (mô tả vấn đề xe, yêu cầu đặc biệt...)
         /// </summary>
         public string? Description { get; set; }
-
-        /// <summary>
-        /// Tham chiếu đến phiếu sửa chữa nếu lịch hẹn đã được chuyển đổi
-        /// </summary>
-        public int? JobCardId { get; set; }
-
-        /// <summary>
-        /// Phiếu sửa chữa được tạo ra từ lịch hẹn (nếu có)
-        /// </summary>
-        public JobCard? JobCard { get; set; }
 
         /// <summary>
         /// Tài khoản người dùng tương ứng với UpdatedBy
