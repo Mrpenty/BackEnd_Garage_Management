@@ -36,16 +36,36 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Quan hệ N-1: Supervisor giám sát phiếu
-            builder.HasOne(j => j.Supervisor)
-                .WithMany()
-                .HasForeignKey(j => j.SupervisorId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasOne(j => j.Supervisor)
+            //    .WithMany()
+            //    .HasForeignKey(j => j.SupervisorId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
             // Quan hệ 1-N: JobCard có nhiều JobCardService
             builder.HasMany(j => j.Services)
                    .WithOne(js => js.JobCard)
                    .HasForeignKey(js => js.JobCardId)
                    .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(j => j.CreatedByUser)
+       .WithMany(e => e.CreatedJobCards)
+       .HasForeignKey(j => j.CreatedByEmployeeId)
+       .OnDelete(DeleteBehavior.Restrict)
+           .HasConstraintName("FK_JobCards_Employees_CreatedByUserEmployeeId");
+
+            builder.HasOne(j => j.CreatedByUserEmployee)
+       .WithMany()
+       .HasForeignKey(j => j.CreatedByUserEmployeeId)
+       .OnDelete(DeleteBehavior.Restrict);
+
+
+            builder.HasOne(j => j.Supervisor)
+                   .WithMany(e => e.SupervisedJobCards)
+                   .HasForeignKey(j => j.SupervisorId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+
+
+
         }
     }
 }

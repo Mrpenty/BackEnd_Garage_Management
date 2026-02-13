@@ -65,6 +65,8 @@ namespace Garage_Management.Base.Entities.JobCards
         /// </summary>
         public int? CreatedByEmployeeId { get; set; }
         public Employee CreatedByUser { get; set; } = null!;
+        public int? CreatedByUserEmployeeId { get; set; }
+        public Employee? CreatedByUserEmployee { get; set; }
 
         // Navigation
         /// <summary>
