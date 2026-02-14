@@ -26,9 +26,11 @@ namespace Garage_Management.Base.Common.Models
             return new ApiResponse<T> { Success = false, Message = message };
         }
 
-        public static ApiResponse<User> SuccessResponse(object value, string v)
-        {
-            throw new NotImplementedException();
-        }
+
+        // public static ApiResponse<User> SuccessResponse(object value, string v)
+        // {
+        //     throw new NotImplementedException();
+        // }
+        // Remove the placeholder overload to avoid runtime errors.
     }
 }

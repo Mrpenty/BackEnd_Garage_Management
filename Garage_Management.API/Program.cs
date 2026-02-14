@@ -1,5 +1,6 @@
 using FluentValidation;
 using Garage_Management.API.Extensions;
+using Garage_Management.API.Middlewares;
 using Garage_Management.Application;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
@@ -46,6 +47,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

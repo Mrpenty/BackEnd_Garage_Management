@@ -1,0 +1,71 @@
+using Garage_Management.Application.DTOs.Vehicles.VehicleBrand;
+using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Garage_Management.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class VehicleBrandsController : ControllerBase
+    {
+        private readonly IVehicleBrandService _service;
+
+        public VehicleBrandsController(IVehicleBrandService service)
+        {
+            _service = service;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<PagedResult<VehicleBrandResponse>>>> GetPaged(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken ct = default)
+        {
+            var data = await _service.GetPagedAsync(page, pageSize, ct);
+            return Ok(ApiResponse<PagedResult<VehicleBrandResponse>>.SuccessResponse(data, "OK"));
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> GetById(int id, CancellationToken ct = default)
+        {
+            var data = await _service.GetByIdAsync(id, ct);
+            if (data == null)
+                return NotFound(ApiResponse<VehicleBrandResponse>.ErrorResponse("VehicleBrand not found"));
+
+            return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "OK"));
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> Create(
+            [FromBody] VehicleBrandCreateRequest request,
+            CancellationToken ct = default)
+        {
+            var data = await _service.CreateAsync(request, ct);
+            return CreatedAtAction(nameof(GetById), new { id = data.BrandId }, ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Created"));
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> Update(
+            int id,
+            [FromBody] VehicleBrandUpdate request,
+            CancellationToken ct = default)
+        {
+            var data = await _service.UpdateAsync(id, request, ct);
+            if (data == null)
+                return NotFound(ApiResponse<VehicleBrandResponse>.ErrorResponse("VehicleBrand not found"));
+
+            return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Updated"));
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
+        {
+            var ok = await _service.DeleteAsync(id, ct);
+            if (!ok)
+                return NotFound(ApiResponse<object>.ErrorResponse("VehicleBrand not found"));
+
+            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
+        }
+    }
+}
