@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\Inventories\" />
     <Folder Include="Repositories\Warranties\" />
     <Folder Include="Repositories\Vehiclies\" />
     <Folder Include="Repositories\RepairEstimaties\" />

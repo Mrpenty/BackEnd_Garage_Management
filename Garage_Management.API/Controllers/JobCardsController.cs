@@ -1,5 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
-using Garage_Management.Application.Services.JobCards;
+using Garage_Management.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
@@ -22,12 +22,12 @@ namespace Garage_Management.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("active")]
+        public async Task<IActionResult> GetActive()
         {
-            var result = await _service.GetAllAsync();
-            return Ok(result);
+            return Ok(await _service.GetActiveAsync());
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -42,6 +42,46 @@ namespace Garage_Management.API.Controllers
             var result = await _service.UpdateStatusAsync(id, dto.Status, cancellationToken);
 
             if (!result) return NotFound();
+
+            return NoContent();
+        }
+        [HttpPost("{id}/assign-mechanic")]
+        public async Task<IActionResult> AssignMechanic( int id,AssignMechanicDto dto,CancellationToken cancellationToken)
+        {
+            var result = await _service.AssignMechanicAsync(id, dto, cancellationToken);
+
+            if (!result) return NotFound();
+
+            return NoContent();
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id,[FromBody] UpdateJobCardDto dto,CancellationToken cancellationToken)
+        {
+            var result = await _service.UpdateAsync(id, dto, cancellationToken);
+
+            if (!result)
+                return NotFound();
+
+            return NoContent();
+        }
+        [HttpPost("{id}/services")]
+        public async Task<IActionResult> AddService( int id, AddServiceToJobCardDto dto, CancellationToken cancellationToken)
+        {
+            var result = await _service.AddServiceAsync(id, dto, cancellationToken);
+
+            if (!result) return BadRequest();
+
+            return NoContent();
+        }
+
+        [HttpPost("{id}/spare-parts")]
+        public async Task<IActionResult> AddSparePart(int id, AddSparePartToJobCardDto dto, CancellationToken cancellationToken)
+        {
+            var result = await _service.AddSparePartAsync(id, dto, cancellationToken);
+
+            if (!result) return BadRequest();
 
             return NoContent();
         }
