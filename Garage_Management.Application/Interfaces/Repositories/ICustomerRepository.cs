@@ -10,5 +10,6 @@ namespace Garage_Management.Application.Interfaces.Repositories
 {
     public interface ICustomerRepository : IBaseRepository<Customer>
     {
+        Task<Customer?> GetByUserIdAsync(int userId, CancellationToken ct = default);
     }
 }

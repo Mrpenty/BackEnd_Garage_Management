@@ -43,10 +43,10 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var brand = await _brandRepo.GetByIdAsync(request.BrandId);
             if (brand == null)
-                throw new InvalidOperationException("BrandId kh�ng t?n t?i");
+                throw new InvalidOperationException("BrandId không tồn tại");
 
             if (await _repo.ExistsAsync(request.BrandId, request.ModelName, null, ct))
-                throw new InvalidOperationException("ModelName d� t?n t?i trong Brand n�y");
+                throw new InvalidOperationException("ModelName đã tồn tại trong Brand này");
 
             var entity = new VehicleModel
             {
@@ -66,10 +66,10 @@ namespace Garage_Management.Application.Services.Vehicles
 
             var brand = await _brandRepo.GetByIdAsync(request.BrandId);
             if (brand == null)
-                throw new InvalidOperationException("BrandId kh�ng t?n t?i");
+                throw new InvalidOperationException("BrandId không tồn tại");
 
             if (await _repo.ExistsAsync(request.BrandId, request.ModelName, id, ct))
-                throw new InvalidOperationException("ModelName d� t?n t?i trong Brand n�y");
+                throw new InvalidOperationException("ModelName đã tồn tại trong Brand này");
 
             entity.BrandId = request.BrandId;
             entity.ModelName = request.ModelName.Trim();

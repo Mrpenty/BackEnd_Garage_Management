@@ -8,6 +8,5 @@ namespace Garage_Management.Application.DTOs.Vehicles
         public string? LicensePlate { get; set; }
         public int? Year { get; set; }
         public string? Vin { get; set; }
-        public int? CreatedBy { get; set; }
     }
 }

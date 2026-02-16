@@ -1,21 +1,25 @@
-using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.DTOs.Vehicles;
+using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Vehiclies;
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Garage_Management.Application.Services.Vehicles
 {
     public class VehicleService : IVehicleService
     {
         private readonly IVehicleRepository _repo;
+        private readonly ICustomerRepository _customerRepo;
 
-        public VehicleService(IVehicleRepository repo)
+        public VehicleService(IVehicleRepository repo, ICustomerRepository customerRepo)
         {
             _repo = repo;
+            _customerRepo = customerRepo;
         }
 
         public async Task<VehicleResponse?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -50,6 +54,13 @@ namespace Garage_Management.Application.Services.Vehicles
 
         public async Task<VehicleResponse> CreateAsync(VehicleCreateRequest request, CancellationToken ct = default)
         {
+            if (request.CustomerId <= 0)
+                throw new InvalidOperationException("Thiếu CustomerId");
+
+            var customer = await _customerRepo.GetByIdAsync(request.CustomerId);
+            if (customer == null)
+                throw new InvalidOperationException("CustomerId không tồn tại");
+
             var entity = new Vehicle
             {
                 CustomerId = request.CustomerId,
