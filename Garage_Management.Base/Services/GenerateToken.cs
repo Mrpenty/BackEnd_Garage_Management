@@ -75,5 +75,7 @@ namespace Garage_Management.Base.Services
         public string GetAuthToken() => this.jwtConfig.AuthTokenName;
 
         public int GetExpireToken() => 60;
+
+       
     }
 }

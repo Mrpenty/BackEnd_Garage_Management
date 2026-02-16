@@ -7,15 +7,18 @@ using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Interface;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Twilio.Jwt.AccessToken;
 using Twilio.Types;
 
 namespace Garage_Management.Application.Services.Accounts
@@ -26,11 +29,14 @@ namespace Garage_Management.Application.Services.Accounts
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly IGenerateToken _tokenGenerator;
+        private readonly ITokenCookieService _tokenCookieService;
         private readonly ISmsService _smsService;
         private readonly IUserRepository _userRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
 
 
         public AuthService(
@@ -38,19 +44,24 @@ namespace Garage_Management.Application.Services.Accounts
             SignInManager<User> signInManager,
             RoleManager<IdentityRole<int>> roleManager,
             IGenerateToken tokenGenerator,
+            ITokenCookieService tokenCookieService,
             ISmsService smsService,
             IConfiguration configuration,
             IUserRepository userRepository,
-            ICustomerRepository customerRepository)
+            ICustomerRepository customerRepository,
+            IHttpContextAccessor httpContextAccessor
+            )
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _tokenGenerator = tokenGenerator;
-            _smsService = smsService;           
+            _tokenCookieService = tokenCookieService;
+            _smsService = smsService;
             _configuration = configuration;
             _userRepository = userRepository;
             _customerRepository = customerRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Task<ApiResponse<User>> ForgotPasswordAsync(string Phone, CancellationToken cancellationToken = default)
@@ -65,7 +76,7 @@ namespace Garage_Management.Application.Services.Accounts
 
             if (user == null)
             {
-                return new ApiResponse<LoginResponse>{Success = false, Message = "MSG04"};
+                return new ApiResponse<LoginResponse>{Success = false, Message = "Tài khoản không tồn tại"};
             }
             if (!user.IsActive)
             {
@@ -98,6 +109,12 @@ namespace Garage_Management.Application.Services.Accounts
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
                 await _userManager.UpdateAsync(user);
 
+                _tokenCookieService.SetTokenCookie(new TokenDTO
+                {
+                    AccessToken = token,
+                    RefreshToken = refreshToken
+                }, _httpContextAccessor.HttpContext);
+
                 return ApiResponse<LoginResponse>.SuccessResponse(new LoginResponse
                 {
                     UserId = user.Id,
@@ -105,6 +122,7 @@ namespace Garage_Management.Application.Services.Accounts
                     PhoneNumber = user.PhoneNumber,
                     Email = user.Email,
                     Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Customer",
+                    IsActive = user.IsActive,
                     AccessToken = token,
                     RefreshToken = refreshToken
                 }, "Đăng nhập thành công");
@@ -126,15 +144,22 @@ namespace Garage_Management.Application.Services.Accounts
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
                 await _userManager.UpdateAsync(user);
 
-                return ApiResponse<LoginResponse>.SuccessResponse(new LoginResponse
+                _tokenCookieService.SetTokenCookie(new TokenDTO
                 {
                     AccessToken = token,
-                    RefreshToken = refreshToken,
+                    RefreshToken = refreshToken
+                }, _httpContextAccessor.HttpContext);
+
+                return ApiResponse<LoginResponse>.SuccessResponse(new LoginResponse
+                {
                     UserId = user.Id,
                     PhoneNumber = user.PhoneNumber,
+                    IsActive = user.IsActive,
                     Email = user.Email,
                     FullName = user.UserName ?? "",
-                    Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Customer"
+                    Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Customer",
+                    AccessToken = token,
+                    RefreshToken = refreshToken,
                 }, "Đăng nhập thành công");
             }
 
@@ -166,15 +191,45 @@ namespace Garage_Management.Application.Services.Accounts
 
             var result = await _signInManager.CheckPasswordSignInAsync(user,dto.Password,lockoutOnFailure: true);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                return new ApiResponse<LoginResponse>{Success = true,Message = "Đăng nhập thành công"};
+                return new ApiResponse<LoginResponse>{Success = true,Message = "Email hoặc mật khẩu không chính xác." };
             }
-            return new ApiResponse<LoginResponse>{Success = false,Message = "thông tin không chính xác." };
+            var accessToken = _tokenGenerator.GenerateJwtToken(user);
+            var refreshToken = _tokenGenerator.GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            var updateResult = await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                var errors = string.Join("; ", updateResult.Errors.Select(e => e.Description));
+                return ApiResponse<LoginResponse>.ErrorResponse($"Không thể cập nhật thông tin đăng nhập: {errors}");
+            }
+
+            _tokenCookieService.SetTokenCookie(new TokenDTO
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            }, _httpContextAccessor.HttpContext!);
+
+            return ApiResponse<LoginResponse>.SuccessResponse(new LoginResponse
+            {
+                UserId = user.Id,
+                PhoneNumber = user.PhoneNumber,
+                IsActive = user.IsActive,
+                Email = user.Email,
+                FullName = user.UserName ?? "",
+                Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Staff",
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+            }, "Đăng nhập thành công");
         }
 
         public async Task<ApiResponse<object>> LogoutAsync()
         {
+            _tokenCookieService.DeleteTokenCookie(_httpContextAccessor.HttpContext);
             await _signInManager.SignOutAsync();
             return ApiResponse<object>.SuccessResponse("Đăng xuất thành công");
         }

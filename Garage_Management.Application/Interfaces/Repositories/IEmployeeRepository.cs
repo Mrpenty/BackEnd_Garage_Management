@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace Garage_Management.Application.Interfaces.Repositories
 {
-    public interface ICustomerRepository : IBaseRepository<Customer>
+    public interface IEmployeeRepository : IBaseRepository<Employee>
     {
-        Task<Customer?> GetByUserIdAsync(int userId);
+        Task<Employee?> GetByUserIdAsync(int userId);
     }
 }
