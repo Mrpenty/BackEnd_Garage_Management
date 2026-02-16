@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Vehicles;
+﻿using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +16,11 @@ namespace Garage_Management.API.Controllers
             _service = service;
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy danh sách xe máy được phân trang
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<PagedResult<VehicleResponse>>>> GetPaged(
             [FromQuery] int page = 1,
@@ -26,6 +31,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy chi tiết 1 xe máy
+        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<VehicleResponse>>> GetById(int id, CancellationToken ct = default)
         {
@@ -36,6 +46,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy danh sách xe máy theo khách hàng được phân trang
+        /// </summary>
         [HttpGet("by-customer/{customerId:int}")]
         public async Task<ActionResult<ApiResponse<PagedResult<VehicleResponse>>>> GetByCustomer(
             int customerId,
@@ -47,6 +62,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Tạo 1 thông tin xe máy mới
+        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ApiResponse<VehicleResponse>>> Create(
             [FromBody] VehicleCreateRequest request,
@@ -56,6 +76,11 @@ namespace Garage_Management.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = data.VehicleId }, ApiResponse<VehicleResponse>.SuccessResponse(data, "Created"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Cập nhật thông tin xe máy
+        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<VehicleResponse>>> Update(
             int id,
@@ -69,6 +94,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "Updated"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy danh sách lịch đặt được phân trang
+        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {

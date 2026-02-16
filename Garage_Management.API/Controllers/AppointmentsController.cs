@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Appointments;
+﻿using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +15,11 @@ namespace Garage_Management.API.Controllers
         {
             _service = service;
         }
-
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy danh sách lịch đặt được phân trang
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<PagedResult<AppointmentResponse>>>> GetPaged(
             [FromQuery] int page = 1,
@@ -25,7 +29,11 @@ namespace Garage_Management.API.Controllers
             var data = await _service.GetPagedAsync(page, pageSize, ct);
             return Ok(ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(data, "OK"));
         }
-
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy chi tiết lịch đặt được phân trang
+        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<AppointmentResponse>>> GetById(int id, CancellationToken ct = default)
         {
@@ -36,6 +44,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy danh sách lịch đặt theo khách hàng được phân trang
+        /// </summary>
         [HttpGet("by-customer/{customerId:int}")]
         public async Task<ActionResult<ApiResponse<PagedResult<AppointmentResponse>>>> GetByCustomer(
             int customerId,
@@ -47,6 +60,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Tạo mới lịch đặt
+        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ApiResponse<AppointmentResponse>>> Create(
             [FromBody] AppointmentCreateRequest request,
@@ -56,6 +74,11 @@ namespace Garage_Management.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = data.AppointmentId }, ApiResponse<AppointmentResponse>.SuccessResponse(data, "Created"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Cập nhật lịch đặt
+        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<AppointmentResponse>>> Update(
             int id,
@@ -69,6 +92,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Updated"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Xóa lịch đặt được phân trang
+        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {

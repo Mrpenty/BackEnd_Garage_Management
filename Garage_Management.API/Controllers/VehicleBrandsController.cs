@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Vehicles.VehicleBrand;
+﻿using Garage_Management.Application.DTOs.Vehicles.VehicleBrand;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +16,11 @@ namespace Garage_Management.API.Controllers
             _service = service;
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy danh brand xe máy được phân trang
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<PagedResult<VehicleBrandResponse>>>> GetPaged(
             [FromQuery] int page = 1,
@@ -26,6 +31,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<PagedResult<VehicleBrandResponse>>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy chi tiết 1 brand xe máy
+        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> GetById(int id, CancellationToken ct = default)
         {
@@ -36,6 +46,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Tạo 1 brand xe máy mới
+        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> Create(
             [FromBody] VehicleBrandCreateRequest request,
@@ -45,6 +60,11 @@ namespace Garage_Management.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = data.BrandId }, ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Created"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Cập nhật brand xe máy
+        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> Update(
             int id,
@@ -58,6 +78,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Updated"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Xóa 1 brand xe máy
+        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {

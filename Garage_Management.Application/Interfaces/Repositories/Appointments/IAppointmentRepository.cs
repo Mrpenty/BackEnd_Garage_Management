@@ -4,32 +4,26 @@ using Garage_Management.Base.Interface;
 
 namespace Garage_Management.Application.Interfaces.Repositories.Appointments
 {
-    /*
-     * Module: Appointment Repository
-     * Author: KhanhDV
-     * Created Date: 13-02-2026
-    */
     public interface IAppointmentRepository : IBaseRepository<Appointment>
     {
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
         /// <summary>
         /// Lấy danh sách lịch đặt được phân trang
         /// </summary>
-        /// <param name="page">Current page number (starting from 1).</param>
-        /// <param name="pageSize">Number of records per page.</param>
-        /// <param name="ct">Cancellation token to cancel the operation.</param>
-        /// </returns>
-        /// <remarks>
+        /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
+        /// <param name="pageSize">Tổng số trang</param>
+        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<PagedResult<Appointment>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
         /// <summary>
         /// Lấy danh sách lịch đặt được phân trang
         /// </summary>
-        /// <param name="page">Current page number (starting from 1).</param>
-        /// <param name="pageSize">Number of records per page.</param>
-        /// <param name="ct">Cancellation token to cancel the operation.</param>
-        /// </returns>
-        /// <remarks>
-        /// Used for UC-11, UC14
-        /// </remarks>
+        /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
+        /// <param name="pageSize">Tổng số trang</param>
+        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<PagedResult<Appointment>> GetByCustomerIdAsync(int page, int pageSize, int customerId, CancellationToken ct = default);
 
     }

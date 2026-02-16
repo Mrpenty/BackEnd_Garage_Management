@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Services;
+﻿using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +10,16 @@ namespace Garage_Management.API.Controllers
     public class ServicesController : ControllerBase
     {
         private readonly IServiceService _service;
-
         public ServicesController(IServiceService service)
         {
             _service = service;
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy danh sách dịch vụ được phân trang
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<PagedResult<ServiceResponse>>>> GetPaged(
             [FromQuery] int page = 1,
@@ -26,6 +30,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<PagedResult<ServiceResponse>>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Lấy chi tiết 1 dịch vụ
+        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<ServiceResponse>>> GetById(int id, CancellationToken ct = default)
         {
@@ -36,6 +45,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "OK"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Tạo 1 dịch vụ mới
+        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ApiResponse<ServiceResponse>>> Create(
             [FromBody] ServiceCreateRequest request,
@@ -45,6 +59,11 @@ namespace Garage_Management.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = data.ServiceId }, ApiResponse<ServiceResponse>.SuccessResponse(data, "Created"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Cập nhật 1 dịch vụ
+        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<ServiceResponse>>> Update(
             int id,
@@ -58,6 +77,11 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Updated"));
         }
 
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Xóa 1 dịch vụ
+        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {

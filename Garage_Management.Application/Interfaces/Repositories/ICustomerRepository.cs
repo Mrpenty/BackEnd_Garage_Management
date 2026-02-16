@@ -10,6 +10,7 @@ namespace Garage_Management.Application.Interfaces.Repositories
 {
     public interface ICustomerRepository : IBaseRepository<Customer>
     {
+        //Để tạm đây chưa dùng đến
         Task<Customer?> GetByUserIdAsync(int userId, CancellationToken ct = default);
     }
 }
