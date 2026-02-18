@@ -25,6 +25,11 @@ namespace Garage_Management.Base.Entities.Vehiclies
         public string ModelName { get; set; } = string.Empty;
 
         /// <summary>
+        /// Trạng thái sử dụng
+        /// </summary>
+        public bool IsActive { get; set; } = true;
+
+        /// <summary>
         /// Danh sách xe cụ thể thuộc model này
         /// </summary>
         public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
