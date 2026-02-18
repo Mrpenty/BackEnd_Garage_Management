@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Garage_Management.API.Controllers
 {
@@ -14,9 +15,13 @@ namespace Garage_Management.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly ITokenCookieService _tokenCookieService;
+       
+
+        public AuthController(IAuthService authService, ITokenCookieService tokenCookieService)
         {
             _authService = authService;
+            _tokenCookieService = tokenCookieService;
         }
 
         /// <summary>
@@ -141,7 +146,7 @@ namespace Garage_Management.API.Controllers
         public async Task<IActionResult> Logout()
         {
             await _authService.LogoutAsync();
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Đăng xuất thành công"));
+            return Ok(new { message = "Đăng xuất thành công" });
         }
 
         /// <summary>

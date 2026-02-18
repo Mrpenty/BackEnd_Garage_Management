@@ -1,4 +1,6 @@
-﻿using Garage_Management.Application.Interfaces.Repositories;
+﻿using Garage_Management.Application.DTOs.User;
+using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Infrastructure.Repositories;
@@ -7,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,15 +19,19 @@ namespace Garage_Management.Application.Repositories.Accounts
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly ICustomerRepository _customerRepository;
+        private readonly IEmployeeRepository _employeeRepository;
 
-        public UserRepository(AppDbContext dbContext,UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager): base(dbContext)
+        public UserRepository(AppDbContext dbContext, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, ICustomerRepository customerRepository, IEmployeeRepository employeeRepository) : base(dbContext)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
+            _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
+            _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
         }
         public async Task<bool> CheckPasswordAsync(User user, string password)
         {
-            ArgumentNullException.ThrowIfNull(user);    
+            ArgumentNullException.ThrowIfNull(user);
             return await _userManager.CheckPasswordAsync(user, password);
         }
         public async Task<User> CreateAsync(User entity, CancellationToken cancellationToken)
@@ -100,7 +107,7 @@ namespace Garage_Management.Application.Repositories.Accounts
         }
         public Task<bool> SoftDeleteAsync(int userId, int? deletedBy, CancellationToken cancellationToken = default)
         {
-           var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
+            var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null)
             {
                 throw new DirectoryNotFoundException("Không tìm thấy user với Id: " + userId);
@@ -130,7 +137,7 @@ namespace Garage_Management.Application.Repositories.Accounts
                 await _userManager.RemoveFromRolesAsync(user, currentRoles);
             }
 
-            var role = await _roleManager.FindByNameAsync("Customer"); 
+            var role = await _roleManager.FindByNameAsync("Customer");
             if (role != null)
             {
                 await _userManager.AddToRoleAsync(user, role.Name!);

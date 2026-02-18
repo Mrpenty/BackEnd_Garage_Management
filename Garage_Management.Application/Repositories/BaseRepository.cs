@@ -15,7 +15,7 @@ namespace Garage_Management.Infrastructure.Repositories
     /// </summary>
     public class BaseRepository<T> : IBaseRepository<T> where T : class
     {
-        private readonly DbSet<T> dbSet;
+        protected readonly DbSet<T> dbSet;
         private readonly AppDbContext context;
 
         protected BaseRepository(AppDbContext context)

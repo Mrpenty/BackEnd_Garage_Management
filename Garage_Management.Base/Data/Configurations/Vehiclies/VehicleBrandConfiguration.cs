@@ -15,6 +15,8 @@ namespace Garage_Management.Base.Data.Configurations.Vehiclies
             builder.Property(vb => vb.BrandName)
                 .IsRequired()
                 .HasMaxLength(100);
+            builder.Property(vb => vb.IsActive)
+                .HasDefaultValue(true);
 
             // Quan hệ 1-N: Một hãng xe có nhiều VehicleModel
             builder.HasMany(vb => vb.Models)
