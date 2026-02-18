@@ -7,7 +7,6 @@ WORKDIR /app
 COPY ["Garage_Management.API/Garage_Management.API.csproj", "Garage_Management.API/"]
 COPY ["Garage_Management.Application/Garage_Management.Application.csproj", "Garage_Management.Application/"]
 COPY ["Garage_Management.Base/Garage_Management.Base.csproj", "Garage_Management.Base/"]
-COPY ["Garage_Management.Infrastructure/Garage_Management.Infrastructure.csproj", "Garage_Management.Infrastructure/"]
 
 RUN dotnet restore "Garage_Management.API/Garage_Management.API.csproj"
 
