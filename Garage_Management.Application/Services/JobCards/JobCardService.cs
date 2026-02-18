@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Application.Repositories.JobCards;
 using Garage_Management.Base.Common.Enums;
@@ -23,23 +24,27 @@ namespace Garage_Management.Application.Services.JobCards
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IJobCardServiceRepository _jobCardServiceRepository;
         private readonly IJobCardSparePartRepository _jobCardSparePartRepository;
+        private readonly IWorkBayRepository _workBayRepository;
+
 
         public JobCardService(
             IJobCardRepository repository,
             IServiceRepository serviceRepository,
             IInventoryRepository inventoryRepository,
             IJobCardServiceRepository jobCardServiceRepository,
-            IJobCardSparePartRepository jobCardSparePartRepository)
+            IJobCardSparePartRepository jobCardSparePartRepository,
+            IWorkBayRepository workBayRepository)
         {
             _repository = repository;
             _serviceRepository = serviceRepository;
             _inventoryRepository = inventoryRepository;
             _jobCardServiceRepository = jobCardServiceRepository;
             _jobCardSparePartRepository = jobCardSparePartRepository;
+            _workBayRepository = workBayRepository;
         }
 
 
-        public async Task<JobCardDto> CreateAsync(CreateJobCardDto dto, CancellationToken cancellationToken)
+        public async Task<JobCardDto> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken)
         {
             var entity = new JobCard
             {
@@ -48,9 +53,9 @@ namespace Garage_Management.Application.Services.JobCards
                 VehicleId = dto.VehicleId,
                 Note = dto.Note,
                 SupervisorId = dto.SupervisorId,
-                CreatedByEmployeeId = dto.CreatedByEmployeeId,
                 StartDate = DateTime.UtcNow,
-                Status = ServiceStatus.Pending
+                Status = ServiceStatus.Pending,
+                CreatedBy = currentUserId
             };
 
             await _repository.AddAsync(entity, cancellationToken);
@@ -66,8 +71,7 @@ namespace Garage_Management.Application.Services.JobCards
                 EndDate = entity.EndDate,
                 Status = entity.Status,
                 Note = entity.Note,
-                SupervisorId = entity.SupervisorId,
-                CreatedByEmployeeId = entity.CreatedByEmployeeId
+                SupervisorId = entity.SupervisorId
             };
         }
 
@@ -91,7 +95,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Status = entity.Status,
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
-                CreatedByEmployeeId = entity.CreatedByEmployeeId
+                CreatedByEmployeeId = entity.CreatedBy
             };
         }
         public async Task<bool> UpdateStatusAsync(int id, ServiceStatus status, CancellationToken cancellationToken)
@@ -252,6 +256,50 @@ namespace Garage_Management.Application.Services.JobCards
 
             await _jobCardSparePartRepository.AddAsync(entity, cancellationToken);
             await _jobCardSparePartRepository.SaveAsync(cancellationToken);
+
+            return true;
+        }
+
+        public async Task<bool> AssignWorkBayAsync(
+    AssignWorkBayRequestDto dto,
+    CancellationToken cancellationToken)
+        {
+            var jobCard = await _repository.GetByIdAsync(dto.JobCardId);
+            if (jobCard == null)
+                return false;
+
+            var workBay = await _workBayRepository.GetByIdAsync(dto.WorkBayId);
+            if (workBay == null)
+                return false;
+
+            if (workBay.JobcardId != null)
+                return false; // bay already occupied
+
+            workBay.JobcardId = dto.JobCardId;
+            workBay.StartAt = DateTime.UtcNow;
+            workBay.Status  = WorkBayStatus.Occupied;
+            workBay.UpdateAt = DateTime.UtcNow;
+
+            await _workBayRepository.SaveAsync(cancellationToken);
+
+            return true;
+        }
+
+
+        public async Task<bool> ReleaseWorkBayAsync(
+    ReleaseWorkBayDto dto,
+    CancellationToken cancellationToken)
+        {
+            var workBay = await _workBayRepository.GetByIdAsync(dto.WorkBayId);
+            if (workBay == null)
+                return false;
+
+            workBay.JobcardId = null;
+            workBay.EndAt = DateTime.UtcNow;
+            workBay.Status = WorkBayStatus.Available;
+            workBay.UpdateAt = DateTime.UtcNow;
+
+            await _workBayRepository.SaveAsync(cancellationToken);
 
             return true;
         }

@@ -46,16 +46,11 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
                    .WithOne(js => js.JobCard)
                    .HasForeignKey(js => js.JobCardId)
                    .OnDelete(DeleteBehavior.Cascade);
-            builder.HasOne(j => j.CreatedByUser)
-       .WithMany(e => e.CreatedJobCards)
-       .HasForeignKey(j => j.CreatedByEmployeeId)
-       .OnDelete(DeleteBehavior.Restrict)
-           .HasConstraintName("FK_JobCards_Employees_CreatedByUserEmployeeId");
-
-            builder.HasOne(j => j.CreatedByUserEmployee)
+            builder.HasOne(j => j.CreatedByEmployee)
        .WithMany()
-       .HasForeignKey(j => j.CreatedByUserEmployeeId)
+       .HasForeignKey(j => j.CreatedBy)
        .OnDelete(DeleteBehavior.Restrict);
+
 
 
             builder.HasOne(j => j.Supervisor)

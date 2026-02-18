@@ -7,7 +7,11 @@ using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.Services;
 using Microsoft.EntityFrameworkCore;
+using Garage_Management.Base.Entities;
+
 namespace Garage_Management.Application.Repositories.Services
+   
+
 {
 
 

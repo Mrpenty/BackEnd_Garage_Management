@@ -1,6 +1,9 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
+using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Garage_Management.API.Controllers
 {
@@ -16,11 +19,18 @@ namespace Garage_Management.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateJobCardDto dto, CancellationToken cancellationToken)
+        [Authorize]
+        public async Task<IActionResult> Create(CreateJobCardDto dto,CancellationToken cancellationToken)
         {
-            var result = await _service.CreateAsync(dto, cancellationToken);
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+            );
+
+            var result = await _service.CreateAsync(dto, userId, cancellationToken);
+
             return Ok(result);
         }
+
 
         [HttpGet("active")]
         public async Task<IActionResult> GetActive()
@@ -85,6 +95,34 @@ namespace Garage_Management.API.Controllers
 
             return NoContent();
         }
+        [HttpPost("assign-workbay")]
+        public async Task<IActionResult> AssignWorkBay(
+            [FromBody] AssignWorkBayRequestDto dto,
+             CancellationToken cancellationToken)
+        {
+            var result = await _service.AssignWorkBayAsync(dto, cancellationToken);
+
+            if (!result)
+                return BadRequest("Cannot assign work bay");
+
+            return Ok("Work bay assigned successfully");
+        }
+
+
+        [HttpPost("release-workbay")]
+        public async Task<IActionResult> ReleaseWorkBay(
+    [FromBody] ReleaseWorkBayDto dto,
+    CancellationToken cancellationToken)
+        {
+            var result = await _service.ReleaseWorkBayAsync(dto, cancellationToken);
+
+            if (!result)
+                return BadRequest("Cannot release work bay");
+
+            return Ok("Work bay released successfully");
+        }
+
+
 
     }
 

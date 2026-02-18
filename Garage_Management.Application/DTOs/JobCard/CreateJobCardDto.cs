@@ -15,6 +15,5 @@ namespace Garage_Management.Application.DTOs.JobCard
         [MaxLength(300)]
         public string? Note { get; set; }
         public int? SupervisorId { get; set; }
-        public int? CreatedByEmployeeId { get; set; }
     }
 }

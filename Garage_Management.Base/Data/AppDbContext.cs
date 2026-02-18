@@ -60,6 +60,8 @@ namespace Garage_Management.Base.Data
         // DbSet - Services 
         public DbSet<Service> Services => Set<Service>();
         public DbSet<ServiceTask> ServiceTasks => Set<ServiceTask>();
+        public DbSet<WorkBay> WorkBay { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
