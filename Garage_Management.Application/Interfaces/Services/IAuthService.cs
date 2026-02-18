@@ -53,5 +53,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Thực hiện đặt lại mật khẩu mới bằng token
         /// </summary>
         Task<ApiResponse<User>> ChangePasswordAsync(ChangePasswordRequest dto, CancellationToken cancellationToken = default);
+
+        
     }
 }

@@ -21,9 +21,9 @@ namespace Garage_Management.Base.Data
 
             modelBuilder.Entity<IdentityUserRole<int>>().HasData(
                  new IdentityUserRole<int> { UserId = 1, RoleId = 6 }, // Admin
-                 new IdentityUserRole<int> { UserId = 2, RoleId = 2 }, // Receptionist
-                 new IdentityUserRole<int> { UserId = 3, RoleId = 3 }, // Supervisor
-                 new IdentityUserRole<int> { UserId = 4, RoleId = 4 }, // Mechanic
+                 new IdentityUserRole<int> { UserId = 2, RoleId = 3 }, // Supervisor
+                 new IdentityUserRole<int> { UserId = 3, RoleId = 4 }, // Mechanic
+                 new IdentityUserRole<int> { UserId = 4, RoleId = 2 }, // Receptionist
                  new IdentityUserRole<int> { UserId = 5, RoleId = 5 },  // Stoker
                  new IdentityUserRole<int> { UserId = 10, RoleId = 1 },  // Customer
                  new IdentityUserRole<int> { UserId = 11, RoleId = 1 }  // Customer
@@ -51,10 +51,10 @@ namespace Garage_Management.Base.Data
                 new User
                 {
                     Id = 2,
-                    UserName = "manager01",
-                    NormalizedUserName = "MANAGER01",
-                    Email = "manager01@garage.vn",
-                    NormalizedEmail = "MANAGER01@GARAGE.VN",
+                    UserName = "Supervisor01",
+                    NormalizedUserName = "SUPERVISOR01",
+                    Email = "supervisor01@garage.vn",
+                    NormalizedEmail = "SUPERVISOR01@GARAGE.VN",
                     EmailConfirmed = true,
                     PasswordHash = passwordHasher.HashPassword(null, "Manager@123!"),
                     SecurityStamp = Guid.NewGuid().ToString(),

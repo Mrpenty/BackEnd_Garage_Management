@@ -24,13 +24,43 @@ namespace Garage_Management.API.Extensions
                         ValidateAudience = true,
                         ValidAudience = configuration["Jwt:Audience"],
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
+                        IssuerSigningKey = GetSymmetricKey(configuration["Jwt:Key"]!),
                         NameClaimType = JwtRegisteredClaimNames.Sub,
                         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
                         ValidateLifetime = true // Đảm bảo kiểm tra thời gian hết hạn
                     };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Cookies["accessToken"];
+                            if (!string.IsNullOrEmpty(accessToken))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
             return services;
+        }
+
+        private static SymmetricSecurityKey GetSymmetricKey(string secret)
+        {
+            if (string.IsNullOrEmpty(secret))
+                throw new InvalidOperationException("JWT Key is missing.");
+
+            byte[] keyBytes;
+            try
+            {
+                keyBytes = Convert.FromBase64String(secret);
+            }
+            catch (FormatException)
+            {
+                keyBytes = Encoding.UTF8.GetBytes(secret);
+            }
+
+            return new SymmetricSecurityKey(keyBytes);
         }
     }
 }
