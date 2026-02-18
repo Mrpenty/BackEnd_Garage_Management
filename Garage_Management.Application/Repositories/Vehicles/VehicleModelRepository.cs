@@ -1,6 +1,7 @@
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
+using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.Vehiclies;
 using Garage_Management.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,11 @@ namespace Garage_Management.Application.Repositories.Vehicles
 {
     public class VehicleModelRepository : BaseRepository<VehicleModel>, IVehicleModelRepository
     {
-        public VehicleModelRepository(AppDbContext context) : base(context) { }
+        private readonly AppDbContext _context;
+        public VehicleModelRepository(AppDbContext context) : base(context) 
+        {
+            _context = context;
+        }
 
         public async Task<PagedResult<VehicleModel>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {
@@ -47,6 +52,11 @@ namespace Garage_Management.Application.Repositories.Vehicles
                 query = query.Where(x => x.ModelId != excludeId.Value);
 
             return query.AnyAsync(ct);
+        }
+        public Task<bool> HasVehiclesAsync(int modelId, CancellationToken ct = default)
+        {
+            var vehicles = _context.Set<Vehicle>().AsNoTracking().AnyAsync(x=>x.ModelId == modelId);
+            return vehicles;
         }
     }
 }

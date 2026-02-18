@@ -70,7 +70,8 @@ namespace Garage_Management.Application.Services.Vehicles
 
             if (await _repo.ExistsAsync(request.BrandId, request.ModelName, id, ct))
                 throw new InvalidOperationException("ModelName đã tồn tại trong Brand này");
-
+            if (await _repo.HasVehiclesAsync(id, ct))
+                throw new InvalidOperationException("Không thể cập nhật vì đang có xe máy liên kết");
             entity.BrandId = request.BrandId;
             entity.ModelName = request.ModelName.Trim();
             _repo.Update(entity);
@@ -82,7 +83,8 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
-
+            if (await _repo.HasVehiclesAsync(id, ct))
+                throw new InvalidOperationException("Không thể xóa vì đang có xe máy liên kết");
             _repo.Delete(entity);
             await _repo.SaveAsync(ct);
             return true;

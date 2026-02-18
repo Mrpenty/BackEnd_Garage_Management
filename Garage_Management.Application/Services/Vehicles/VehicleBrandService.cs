@@ -3,6 +3,7 @@ using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Vehiclies;
+using System;
 using System.Linq;
 
 namespace Garage_Management.Application.Services.Vehicles
@@ -51,6 +52,9 @@ namespace Garage_Management.Application.Services.Vehicles
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
+            if (await _repo.HasVehiclesAsync(id, ct))
+                throw new InvalidOperationException("Không thể cập nhật hãng xe vì đang có xe máy liên kết");
+
             entity.BrandName = request.BrandName;
             _repo.Update(entity);
             await _repo.SaveAsync(ct);
@@ -61,6 +65,9 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
+
+            if (await _repo.HasVehiclesAsync(id, ct))
+                throw new InvalidOperationException("Không thể xóa hãng xe vì đang có xe máy liên kết");
 
             _repo.Delete(entity);
             await _repo.SaveAsync(ct);
@@ -75,5 +82,6 @@ namespace Garage_Management.Application.Services.Vehicles
                 BrandName = entity.BrandName
             };
         }
+
     }
 }

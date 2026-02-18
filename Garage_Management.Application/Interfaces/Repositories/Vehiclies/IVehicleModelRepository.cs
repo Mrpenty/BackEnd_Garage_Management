@@ -32,5 +32,11 @@ namespace Garage_Management.Application.Interfaces.Repositories.Vehiclies
         /// <param name="excludeId">Bỏ qua 1 modelId khi update</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<bool> ExistsAsync(int brandId, string modelName, int? excludeId = null, CancellationToken ct = default);
+        /// Author: KhanhDV
+        /// Created Date: 13-2-2026
+        /// <summary>
+        /// Kiểm tra model này đã tồn tại ở bản ghi nào ở vehicle hay chưa
+        /// </summary>  
+        Task<bool> HasVehiclesAsync(int modelId, CancellationToken ct = default);
     }
 }

@@ -25,17 +25,15 @@ namespace Garage_Management.Application.Interfaces.Repositories.Vehiclies
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>
-        /// Lấy danh sách xe máy được phân trang
+        /// Kiểm tra brand đã có model hay chưa
         /// </summary>
-        /// Nếu Brand đã có bảng con thì không được cập nhật
-        
-        
+        Task<bool> HasModelsAsync(int brandId, CancellationToken ct = default);
+
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>
-        /// Lấy danh sách xe máy được phân trang
+        /// Kiểm tra brand đã có bản ghi nào trong appointment chưa 
         /// </summary>
-        /// Nếu Brand đã có bảng con thì không được xóa
-
+        Task<bool> HasVehiclesAsync(int brandId, CancellationToken ct = default);
     }
 }
