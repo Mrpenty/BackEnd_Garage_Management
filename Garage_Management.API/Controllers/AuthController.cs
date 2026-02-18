@@ -146,7 +146,7 @@ namespace Garage_Management.API.Controllers
         public async Task<IActionResult> Logout()
         {
             await _authService.LogoutAsync();
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Đăng xuất thành công"));
+            return Ok(new { message = "Đăng xuất thành công" });
         }
 
         /// <summary>
