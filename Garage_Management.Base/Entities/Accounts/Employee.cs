@@ -12,7 +12,8 @@ namespace Garage_Management.Base.Entities.Accounts
     /// <summary>
     /// Bảng Employee - Lưu thông tin chi tiết của nhân viên trong gara
     /// </summary>
-    public class Employee : AuditableEntity
+    public class 
+        Employee : AuditableEntity
     {
         public int EmployeeId { get; set; }
 
@@ -50,6 +51,8 @@ namespace Garage_Management.Base.Entities.Accounts
         /// Các phiếu sửa chữa mà nhân viên này được phân công làm thợ máy
         /// </summary>
         public ICollection<JobCardMechanic> AssignedJobCards { get; set; } = new List<JobCardMechanic>();
+        public ICollection<JobCard> CreatedJobCards { get; set; } = new List<JobCard>();
+
 
         /// <summary>
         /// Các phiếu sửa chữa mà lễ tân tạo ra 

@@ -9,7 +9,12 @@ namespace Garage_Management.Application.Repositories.Services
 {
     public class ServiceRepository : BaseRepository<Service>, IServiceRepository
     {
-        public ServiceRepository(AppDbContext context) : base(context) { }
+        private readonly AppDbContext _context;
+        public ServiceRepository(AppDbContext context) : base(context) 
+        { 
+            _context = context;
+        }
+        
 
         public async Task<PagedResult<Service>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {
@@ -32,5 +37,12 @@ namespace Garage_Management.Application.Repositories.Services
                 PageData = data
             };
         }
+        public IQueryable<Service> Query()
+            => _context.Services.AsQueryable();
+        public async Task<Service?> GetByIdAsync(int id)
+            => await _context.Services
+                .FirstOrDefaultAsync(x => x.ServiceId == id);
+        public async Task SaveAsync(CancellationToken cancellationToken)
+            => await _context.SaveChangesAsync(cancellationToken);
     }
 }

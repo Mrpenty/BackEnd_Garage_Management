@@ -14,14 +14,16 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
         public void Configure(EntityTypeBuilder<WorkBay> builder)
         {
             builder.HasKey(w => w.Id);
+
             builder.Property(w => w.Name)
                 .IsRequired()
                 .HasMaxLength(100);
-            // 1 bay có thể có lịch sử nhiều jobcard
+
             builder.HasOne(w => w.JobCard)
-                .WithOne() 
-                .HasForeignKey<WorkBay>(w => w.JobcardId)
+                .WithMany()
+                .HasForeignKey(w => w.JobcardId)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }
+
 }
