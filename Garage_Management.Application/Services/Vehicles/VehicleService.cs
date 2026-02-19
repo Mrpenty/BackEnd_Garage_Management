@@ -1,7 +1,7 @@
 using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.Vehiclies;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Vehiclies;
 using System;
@@ -82,7 +82,12 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
+            //Cần suy nghĩ thêm về logic
 
+            //if (await _repo.HasAppointmentsAsync(id, ct))
+            //{
+            //    throw new InvalidOperationException("Không thể cập nhật vì đang có xe liên kết");
+            //}
             if (request.BrandId.HasValue) entity.BrandId = request.BrandId.Value;
             if (request.ModelId.HasValue) entity.ModelId = request.ModelId.Value;
             if (request.LicensePlate != null) entity.LicensePlate = request.LicensePlate;
@@ -100,6 +105,10 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
+            if(await _repo.HasAppointmentsAsync(id, ct))
+            {
+                throw new InvalidOperationException("Không thể xóa vì đang có xe liên kết");
+            }
 
             _repo.Delete(entity);
             await _repo.SaveAsync(ct);

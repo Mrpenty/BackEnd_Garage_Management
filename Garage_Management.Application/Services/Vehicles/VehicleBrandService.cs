@@ -1,6 +1,6 @@
-using Garage_Management.Application.DTOs.Vehicles.VehicleBrand;
+﻿using Garage_Management.Application.DTOs.Vehicles.VehicleBrand;
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.Vehiclies;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Vehiclies;
 using System;
@@ -39,9 +39,11 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = new VehicleBrand
             {
-                BrandName = request.BrandName
+                BrandName = request.BrandName,
+                IsActive = request.isActive
             };
-
+            if (await _repo.HasExistAsync(entity.BrandName, entity.BrandId, ct))
+                throw new InvalidOperationException("Hãng xe này đã tồn tại, nhập tên khác");
             await _repo.AddAsync(entity, ct);
             await _repo.SaveAsync(ct);
             return Map(entity);
@@ -51,25 +53,28 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
-
             if (await _repo.HasVehiclesAsync(id, ct))
-                throw new InvalidOperationException("Không thể cập nhật hãng xe vì đang có xe máy liên kết");
+                throw new InvalidOperationException("Không thể cập nhật hãng xe vì đang có xe liên kết");
 
             entity.BrandName = request.BrandName;
+            entity.IsActive = request.isActive;
+            if (await _repo.HasExistAsync(entity.BrandName,entity.BrandId,ct))
+                throw new InvalidOperationException("Hãng xe này đã tồn tại, nhập tên khác");
             _repo.Update(entity);
             await _repo.SaveAsync(ct);
             return Map(entity);
         }
 
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+        public async Task<bool> DeActiveAsync(int id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
 
             if (await _repo.HasVehiclesAsync(id, ct))
-                throw new InvalidOperationException("Không thể xóa hãng xe vì đang có xe máy liên kết");
+                throw new InvalidOperationException("Khong the xoa hang xe vi dang co xe lien ket");
 
-            _repo.Delete(entity);
+            entity.IsActive = false;
+            _repo.Update(entity);
             await _repo.SaveAsync(ct);
             return true;
         }
@@ -79,7 +84,8 @@ namespace Garage_Management.Application.Services.Vehicles
             return new VehicleBrandResponse
             {
                 BrandId = entity.BrandId,
-                BrandName = entity.BrandName
+                BrandName = entity.BrandName,
+                isActive = entity.IsActive
             };
         }
 

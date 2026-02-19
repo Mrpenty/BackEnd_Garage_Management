@@ -10,7 +10,11 @@ namespace Garage_Management.Application.Repositories.Vehicles
 {
     public class VehicleRepository : BaseRepository<Vehicle>, IVehicleRepository
     {
-        public VehicleRepository(AppDbContext context) : base(context) { }
+        private readonly DbContext _context;
+        public VehicleRepository(AppDbContext context) : base(context) 
+        {
+            _context = context;
+        }
 
         public async Task<PagedResult<Vehicle>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {
@@ -54,6 +58,10 @@ namespace Garage_Management.Application.Repositories.Vehicles
                 Total = total,
                 PageData = data
             };
+        }
+        public Task<bool> HasAppointmentsAsync(int vehicleId, CancellationToken ct = default)
+        {
+            return _context.Set<Vehicle>().AsNoTracking().AnyAsync(x=>x.VehicleId == vehicleId);
         }
     }
 }

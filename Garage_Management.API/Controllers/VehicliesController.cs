@@ -1,5 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.Vehicles;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.Vehiclies;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
 

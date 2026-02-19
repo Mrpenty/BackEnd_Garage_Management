@@ -11,5 +11,7 @@ namespace Garage_Management.Application.DTOs.Vehicles.VehicleModel
         public int ModelId { get; set; }
         public int BrandId { get; set; }
         public string ModelName {  get; set; }
+        public bool isActive { get; set; }
+
     }
 }

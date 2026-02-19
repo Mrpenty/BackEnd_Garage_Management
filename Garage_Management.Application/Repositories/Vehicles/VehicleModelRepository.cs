@@ -1,7 +1,6 @@
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
-using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.Vehiclies;
 using Garage_Management.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -55,8 +54,9 @@ namespace Garage_Management.Application.Repositories.Vehicles
         }
         public Task<bool> HasVehiclesAsync(int modelId, CancellationToken ct = default)
         {
-            var vehicles = _context.Set<Vehicle>().AsNoTracking().AnyAsync(x=>x.ModelId == modelId);
-            return vehicles;
+            return _context.Set<Vehicle>()
+                .AsNoTracking()
+                .AnyAsync(x => x.ModelId == modelId, ct);
         }
     }
 }

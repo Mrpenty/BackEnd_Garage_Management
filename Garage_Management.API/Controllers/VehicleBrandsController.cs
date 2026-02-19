@@ -1,5 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.Vehicles.VehicleBrand;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.Vehiclies;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -81,16 +81,16 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Xóa 1 brand xe máy
+        /// Deactive 1 brand xe máy
         /// </summary>
-        [HttpDelete("{id:int}")]
+        [HttpPatch("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {
-            var ok = await _service.DeleteAsync(id, ct);
+            var ok = await _service.DeActiveAsync(id, ct);
             if (!ok)
                 return NotFound(ApiResponse<object>.ErrorResponse("VehicleBrand not found"));
 
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
+            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deactivated"));
         }
     }
 }

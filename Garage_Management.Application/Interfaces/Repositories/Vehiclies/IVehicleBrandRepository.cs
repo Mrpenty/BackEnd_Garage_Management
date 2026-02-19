@@ -35,5 +35,11 @@ namespace Garage_Management.Application.Interfaces.Repositories.Vehiclies
         /// Kiểm tra brand đã có bản ghi nào trong appointment chưa 
         /// </summary>
         Task<bool> HasVehiclesAsync(int brandId, CancellationToken ct = default);
+        /// Author: KhanhDV
+        /// Created Date: 13-2-2026
+        /// <summary>
+        /// Kiểm tra brand đã tồn tại hay chưa
+        /// </summary>
+        Task<bool> HasExistAsync(string brandName, int? excludeId, CancellationToken ct = default);
     }
 }

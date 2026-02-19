@@ -26,5 +26,12 @@ namespace Garage_Management.Application.Interfaces.Repositories.Vehiclies
         /// <param name="customerId">Id của khách hàng</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>  
         Task<PagedResult<Vehicle>> GetByCustomerIdAsync(int page, int pageSize, int customerId, CancellationToken ct = default);
+
+        /// Author: KhanhDV
+        /// Created Date: 13-2-2026
+        /// <summary>
+        /// Kiểm tra xe máy đã từng có trong bản ghi của lịch đặt nào chưa
+        /// </summary>
+        Task<bool> HasAppointmentsAsync(int vehicleId, CancellationToken ct = default);
     }
 }

@@ -38,7 +38,18 @@ namespace Garage_Management.Application.Repositories.Vehicles
                 PageData = data
             };
         }
-
+        public Task<bool> HasExistAsync(string brandName, int? excludeId, CancellationToken ct = default)
+        {
+            var name = brandName.ToLower().Trim();
+            var query = _context.Set<VehicleBrand>()
+                .AsNoTracking()
+                .Where(b => b.BrandName.ToLower() == brandName);
+            if (excludeId.HasValue)
+            {
+                query = query.Where(b=>b.BrandId != excludeId.Value);
+            }
+            return query.AnyAsync(ct);
+        }
         public Task<bool> HasModelsAsync(int brandId, CancellationToken ct = default)
         {
             return _context.Set<VehicleModel>()
@@ -48,10 +59,9 @@ namespace Garage_Management.Application.Repositories.Vehicles
 
         public Task<bool> HasVehiclesAsync(int brandId, CancellationToken ct = default)
         {
-            var vehicles = _context.Set<Vehicle>()
-                            .AsNoTracking()
-                            .AllAsync(x => x.BrandId == brandId);
-            return vehicles;
+            return _context.Set<Vehicle>()
+                .AsNoTracking()
+                .AnyAsync(x => x.BrandId == brandId, ct);
         }
     }
 }
