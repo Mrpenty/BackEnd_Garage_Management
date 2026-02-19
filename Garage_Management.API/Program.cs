@@ -2,12 +2,15 @@ using FluentValidation;
 using Garage_Management.API.Extensions;
 using Garage_Management.API.Middlewares;
 using Garage_Management.Application;
+using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Repositories.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
 using Garage_Management.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Conction string + DbContext
 var connectionString = builder.Configuration.GetConnectionString("Mycnn")
@@ -16,7 +19,6 @@ var connectionString = builder.Configuration.GetConnectionString("Mycnn")
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
-
 
 // Add services 
 builder.Services.AddControllers();

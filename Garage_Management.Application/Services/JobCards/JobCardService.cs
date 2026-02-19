@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
+using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
@@ -187,7 +188,7 @@ namespace Garage_Management.Application.Services.JobCards
 
             // 2️⃣ Lấy Service + ServiceTasks
             var service = await _serviceRepository
-                .Query()
+                .GetAll()
                 .Include(x => x.ServiceTasks)
                 .FirstOrDefaultAsync(x => x.ServiceId == dto.ServiceId, cancellationToken);
 

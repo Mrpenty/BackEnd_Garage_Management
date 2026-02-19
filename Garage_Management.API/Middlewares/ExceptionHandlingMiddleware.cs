@@ -26,13 +26,16 @@ namespace Garage_Management.API.Middlewares
                 var payload = ApiResponse<object>.ErrorResponse(ex.Message);
                 await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "application/json";
-                var payload = ApiResponse<object>.ErrorResponse("Đã xảy ra lỗi hệ thống.");
+
+                var payload = ApiResponse<object>.ErrorResponse(ex.ToString());
+
                 await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
             }
+
         }
     }
 }
