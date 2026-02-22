@@ -1,17 +1,17 @@
-using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
-using Garage_Management.Base.Entities.JobCards;
+using Garage_Management.Base.Entities.Services;
 using Garage_Management.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace Garage_Management.Application.Repositories.JobCards
+namespace Garage_Management.Application.Repositories.Services
 {
-    public class JobCardServiceRepository : BaseRepository<JobCardService>, IJobCardServiceRepository
+    public class ServiceWarrantyPolicyRepository : BaseRepository<ServiceWarrantyPolicy>, IServiceWarrantyPolicyRepository
     {
-        public JobCardServiceRepository(AppDbContext context) : base(context) { }
+        public ServiceWarrantyPolicyRepository(AppDbContext context) : base(context) { }
 
-        public async Task<PagedResult<JobCardService>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<ServiceWarrantyPolicy>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
@@ -19,12 +19,12 @@ namespace Garage_Management.Application.Repositories.JobCards
             var query = GetAll().AsNoTracking();
             var total = await query.CountAsync(ct);
             var data = await query
-                .OrderByDescending(x => x.JobCardServiceId)
+                .OrderByDescending(x => x.PolicyId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(ct);
 
-            return new PagedResult<JobCardService>
+            return new PagedResult<ServiceWarrantyPolicy>
             {
                 Page = page,
                 PageSize = pageSize,

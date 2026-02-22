@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Garage_Management.Application.Repositories.JobCards
 {
-    public class JobCardServiceRepository : BaseRepository<JobCardService>, IJobCardServiceRepository
+    public class JobCardServiceTaskRepository : BaseRepository<JobCardServiceTask>, IJobCardServiceTaskRepository
     {
-        public JobCardServiceRepository(AppDbContext context) : base(context) { }
+        public JobCardServiceTaskRepository(AppDbContext context) : base(context) { }
 
-        public async Task<PagedResult<JobCardService>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<JobCardServiceTask>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
@@ -19,12 +19,12 @@ namespace Garage_Management.Application.Repositories.JobCards
             var query = GetAll().AsNoTracking();
             var total = await query.CountAsync(ct);
             var data = await query
-                .OrderByDescending(x => x.JobCardServiceId)
+                .OrderByDescending(x => x.JobCardServiceTaskId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(ct);
 
-            return new PagedResult<JobCardService>
+            return new PagedResult<JobCardServiceTask>
             {
                 Page = page,
                 PageSize = pageSize,
