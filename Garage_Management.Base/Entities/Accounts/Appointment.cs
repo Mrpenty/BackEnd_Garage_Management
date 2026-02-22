@@ -61,5 +61,15 @@ namespace Garage_Management.Base.Entities.Accounts
         /// Các phiếu sửa chữa được sinh ra từ lịch hẹn (trong trường hợp 1 lịch có thể tách thành nhiều phiếu)
         /// </summary>
         public ICollection<JobCard> GeneratedJobCards { get; set; } = new List<JobCard>();
+
+        /// <summary>
+        /// Services attached to this appointment.
+        /// </summary>
+        public ICollection<AppointmentService> Services { get; set; } = new List<AppointmentService>();
+
+        /// <summary>
+        /// Spare parts attached to this appointment.
+        /// </summary>
+        public ICollection<AppointmentSparePart> SpareParts { get; set; } = new List<AppointmentSparePart>();
     }
 }

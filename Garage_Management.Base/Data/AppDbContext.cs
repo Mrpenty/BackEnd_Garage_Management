@@ -24,6 +24,8 @@ namespace Garage_Management.Base.Data
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Appointment> Appointments => Set<Appointment>();
+        public DbSet<AppointmentService> AppointmentServices => Set<AppointmentService>();
+        public DbSet<AppointmentSparePart> AppointmentSpareParts => Set<AppointmentSparePart>();
        
         // DbSet - Vehicles
         public DbSet<VehicleBrand> VehicleBrands => Set<VehicleBrand>();
