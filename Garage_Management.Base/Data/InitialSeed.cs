@@ -15,7 +15,7 @@ namespace Garage_Management.Base.Data
                 new IdentityRole<int> { Id = 2, Name = "Receptionist", NormalizedName = "RECEPTIONIST" },
                 new IdentityRole<int> { Id = 3, Name = "Supervisor", NormalizedName = "SUPERVISOR" },
                 new IdentityRole<int> { Id = 4, Name = "Mechanic", NormalizedName = "MECHANIC" },
-                new IdentityRole<int> { Id = 5, Name = "Stoker", NormalizedName = "STOKER" },
+                new IdentityRole<int> { Id = 5, Name = "Stocker", NormalizedName = "STOCKER" },
                 new IdentityRole<int> { Id = 6, Name = "Admin", NormalizedName = "ADMIN" }
             );
 
