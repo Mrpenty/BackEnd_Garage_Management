@@ -1,4 +1,5 @@
-﻿using Garage_Management.Base.Data;
+﻿using Garage_Management.Application.Repositories.Services;
+using Garage_Management.Base.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer;    
 using Microsoft.Extensions.DependencyInjection;

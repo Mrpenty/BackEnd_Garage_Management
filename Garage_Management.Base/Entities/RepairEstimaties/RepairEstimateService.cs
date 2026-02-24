@@ -1,3 +1,4 @@
+using Garage_Management.Base.Entities.Services;
 using System;
 
 namespace Garage_Management.Base.Entities.RepairEstimaties

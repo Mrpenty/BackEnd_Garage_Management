@@ -7,12 +7,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
-    <Folder Include="Validators\" />
-    <Folder Include="Services\" />
+    <Folder Include="Repositories\Warranties\" />
+    <Folder Include="Repositories\Vehiclies\" />
+    <Folder Include="Repositories\RepairEstimaties\" />
+    <Folder Include="Services\Inventories\" />
+    <Folder Include="Services\RepairEstimaties\" />
+    <Folder Include="Services\Vehiclies\" />
+    <Folder Include="Services\Warranties\" />
+    <Folder Include="Validators\Accounts\" />
+    <Folder Include="Validators\Inventories\" />
+    <Folder Include="Validators\JobCards\" />
+    <Folder Include="Validators\RepairEstimaties\" />
+    <Folder Include="Validators\Vehiclies\" />
+    <Folder Include="Validators\Warranties\" />
   </ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="FluentValidation" Version="12.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.9" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.22" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />

@@ -11,9 +11,7 @@ namespace Garage_Management.Base.Entities.JobCards
     public class JobCardMechanic
     {
         public int JobCardId { get; set; }
-
-        public int UserId { get; set; }    
-
+        public int EmployeeId { get; set; }    
 
         /// <summary>
         /// Phiếu sửa chữa mà thợ này được phân công
@@ -23,7 +21,7 @@ namespace Garage_Management.Base.Entities.JobCards
         /// <summary>
         /// Thợ máy  được phân công cho phiếu này
         /// </summary>
-        public User User { get; set; } = null!;   
+        public Employee Employee { get; set; } = null!;   
 
 
         /// <summary>
@@ -36,7 +34,7 @@ namespace Garage_Management.Base.Entities.JobCards
         /// </summary>
         public int? AssignedBy { get; set; }
 
-        public User? AssignedByUser { get; set; }
+        public Employee? AssignedByUser { get; set; }
 
         /// <summary>
         /// Vai trò cụ thể của thợ trong phiếu này (nếu cần phân biệt)

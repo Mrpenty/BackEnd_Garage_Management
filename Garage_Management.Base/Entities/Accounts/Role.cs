@@ -7,7 +7,6 @@ namespace Garage_Management.Base.Entities.Accounts
     /// </summary>
     public class Role
     {
-    
         public int RoleId { get; set; }
 
         /// <summary>

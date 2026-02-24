@@ -14,16 +14,9 @@ namespace Garage_Management.Base.Entities.Accounts
     /// </summary>
     public class Customer : AuditableEntity
     {
-       
         public int CustomerId { get; set; }
-
-       
         public string FirstName { get; set; } = string.Empty;
-
-        
         public string LastName { get; set; } = string.Empty;
-
-       
 
         /// <summary>
         /// Địa chỉ liên lạc của khách hàng

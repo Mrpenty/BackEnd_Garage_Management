@@ -1,30 +1,39 @@
 using FluentValidation;
+using Garage_Management.API.Extensions;
+using Garage_Management.API.Middlewares;
 using Garage_Management.Application;
+using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Repositories.Services;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
 using Garage_Management.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 // Conction string + DbContext
-var connectionString =
-    builder.Configuration.GetConnectionString("Mycnn")
-        ?? throw new InvalidOperationException("Mycnn"
-        + "'Mycnn' not found.");
+var connectionString = builder.Configuration.GetConnectionString("Mycnn")
+    ?? throw new InvalidOperationException("Connection string 'Mycnn' not found.");
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
 // Add services 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddInfrastructureDependency(connectionString);
 builder.Services.AddApplicationServices();
 builder.Services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyReference).Assembly);
-
-
+builder.Services.Configure<JwtConfiguration>(builder.Configuration.GetSection("Jwt"));
 // Add services extensions
+builder.Services.AddIdentityServices();
+builder.Services.AddCorsServices(builder.Configuration, builder.Environment);
+builder.Services.AddSwaggerServices();
+builder.Services.AddDependencyInjectionServices();
+builder.Services.AddAuthenticationServices(builder.Configuration);
+
 
 
 
@@ -36,14 +45,17 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Garage Management API v1");
+});
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
-
+//app.UseHttpsRedirection();
+app.UseCorsPolicy(app.Environment);
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
