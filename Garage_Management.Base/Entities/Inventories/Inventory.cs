@@ -1,4 +1,5 @@
 using Garage_Management.Base.Common.Base;
+using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.RepairEstimaties;
 using Garage_Management.Base.Entities.Warranties;
@@ -64,6 +65,10 @@ namespace Garage_Management.Base.Entities.Inventories
         /// Các dòng phụ tùng được dùng trên phiếu sửa chữa
         /// </summary>
         public ICollection<JobCardSparePart> JobCardSpareParts { get; set; } = new List<JobCardSparePart>();
+        /// <summary>
+        /// Spare parts attached to appointments.
+        /// </summary>
+        public ICollection<AppointmentSparePart> AppointmentSpareParts { get; set; } = new List<AppointmentSparePart>();
 
         /// <summary>
         /// Các dòng phụ tùng trong báo giá sửa chữa

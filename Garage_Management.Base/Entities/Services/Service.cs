@@ -1,4 +1,5 @@
 using Garage_Management.Base.Common.Base;
+using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.RepairEstimaties;
 using Garage_Management.Base.Entities.Warranties;
@@ -38,6 +39,10 @@ namespace Garage_Management.Base.Entities.Services
         /// Các dòng dịch vụ trên phiếu sửa chữa có sử dụng dịch vụ này
         /// </summary>
         public ICollection<JobCardService> JobCardServices { get; set; } = new List<JobCardService>();
+        /// <summary>
+        /// Services attached to appointments.
+        /// </summary>
+        public ICollection<AppointmentService> AppointmentServices { get; set; } = new List<AppointmentService>();
         /// <summary>
         /// Danh sách các công việc chi tiết thuộc dịch vụ này
         /// </summary>

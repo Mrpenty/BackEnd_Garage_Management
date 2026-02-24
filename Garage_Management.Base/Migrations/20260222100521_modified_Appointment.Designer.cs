@@ -4,6 +4,7 @@ using Garage_Management.Base.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Garage_Management.Base.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260222100521_modified_Appointment")]
+    partial class modified_Appointment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -168,7 +171,7 @@ namespace Garage_Management.Base.Migrations
                         {
                             CustomerId = 1,
                             Address = "123 Đường Láng, Đống Đa, Hà Nội",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1260),
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 19, 36, DateTimeKind.Utc).AddTicks(5081),
                             FirstName = "Nguyễn Văn",
                             LastName = "An",
                             UserId = 10
@@ -177,7 +180,7 @@ namespace Garage_Management.Base.Migrations
                         {
                             CustomerId = 2,
                             Address = "45 Nguyễn Trãi, Thanh Xuân, Hà Nội",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1263),
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 19, 36, DateTimeKind.Utc).AddTicks(5083),
                             FirstName = "Trần Thị",
                             LastName = "Bình",
                             UserId = 11
@@ -260,7 +263,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 1,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1143),
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 19, 36, DateTimeKind.Utc).AddTicks(5016),
                             EmployeeCode = "NV-ADMIN-001",
                             FirstName = "Nguyễn Văn",
                             IsActive = true,
@@ -272,7 +275,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 2,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1150),
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 19, 36, DateTimeKind.Utc).AddTicks(5020),
                             EmployeeCode = "QL-001",
                             FirstName = "Trần Thị",
                             IsActive = true,
@@ -284,7 +287,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 3,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1153),
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 19, 36, DateTimeKind.Utc).AddTicks(5023),
                             EmployeeCode = "KT-001",
                             FirstName = "Lê Văn",
                             IsActive = true,
@@ -296,7 +299,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 4,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1157),
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 19, 36, DateTimeKind.Utc).AddTicks(5025),
                             EmployeeCode = "LT-001",
                             FirstName = "Phạm Thị",
                             IsActive = true,
@@ -429,18 +432,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a9dc8cd5b3fe4b6b94e4f706aa4298e1",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 782, DateTimeKind.Utc).AddTicks(1581),
+                            ConcurrencyStamp = "a220e566de3c40c18e562e5e0343b36b",
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 18, 692, DateTimeKind.Utc).AddTicks(4788),
                             Email = "admin@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GARAGE.VN",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJed9HXx145yvsGSBpy/WhhvBAfgV8w04urb8OZMyJdGtMvE6w5eDFl/PdibKcFADg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDjNmqokH3UX2lndQXCnPCDdVs3nFc4A9MZj3WsxZLIbANEwlq9uZkbmAOz2Jh6c3Q==",
                             PhoneNumber = "0909123456",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "1830b41e-3bda-4a81-a41d-c5d95578c96e",
+                            SecurityStamp = "d390bef8-a487-498c-9c6d-397180295b06",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         },
@@ -448,18 +451,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d72207bfb52541bdba18b59a2e6f8926",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 845, DateTimeKind.Utc).AddTicks(162),
+                            ConcurrencyStamp = "de03ff2620db4ea494f1de0f9a90473a",
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 18, 756, DateTimeKind.Utc).AddTicks(3775),
                             Email = "manager01@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER01@GARAGE.VN",
                             NormalizedUserName = "SUPERVISOR01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGCkh7e6z1mNNCXzrCasW5j2k6VQuOjXrr5HAtI63FKDLcsh2IIDfaZGhDCVu7QDKg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPJkyGw7tJTmAr11fy97Lckb3dtR7IbI8fdDOAL17SjIoPgjbVAIV/JOH7fgwaBcpQ==",
                             PhoneNumber = "0912345678",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "d40c9066-12b1-46bb-8b0f-8567da96a6cc",
+                            SecurityStamp = "79c82c8a-bafb-41c4-b037-6317ebf2f8e2",
                             TwoFactorEnabled = false,
                             UserName = "Supervisor01"
                         },
@@ -467,18 +470,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 3,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "7d7c5414389342fa8d1eaa6404bf8188",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 915, DateTimeKind.Utc).AddTicks(994),
+                            ConcurrencyStamp = "761fd3a19a564df596f246476985d01e",
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 18, 813, DateTimeKind.Utc).AddTicks(2013),
                             Email = "mechanic01@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "MECHANIC01@GARAGE.VN",
                             NormalizedUserName = "MECHANIC01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOqzmiokN5dfo0+eRg0phnMBpxkdxr5rcfyeBxiRM2imvo3RJFmW24ZfQxAX9AIcuw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDUmYnDiTcErN92J3pB4JiK9wCreoJjd5ahcvVhFJJm/KKQMsiVw3ispWpuksoic/g==",
                             PhoneNumber = "0987654321",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "8fc84749-26a4-48ea-9266-b9ea82633c57",
+                            SecurityStamp = "043c1978-6bdf-4716-8ef9-0c90d3a67a48",
                             TwoFactorEnabled = false,
                             UserName = "mechanic01"
                         },
@@ -486,18 +489,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 4,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ab70cc182d1a4c62ada7ea2331b19d92",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 976, DateTimeKind.Utc).AddTicks(9524),
+                            ConcurrencyStamp = "d40f8ccb396b4ab386c6a6e05837602d",
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 18, 870, DateTimeKind.Utc).AddTicks(2576),
                             Email = "reception@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "RECEPTION@GARAGE.VN",
                             NormalizedUserName = "RECEP01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEERy+rUjDv5x1N6N8j2AbN0eUIroFKjLE4eDX0cD0jG6PuMlbF6HMeR3SFvepyx4sw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJ4sHTu5oDEmA92Yq1w/7beT+CG0WAJu143y2YwAH9hJ4mHmkQt678qUZBcmvToM5w==",
                             PhoneNumber = "0978123456",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "83c3e873-a3fe-4685-94d2-af68d1511d65",
+                            SecurityStamp = "649fd979-6d0b-423e-aac1-e341aca0545f",
                             TwoFactorEnabled = false,
                             UserName = "recep01"
                         },
@@ -505,18 +508,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 5,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0516a083511c4e249a6a1c07976e7023",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 40, DateTimeKind.Utc).AddTicks(4304),
+                            ConcurrencyStamp = "f83f13b7d5044353921b1bef76badbe2",
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 18, 926, DateTimeKind.Utc).AddTicks(1955),
                             Email = "stocker@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "STOCKER@GARAGE.VN",
                             NormalizedUserName = "STOCKER01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJ1+kndM2puiO6mEPjnBBjNw6quRKFk2HZJ/1M/CjR12q0CiNO7GwnLJ3R1Q7+4D+w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEK+HQqSipVvVkIrVHKS1Y8HuADigzXtONlH4L3qki/1uqWRTGM4LRBnD9iPDIELQ3Q==",
                             PhoneNumber = "0978123356",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "25edc126-d572-44d5-b6d5-b4843ec69a10",
+                            SecurityStamp = "48b8b332-0cbf-47a3-a95d-8d9ac4ba5127",
                             TwoFactorEnabled = false,
                             UserName = "stocker01"
                         },
@@ -524,18 +527,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 10,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "54ad441c96514daaa03a427b04fbc537",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 105, DateTimeKind.Utc).AddTicks(9781),
+                            ConcurrencyStamp = "00ac17ad68eb40a3aa43e8b87f3fb94d",
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 18, 981, DateTimeKind.Utc).AddTicks(834),
                             Email = "nguyen.van.a@gmail.com",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "NGUYEN.VAN.A@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJpA0Oi/Q2ok3lQNQhS6hdnwECM6+zJ8Bf8wzlWzVo2U2v94NT6T6xBkfn7nNlrIAg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELgIwwLzgJmnclxZstdA18j2rKkVNnmc8pSyAep1S3LQh4fRQJq9zUImqpOSkFpqfQ==",
                             PhoneNumber = "0912345670",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "5c6add17-1ea6-47a9-82db-1a57051b27d8",
+                            SecurityStamp = "93aa2e60-bf48-4d7f-a29c-c19b4fda1b98",
                             TwoFactorEnabled = false,
                             UserName = "khachhang01"
                         },
@@ -543,18 +546,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 11,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "61c719c2a31b44118563f55bccef9148",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(169),
+                            ConcurrencyStamp = "8b8a0eeaeb874391a8c028ae448a3bb6",
+                            CreatedAt = new DateTime(2026, 2, 22, 10, 5, 19, 36, DateTimeKind.Utc).AddTicks(4505),
                             Email = "tran.thi.b@gmail.com",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TRAN.THI.B@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG02",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFmApE/8+NtWVdn33ACWzOeqoUicibg9tS894o90HzqLkhLIyhljAOCZv4Bq6r+q/g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGM/HCsx//8+6WNzLLsaLKnWHGeeVlVDY5y606IjcsOqrbvgZr+XkOp7X6zV5hM1EQ==",
                             PhoneNumber = "0987654312",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "bfa0f8c1-91b1-4f21-9013-433232a1ef76",
+                            SecurityStamp = "5023da0d-5e78-4c6d-afad-330535cd7d2f",
                             TwoFactorEnabled = false,
                             UserName = "khachhang02"
                         });
@@ -1660,8 +1663,8 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             Id = 5,
-                            Name = "Stocker",
-                            NormalizedName = "STOCKER"
+                            Name = "Stoker",
+                            NormalizedName = "STOKER"
                         },
                         new
                         {
