@@ -13,7 +13,7 @@ namespace Garage_Management.Base.Interface
         /// <summary>
         /// Tạo JWT token từ thông tin user
         /// </summary>
-        string GenerateJwtToken(User user);
+        Task<string> GenerateJwtTokenAsync(User user);
         /// <summary>
         /// Tạo chuỗi refresh token
         /// </summary>

@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Interface;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -17,16 +18,18 @@ namespace Garage_Management.Base.Services
     public class GenerateToken : IGenerateToken
     {
         private readonly JwtConfiguration jwtConfig;
+        private readonly UserManager<User> _userManager;
 
-        public GenerateToken(IOptions<JwtConfiguration> jwtConfig)
+        public GenerateToken(IOptions<JwtConfiguration> jwtConfig, UserManager<User> userManager)
         {
             ArgumentNullException.ThrowIfNull(jwtConfig);
-           
+
 
             this.jwtConfig = jwtConfig.Value;
+            _userManager = userManager;
         }
 
-        public string GenerateJwtToken(User user)
+        public async Task<string> GenerateJwtTokenAsync(User user)
         {
             ArgumentNullException.ThrowIfNull(user);
             // Support either a base64-encoded secret or a plain text secret
@@ -53,6 +56,9 @@ namespace Garage_Management.Base.Services
             };
             //const string issuer = "MGMS.API";
             //const string audience = "MGMS.Client";
+
+            var roles = await _userManager.GetRolesAsync(user); 
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var token = new JwtSecurityToken(
                 issuer: jwtConfig.Issuer ?? "MGMS.API",
