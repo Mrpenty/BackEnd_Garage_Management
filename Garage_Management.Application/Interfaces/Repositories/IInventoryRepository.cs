@@ -14,6 +14,8 @@ namespace Garage_Management.Application.Interfaces.Repositories
 
         IQueryable<Inventory> Query();
 
+        Task<List<Inventory>> GetByBrandIdAsync(int brandId, CancellationToken ct = default);
+
         Task SaveAsync(CancellationToken cancellationToken);
     }
 

@@ -9,14 +9,25 @@ namespace Garage_Management.Application.Repositories.Appointments
 {
     public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRepository
     {
-        public AppointmentRepository(AppDbContext context) : base(context) { }
+        private readonly AppDbContext _context;
+
+        public AppointmentRepository(AppDbContext context) : base(context)
+        {
+            _context = context;
+        }
 
         public async Task<PagedResult<Appointment>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var query = GetAll().AsNoTracking();
+            var query = _context.Appointments
+                .Include(x => x.Services)
+                    .ThenInclude(x => x.Service)
+                        .ThenInclude(x => x.ServiceTasks)
+                .Include(x => x.SpareParts)
+                    .ThenInclude(x => x.Inventory)
+                .AsNoTracking();
 
             var total = await query.CountAsync(ct);
             var data = await query
@@ -40,9 +51,14 @@ namespace Garage_Management.Application.Repositories.Appointments
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var query = GetAll()
+            var query = _context.Appointments
+                .Include(x => x.Services)
+                    .ThenInclude(x => x.Service)
+                        .ThenInclude(x => x.ServiceTasks)
+                .Include(x => x.SpareParts)
+                    .ThenInclude(x => x.Inventory)
                 .AsNoTracking()
-                .Where(x=>x.CustomerId == customerId);
+                .Where(x => x.CustomerId == customerId);
 
             var total = await query.CountAsync(ct);
             var data = await query
@@ -59,6 +75,17 @@ namespace Garage_Management.Application.Repositories.Appointments
                 Total = total,
                 PageData = data
             };
+        }
+
+        public async Task<Appointment?> GetByIdWithDetailsAsync(int id, CancellationToken ct = default)
+        {
+            return await _context.Appointments
+                .Include(x => x.Services)
+                    .ThenInclude(x => x.Service)
+                        .ThenInclude(x => x.ServiceTasks)
+                .Include(x => x.SpareParts)
+                    .ThenInclude(x => x.Inventory)
+                .FirstOrDefaultAsync(x => x.AppointmentId == id, ct);
         }
     }
 }
