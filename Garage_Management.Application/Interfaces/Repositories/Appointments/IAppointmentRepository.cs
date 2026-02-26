@@ -26,5 +26,10 @@ namespace Garage_Management.Application.Interfaces.Repositories.Appointments
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<PagedResult<Appointment>> GetByCustomerIdAsync(int page, int pageSize, int customerId, CancellationToken ct = default);
 
+        /// <summary>
+        /// Lấy chi tiết lịch hẹn kèm services/tasks.
+        /// </summary>
+        Task<Appointment?> GetByIdWithDetailsAsync(int id, CancellationToken ct = default);
+
     }
 }
