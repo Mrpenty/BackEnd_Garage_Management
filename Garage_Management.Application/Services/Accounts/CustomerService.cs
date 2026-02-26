@@ -56,14 +56,14 @@ namespace Garage_Management.Application.Services.Accounts
                 // Lọc theo từ khóa (tên, sđt, email, biển số)
                 if (!string.IsNullOrWhiteSpace(query.Search))
                 {
-                    var search = query.Search.Trim().ToLowerInvariant();
+                    var search = query.Search.Trim().ToLower();
 
                     q = q.Where(c =>
-                        (c.FirstName ?? "").ToLowerInvariant().Contains(search) ||
-                        (c.LastName ?? "").ToLowerInvariant().Contains(search) ||
+                        (c.FirstName ?? "").ToLower().Contains(search) ||
+                        (c.LastName ?? "").ToLower().Contains(search) ||
                         (c.User != null && (c.User.PhoneNumber ?? "").Contains(search)) ||
-                        (c.User != null && (c.User.Email ?? "").ToLowerInvariant().Contains(search)) ||
-                        c.Vehicles.Any(v => (v.LicensePlate ?? "").ToLowerInvariant().Contains(search))
+                        (c.User != null && (c.User.Email ?? "").ToLower().Contains(search)) ||
+                        c.Vehicles.Any(v => (v.LicensePlate ?? "").ToLower().Contains(search))
                     );
                 }
 
@@ -80,9 +80,9 @@ namespace Garage_Management.Application.Services.Accounts
                     .Select(c => new CustomerDto
                     {
                         CustomerId = c.CustomerId,
-                        FullName = $"{c.FirstName.Trim() ?? ""} {c.LastName.Trim() ?? ""}".Trim(),
-                        PhoneNumber = c.User.PhoneNumber ?? "",
-                        Email = c.User.Email ?? "",
+                        FullName = $"{(c.FirstName ?? "").Trim()} {(c.LastName ?? "").Trim()}".Trim(),
+                        PhoneNumber = c.User != null ? (c.User.PhoneNumber ?? "") : "",
+                        Email = c.User != null ? (c.User.Email ?? "") : "",
                         Address = c.Address ?? "",
                         UserId = c.UserId,
                         CreatedAt = c.CreatedAt,
@@ -90,8 +90,8 @@ namespace Garage_Management.Application.Services.Accounts
                         {
                             VehicleId = v.VehicleId,
                             LicensePlate = v.LicensePlate ?? "",
-                            Brand = v.Brand.BrandName ?? "",    // an toàn null
-                            Model = v.Model.ModelName ?? "",    // an toàn null
+                            Brand = v.Brand != null ? v.Brand.BrandName ?? "" : "",     // ← sửa lỗi ở đây
+                            Model = v.Model != null ? v.Model.ModelName ?? "" : "",
                             Year = v.Year
                         }).ToList()
                     })

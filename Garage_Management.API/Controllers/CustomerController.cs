@@ -20,7 +20,7 @@ namespace Garage_Management.API.Controllers
         }
 
         /// <summary>
-        /// Lấy danh sách khách hàng có phân trang và Lọc theo từ khóa (tên, sđt, email),
+        /// Lấy danh sách khách hàng có phân trang và Lọc theo từ khóa (tên, sđt, email,biên số)
         /// Sắp xếp (theo CreatedAt giảm dần)
         /// </summary>
         [HttpGet]
