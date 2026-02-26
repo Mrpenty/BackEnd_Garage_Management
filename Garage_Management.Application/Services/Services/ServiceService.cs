@@ -1,4 +1,5 @@
 using Garage_Management.Application.DTOs.Services;
+using Garage_Management.Application.DTOs.ServiceTasks;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
@@ -87,6 +88,21 @@ namespace Garage_Management.Application.Services.Services
                 ServiceName = entity.ServiceName,
                 BasePrice = entity.BasePrice,
                 Description = entity.Description,
+                TotalEstimateMinute = entity.ServiceTasks.Sum(x => (long)x.EstimateMinute),
+                ServiceTasks = entity.ServiceTasks
+                    .OrderBy(x => x.TaskOrder)
+                    .Select(x => new ServiceTaskResponse
+                    {
+                        ServiceTaskId = x.ServiceTaskId,
+                        ServiceId = x.ServiceId,
+                        TaskName = x.TaskName,
+                        TaskOrder = x.TaskOrder,
+                        EstimateMinute = x.EstimateMinute,
+                        Note = x.Note,
+                        CreatedAt = x.CreatedAt,
+                        UpdatedAt = x.UpdatedAt
+                    })
+                    .ToList(),
                 IsActive = entity.IsActive,
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt

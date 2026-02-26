@@ -37,4 +37,4 @@ namespace Garage_Management.Base.Entities.Services
         /// </summary>
         public ICollection<JobCardServiceTask> JobCardServiceTasks { get; set; } = new List<JobCardServiceTask>();
     }
-}
+} 

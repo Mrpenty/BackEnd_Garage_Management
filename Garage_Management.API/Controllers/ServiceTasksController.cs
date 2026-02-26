@@ -15,7 +15,6 @@ namespace Garage_Management.API.Controllers
         {
             _service = service;
         }
-
         [HttpGet]
         public async Task<ActionResult<ApiResponse<PagedResult<ServiceTaskResponse>>>> GetPaged(
             [FromQuery] int page = 1,

@@ -4,6 +4,7 @@ using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.Services;
 using Garage_Management.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace Garage_Management.Application.Repositories.Services
 {
@@ -21,14 +22,15 @@ namespace Garage_Management.Application.Repositories.Services
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var query = GetAll().AsNoTracking();
+            var query = _context.Services
+                .Include(x => x.ServiceTasks)
+                .AsNoTracking();
             var total = await query.CountAsync(ct);
             var data = await query
                 .OrderByDescending(x => x.ServiceId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(ct);
-
             return new PagedResult<Service>
             {
                 Page = page,
@@ -41,6 +43,7 @@ namespace Garage_Management.Application.Repositories.Services
             => _context.Services.AsQueryable();
         public async Task<Service?> GetByIdAsync(int id)
             => await _context.Services
+                .Include(x => x.ServiceTasks)
                 .FirstOrDefaultAsync(x => x.ServiceId == id);
         public async Task SaveAsync(CancellationToken cancellationToken)
             => await _context.SaveChangesAsync(cancellationToken);
