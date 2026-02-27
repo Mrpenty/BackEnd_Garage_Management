@@ -11,6 +11,9 @@ namespace Garage_Management.Application.Interfaces.Services
 {
     public interface IUserService
     {
+        /// <summary>
+        /// Lấy thông tin profile người dùng hiện tại
+        /// </summary>
         Task<ApiResponse<ProfileResponse>> GetCurrentUserProfileAsync(ClaimsPrincipal userClaims);
     }
 }
