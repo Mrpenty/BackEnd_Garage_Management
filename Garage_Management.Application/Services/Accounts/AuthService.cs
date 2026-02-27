@@ -102,7 +102,7 @@ namespace Garage_Management.Application.Services.Accounts
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
-                var token = _tokenGenerator.GenerateJwtToken(user);
+                var token = await _tokenGenerator.GenerateJwtTokenAsync(user);
                 var refreshToken = _tokenGenerator.GenerateRefreshToken();
 
                 user.RefreshToken = refreshToken;
@@ -137,7 +137,7 @@ namespace Garage_Management.Application.Services.Accounts
 
             if (signInResult.Succeeded)
             {
-                var token = _tokenGenerator.GenerateJwtToken(user);
+                var token = await _tokenGenerator.GenerateJwtTokenAsync(user);
                 var refreshToken = _tokenGenerator.GenerateRefreshToken();
 
                 user.RefreshToken = refreshToken;
@@ -195,7 +195,7 @@ namespace Garage_Management.Application.Services.Accounts
             {
                 return new ApiResponse<LoginResponse>{Success = true,Message = "Email hoặc mật khẩu không chính xác." };
             }
-            var accessToken = _tokenGenerator.GenerateJwtToken(user);
+            var accessToken = await _tokenGenerator.GenerateJwtTokenAsync(user);
             var refreshToken = _tokenGenerator.GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
