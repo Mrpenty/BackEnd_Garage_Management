@@ -4,13 +4,17 @@ using Garage_Management.Application.DTOs.ServiceTasks;
 using Garage_Management.Application.DTOs.Iventories;
 using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Repositories.Services;
+using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Accounts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System;
 using System.Linq;
+using Garage_Management.Base.Common.Models.Appointments;
 
 namespace Garage_Management.Application.Services.Appointments
 {
@@ -18,12 +22,27 @@ namespace Garage_Management.Application.Services.Appointments
     {
         private readonly IAppointmentRepository _repo;
         private readonly IEmployeeRepository _employeeRepo;
+        private readonly ICustomerRepository _customerRepo;
+        private readonly IVehicleRepository _vehicleRepo;
+        private readonly IServiceRepository _serviceRepo;
+        private readonly IInventoryRepository _inventoryRepo;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AppointmentService(IAppointmentRepository repo, IEmployeeRepository employeeRepo, IHttpContextAccessor httpContextAccessor)
+        public AppointmentService(
+            IAppointmentRepository repo,
+            IEmployeeRepository employeeRepo,
+            ICustomerRepository customerRepo,
+            IVehicleRepository vehicleRepo,
+            IServiceRepository serviceRepo,
+            IInventoryRepository inventoryRepo,
+            IHttpContextAccessor httpContextAccessor)
         {
             _repo = repo;
             _employeeRepo = employeeRepo;
+            _customerRepo = customerRepo;
+            _vehicleRepo = vehicleRepo;
+            _serviceRepo = serviceRepo;
+            _inventoryRepo = inventoryRepo;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -57,8 +76,84 @@ namespace Garage_Management.Application.Services.Appointments
             };
         }
 
+        public async Task<PagedResult<AppointmentResponse>> GetPagedAsync(AppointmentQuery query, CancellationToken ct = default)
+        {
+            var paged = await _repo.GetPagedAsync(query, ct);
+            return new PagedResult<AppointmentResponse>
+            {
+                Page = paged.Page,
+                PageSize = paged.PageSize,
+                Total = paged.Total,
+                PageData = paged.PageData.Select(Map).ToList()
+            };
+        }
+
         public async Task<AppointmentResponse> CreateAsync(AppointmentCreateRequest request, CancellationToken ct = default)
         {
+            if (request.CustomerId.HasValue && request.CustomerId.Value <= 0)
+                throw new InvalidOperationException("CustomerId không hợp lệ");
+
+            if (request.CustomerId.HasValue)
+            {
+                if (!string.IsNullOrWhiteSpace(request.FirstName) ||
+                    !string.IsNullOrWhiteSpace(request.LastName) ||
+                    !string.IsNullOrWhiteSpace(request.Phone))
+                {
+                    throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName/LastName/Phone");
+                }
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(request.FirstName) ||
+                    string.IsNullOrWhiteSpace(request.LastName) ||
+                    string.IsNullOrWhiteSpace(request.Phone))
+                {
+                    throw new InvalidOperationException("Khách vãng lai cần FirstName, LastName và Phone");
+                }
+            }
+
+            if (request.CustomerId.HasValue)
+            {
+                var customer = await _customerRepo.GetByIdAsync(request.CustomerId.Value);
+                if (customer == null)
+                    throw new InvalidOperationException("CustomerId không tồn tại");
+            }
+
+            if (request.VehicleId.HasValue)
+            {
+                var vehicle = await _vehicleRepo.GetByIdAsync(request.VehicleId.Value);
+                if (vehicle == null)
+                    throw new InvalidOperationException("VehicleId không tồn tại");
+            }
+
+            var serviceIds = request.ServiceIds?
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            if (serviceIds.Count > 0)
+            {
+                var count = await _serviceRepo.GetAll()
+                    .AsNoTracking()
+                    .CountAsync(x => serviceIds.Contains(x.ServiceId), ct);
+                if (count != serviceIds.Count)
+                    throw new InvalidOperationException("ServiceIds không hợp lệ");
+            }
+
+            var sparePartIds = request.SparePartsIds?
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            if (sparePartIds.Count > 0)
+            {
+                var count = await _inventoryRepo.Query()
+                    .AsNoTracking()
+                    .CountAsync(x => sparePartIds.Contains(x.SparePartId), ct);
+                if (count != sparePartIds.Count)
+                    throw new InvalidOperationException("SparePartsIds không hợp lệ");
+            }
+
             int? createdBy = null;
             var userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrWhiteSpace(userIdStr) && int.TryParse(userIdStr, out var userId))
@@ -70,6 +165,9 @@ namespace Garage_Management.Application.Services.Appointments
             var entity = new Appointment
             {
                 CustomerId = request.CustomerId,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Phone = request.Phone,
                 VehicleId = request.VehicleId,
                 CreatedBy = createdBy,
                 AppointmentDateTime = request.AppointmentDateTime,
@@ -78,13 +176,8 @@ namespace Garage_Management.Application.Services.Appointments
                 CreatedAt = DateTime.UtcNow
             };
 
-            if (request.ServiceIds != null && request.ServiceIds.Count > 0)
+            if (serviceIds.Count > 0)
             {
-                var serviceIds = request.ServiceIds
-                    .Where(x => x > 0)
-                    .Distinct()
-                    .ToList();
-
                 entity.Services = serviceIds
                     .Select(id => new Base.Entities.Accounts.AppointmentService
                     {
@@ -93,13 +186,8 @@ namespace Garage_Management.Application.Services.Appointments
                     .ToList();
             }
 
-            if (request.SparePartsIds != null && request.SparePartsIds.Count > 0)
+            if (sparePartIds.Count > 0)
             {
-                var sparePartIds = request.SparePartsIds
-                    .Where(x => x > 0)
-                    .Distinct()
-                    .ToList();
-
                 entity.SpareParts = sparePartIds
                     .Select(id => new AppointmentSparePart
                     {
@@ -120,8 +208,55 @@ namespace Garage_Management.Application.Services.Appointments
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
-            if (request.CustomerId.HasValue) entity.CustomerId = request.CustomerId.Value;
-            if (request.VehicleId.HasValue) entity.VehicleId = request.VehicleId.Value;
+            if (request.CustomerId.HasValue)
+            {
+                if (request.CustomerId.Value <= 0)
+                    throw new InvalidOperationException("CustomerId không hợp lệ");
+                var customer = await _customerRepo.GetByIdAsync(request.CustomerId.Value);
+                if (customer == null)
+                    throw new InvalidOperationException("CustomerId không tồn tại");
+                entity.CustomerId = request.CustomerId.Value;
+            }
+            if (request.FirstName != null)
+            {
+                if (string.IsNullOrWhiteSpace(request.FirstName))
+                    throw new InvalidOperationException("FirstName không hợp lệ");
+                if (request.CustomerId.HasValue)
+                    throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName");
+                entity.FirstName = request.FirstName;
+            }
+            if (request.LastName != null)
+            {
+                if (string.IsNullOrWhiteSpace(request.LastName))
+                    throw new InvalidOperationException("LastName không hợp lệ");
+                if (request.CustomerId.HasValue)
+                    throw new InvalidOperationException("Có CustomerId thì không được nhập LastName");
+                entity.LastName = request.LastName;
+            }
+            if (request.Phone != null)
+            {
+                if (string.IsNullOrWhiteSpace(request.Phone))
+                    throw new InvalidOperationException("Phone không hợp lệ");
+                if (request.CustomerId.HasValue)
+                    throw new InvalidOperationException("Có CustomerId thì không được nhập Phone");
+                entity.Phone = request.Phone;
+            }
+            if (!request.CustomerId.HasValue)
+            {
+                if (string.IsNullOrWhiteSpace(entity.FirstName) ||
+                    string.IsNullOrWhiteSpace(entity.LastName) ||
+                    string.IsNullOrWhiteSpace(entity.Phone))
+                {
+                    throw new InvalidOperationException("Khách vãng lai cần FirstName, LastName và Phone");
+                }
+            }
+            if (request.VehicleId.HasValue)
+            {
+                var vehicle = await _vehicleRepo.GetByIdAsync(request.VehicleId.Value);
+                if (vehicle == null)
+                    throw new InvalidOperationException("VehicleId không tồn tại");
+                entity.VehicleId = request.VehicleId.Value;
+            }
             if (request.AppointmentDateTime.HasValue) entity.AppointmentDateTime = request.AppointmentDateTime.Value;
             if (request.Status.HasValue) entity.Status = request.Status.Value;
             if (request.Description != null) entity.Description = request.Description;
@@ -151,6 +286,9 @@ namespace Garage_Management.Application.Services.Appointments
             {
                 AppointmentId = entity.AppointmentId,
                 CustomerId = entity.CustomerId,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName,
+                Phone = entity.Phone,
                 VehicleId = entity.VehicleId,
                 TotalEstimateMinute = entity.Services.Sum(s => s.Service?.ServiceTasks.Sum(t => (long)t.EstimateMinute) ?? 0),
                 CreatedBy = entity.CreatedBy,

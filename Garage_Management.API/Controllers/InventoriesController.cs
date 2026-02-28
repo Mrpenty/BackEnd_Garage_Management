@@ -17,6 +17,18 @@ namespace Garage_Management.API.Controllers
         }
 
         /// <summary>
+        /// Lấy danh sách phụ tùng có phân trang, lọc, tìm kiếm, sắp xếp
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<PagedResult<InventoryResponse>>>> GetPaged(
+            [FromQuery] ParamQuery query,
+            CancellationToken ct = default)
+        {
+            var result = await _service.GetPagedAsync(query, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Lấy danh sách phụ tùng theo hãng phụ tùng
         /// </summary>
         [HttpGet("by-brand/{brandId:int}")]

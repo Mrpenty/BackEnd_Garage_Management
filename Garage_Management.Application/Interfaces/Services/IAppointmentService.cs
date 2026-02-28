@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Base.Common.Models;
+using Garage_Management.Base.Common.Models.Appointments;
 
 namespace Garage_Management.Application.Interfaces.Services
 {
@@ -36,6 +37,20 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <param name="pageSize">Tổng số trang</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param> 
         Task<PagedResult<AppointmentResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+
+        /// Author: KhanhDV
+        /// Created Date: 26-2-2026
+        /// <summary>
+        /// Lấy danh sách lịch đặt có phân trang, lọc, tìm kiếm, sắp xếp
+        /// </summary>
+        /// <param name="query">
+        /// - status: có thể chọn nhiều status
+        /// - Filter: pending | confirmed | completed | canceled | {customerId}
+        /// - Search: Description, FirstName, LastName, Phone
+        /// - OrderBy: appointmentdatetime | status | createdat
+        /// - SortOrder: ASC | DESC
+        /// </param>
+        Task<PagedResult<AppointmentResponse>> GetPagedAsync(AppointmentQuery query, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 13-2-2026

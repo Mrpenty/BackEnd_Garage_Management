@@ -7,7 +7,10 @@ namespace Garage_Management.Application.DTOs.Appointments
     public class AppointmentResponse
     {
         public int AppointmentId { get; set; }
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Phone { get; set; }
         public int? VehicleId { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
