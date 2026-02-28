@@ -143,13 +143,12 @@ namespace Garage_Management.Application.Services.Accounts
             User? newUser = null;
             if (!string.IsNullOrWhiteSpace(request.Email))
             {
-                // Có thể tạo User với mật khẩu random hoặc gửi OTP sau
                 newUser = new User
                 {
                     UserName = request.PhoneNumber,
                     Email = request.Email,
                     PhoneNumber = request.PhoneNumber,
-                    IsActive = false,
+                    IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = receptionistUserId
                 };
@@ -177,7 +176,6 @@ namespace Garage_Management.Application.Services.Accounts
             _customerRepository.Add(customer);
             await _customerRepository.SaveAsync(ct);
 
-            // 5. Trả về DTO
             var dto = new CustomerDto
             {
                 CustomerId = customer.CustomerId,

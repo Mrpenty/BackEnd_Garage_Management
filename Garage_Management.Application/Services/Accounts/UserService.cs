@@ -17,7 +17,7 @@ namespace Garage_Management.Application.Services.Accounts
     {
         private readonly UserManager<User> _userManager;
         private readonly ICustomerRepository _customerRepository;
-        private readonly IEmployeeRepository _employeeRepository;  // nếu có
+        private readonly IEmployeeRepository _employeeRepository;  
         private readonly RoleManager<IdentityRole<int>> _roleManager;
 
         public UserService(
