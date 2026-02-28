@@ -13,8 +13,12 @@ namespace Garage_Management.Base.Entities.Accounts
     public class Appointment : AuditableEntity
     {
         public int AppointmentId { get; set; }
-        public int CustomerId { get; set; }
-        public Customer Customer { get; set; } = null!;
+        public int? CustomerId { get; set; }
+        public Customer? Customer { get; set; }
+
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Phone { get; set; }
 
         /// <summary>
         /// Xe của khách hàng 
