@@ -90,10 +90,22 @@ namespace Garage_Management.Application.Services.Appointments
 
         public async Task<AppointmentResponse> CreateAsync(AppointmentCreateRequest request, CancellationToken ct = default)
         {
-            if (request.CustomerId.HasValue && request.CustomerId.Value <= 0)
+            // Resolve CustomerId from token if user is a customer
+            int? customerIdFromToken = null;
+            var userIdStrForCustomer = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrWhiteSpace(userIdStrForCustomer) && int.TryParse(userIdStrForCustomer, out var userIdForCustomer))
+            {
+                var customer = await _customerRepo.GetByUserIdAsync(userIdForCustomer);
+                if (customer != null)
+                    customerIdFromToken = customer.CustomerId;
+            }
+
+            var effectiveCustomerId = customerIdFromToken ?? request.CustomerId;
+
+            if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
                 throw new InvalidOperationException("CustomerId không hợp lệ");
 
-            if (request.CustomerId.HasValue)
+            if (effectiveCustomerId.HasValue)
             {
                 if (!string.IsNullOrWhiteSpace(request.FirstName) ||
                     !string.IsNullOrWhiteSpace(request.LastName) ||
@@ -112,20 +124,14 @@ namespace Garage_Management.Application.Services.Appointments
                 }
             }
 
-            if (request.CustomerId.HasValue)
+            if (effectiveCustomerId.HasValue)
             {
-                var customer = await _customerRepo.GetByIdAsync(request.CustomerId.Value);
+                var customer = await _customerRepo.GetByIdAsync(effectiveCustomerId.Value);
                 if (customer == null)
                     throw new InvalidOperationException("CustomerId không tồn tại");
             }
 
-            var hasVehicleId = request.VehicleId.HasValue;
-            var hasVehicleModel = request.VehicleModelId.HasValue;
-
-            if (hasVehicleId != hasVehicleModel)
-                throw new InvalidOperationException("VehicleId và VehicleModelId phải có cùng lúc");
-
-            if (hasVehicleId)
+            if (request.VehicleId.HasValue)
             {
                 var vehicle = await _vehicleRepo.GetByIdAsync(request.VehicleId.Value);
                 if (vehicle == null)
@@ -170,7 +176,7 @@ namespace Garage_Management.Application.Services.Appointments
 
             var entity = new Appointment
             {
-                CustomerId = request.CustomerId,
+                CustomerId = effectiveCustomerId,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Phone = request.Phone,
@@ -267,10 +273,6 @@ namespace Garage_Management.Application.Services.Appointments
             if (request.VehicleModelId.HasValue)
                 entity.VehicleModelId = request.VehicleModelId.Value;
 
-            var hasVehicleIdUpdate = entity.VehicleId.HasValue;
-            var hasVehicleModelUpdate = entity.VehicleModelId.HasValue;
-            if (hasVehicleIdUpdate != hasVehicleModelUpdate)
-                throw new InvalidOperationException("VehicleId và VehicleModelId phải có cùng lúc");
             if (request.AppointmentDateTime.HasValue) entity.AppointmentDateTime = request.AppointmentDateTime.Value;
             if (request.Status.HasValue) entity.Status = request.Status.Value;
             if (request.Description != null) entity.Description = request.Description;
