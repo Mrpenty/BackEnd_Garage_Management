@@ -31,6 +31,16 @@ namespace Garage_Management.Base.Entities.Accounts
         public Vehicle? Vehicle { get; set; }
 
         /// <summary>
+        /// Hãng xe (khách vãng lai)
+        /// </summary>
+        public string? VehicleBrand { get; set; }
+
+        /// <summary>
+        /// Model xe (khách vãng lai)
+        /// </summary>
+        public string? VehicleModel { get; set; }
+
+        /// <summary>
         /// Nhân viên tiếp nhận / tạo lịch hẹn
         /// </summary>
         public int? CreatedBy { get; set; }

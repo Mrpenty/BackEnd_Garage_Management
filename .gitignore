@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# App settings (local)
+Garage_Management.API/appsettings.json
+Garage_Management.API/appsettings.Development.json
