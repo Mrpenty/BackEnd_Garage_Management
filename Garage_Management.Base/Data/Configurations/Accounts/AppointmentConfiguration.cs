@@ -48,10 +48,8 @@ namespace Garage_Management.Base.Data.Configurations.Accounts
                 .HasMaxLength(100);
             builder.Property(a => a.Phone)
                 .HasMaxLength(20);
-            builder.Property(a => a.VehicleBrand)
-                .HasMaxLength(100);
-            builder.Property(a => a.VehicleModel)
-                .HasMaxLength(100);
+            builder.Property(a => a.VehicleBrandId);
+            builder.Property(a => a.VehicleModelId);
 
         }
     }

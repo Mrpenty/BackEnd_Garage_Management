@@ -31,14 +31,14 @@ namespace Garage_Management.Base.Entities.Accounts
         public Vehicle? Vehicle { get; set; }
 
         /// <summary>
-        /// Hãng xe (khách vãng lai)
+        /// Hãng xe (VehicleBrandId)
         /// </summary>
-        public string? VehicleBrand { get; set; }
+        public int? VehicleBrandId { get; set; }
 
         /// <summary>
-        /// Model xe (khách vãng lai)
+        /// Model xe (VehicleModelId)
         /// </summary>
-        public string? VehicleModel { get; set; }
+        public int? VehicleModelId { get; set; }
 
         /// <summary>
         /// Nhân viên tiếp nhận / tạo lịch hẹn
