@@ -31,11 +31,6 @@ namespace Garage_Management.Base.Entities.Accounts
         public Vehicle? Vehicle { get; set; }
 
         /// <summary>
-        /// Hãng xe (VehicleBrandId)
-        /// </summary>
-        public int? VehicleBrandId { get; set; }
-
-        /// <summary>
         /// Model xe (VehicleModelId)
         /// </summary>
         public int? VehicleModelId { get; set; }
