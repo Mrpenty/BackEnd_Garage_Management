@@ -120,11 +120,10 @@ namespace Garage_Management.Application.Services.Appointments
             }
 
             var hasVehicleId = request.VehicleId.HasValue;
-            var hasVehicleBrand = request.VehicleBrandId.HasValue;
             var hasVehicleModel = request.VehicleModelId.HasValue;
 
-            if (hasVehicleId != hasVehicleBrand || hasVehicleId != hasVehicleModel)
-                throw new InvalidOperationException("VehicleId, VehicleBrandId, VehicleModelId phải có cùng lúc");
+            if (hasVehicleId != hasVehicleModel)
+                throw new InvalidOperationException("VehicleId và VehicleModelId phải có cùng lúc");
 
             if (hasVehicleId)
             {
@@ -176,7 +175,6 @@ namespace Garage_Management.Application.Services.Appointments
                 LastName = request.LastName,
                 Phone = request.Phone,
                 VehicleId = request.VehicleId,
-                VehicleBrandId = request.VehicleBrandId,
                 VehicleModelId = request.VehicleModelId,
                 CreatedBy = createdBy,
                 AppointmentDateTime = request.AppointmentDateTime,
@@ -266,16 +264,13 @@ namespace Garage_Management.Application.Services.Appointments
                     throw new InvalidOperationException("VehicleId không tồn tại");
                 entity.VehicleId = request.VehicleId.Value;
             }
-            if (request.VehicleBrandId.HasValue)
-                entity.VehicleBrandId = request.VehicleBrandId.Value;
             if (request.VehicleModelId.HasValue)
                 entity.VehicleModelId = request.VehicleModelId.Value;
 
             var hasVehicleIdUpdate = entity.VehicleId.HasValue;
-            var hasVehicleBrandUpdate = entity.VehicleBrandId.HasValue;
             var hasVehicleModelUpdate = entity.VehicleModelId.HasValue;
-            if (hasVehicleIdUpdate != hasVehicleBrandUpdate || hasVehicleIdUpdate != hasVehicleModelUpdate)
-                throw new InvalidOperationException("VehicleId, VehicleBrandId, VehicleModelId phải có cùng lúc");
+            if (hasVehicleIdUpdate != hasVehicleModelUpdate)
+                throw new InvalidOperationException("VehicleId và VehicleModelId phải có cùng lúc");
             if (request.AppointmentDateTime.HasValue) entity.AppointmentDateTime = request.AppointmentDateTime.Value;
             if (request.Status.HasValue) entity.Status = request.Status.Value;
             if (request.Description != null) entity.Description = request.Description;
@@ -309,7 +304,6 @@ namespace Garage_Management.Application.Services.Appointments
                 LastName = entity.LastName,
                 Phone = entity.Phone,
                 VehicleId = entity.VehicleId,
-                VehicleBrandId = entity.VehicleBrandId,
                 VehicleModelId = entity.VehicleModelId,
                 TotalEstimateMinute = entity.Services.Sum(s => s.Service?.ServiceTasks.Sum(t => (long)t.EstimateMinute) ?? 0),
                 CreatedBy = entity.CreatedBy,
