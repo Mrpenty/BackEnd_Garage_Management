@@ -19,7 +19,10 @@ namespace Garage_Management.Application.Interfaces.Services
         Task<bool> UpdateAsync(int id, UpdateJobCardDto dto, CancellationToken cancellationToken);
 
         Task<bool> AssignMechanicAsync(int id, AssignMechanicDto dto, CancellationToken cancellationToken);
-        Task<IEnumerable<JobCardListDto>> GetActiveAsync();
+        Task<IEnumerable<JobCardListDto>> GetActiveAsync(
+    string? search,
+    string? sortBy,
+    string? sortDirection);
         Task<bool> AddServiceAsync(int jobCardId, AddServiceToJobCardDto dto,CancellationToken cancellationToken);
  Task<bool> AddSparePartAsync( int jobCardId, AddSparePartToJobCardDto dto, CancellationToken cancellationToken);
         
