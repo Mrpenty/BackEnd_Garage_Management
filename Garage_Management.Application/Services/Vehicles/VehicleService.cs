@@ -28,17 +28,6 @@ namespace Garage_Management.Application.Services.Vehicles
             return entity == null ? null : Map(entity);
         }
 
-        public async Task<PagedResult<VehicleResponse>> GetByCustomerIdAsync(int page, int pageSize, int customerId, CancellationToken ct = default)
-        {
-            var data = await _repo.GetByCustomerIdAsync(page, pageSize, customerId, ct);
-            return new PagedResult<VehicleResponse>
-            {
-                Page = data.Page,
-                PageSize = data.PageSize,
-                Total = data.Total,
-                PageData = data.PageData.Select(Map).ToList()
-            };
-        }
 
         public async Task<PagedResult<VehicleResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {

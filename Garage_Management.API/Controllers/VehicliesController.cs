@@ -49,22 +49,6 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Lấy danh sách xe máy theo khách hàng được phân trang
-        /// </summary>
-        [HttpGet("by-customer/{customerId:int}")]
-        public async Task<ActionResult<ApiResponse<PagedResult<VehicleResponse>>>> GetByCustomer(
-            int customerId,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            CancellationToken ct = default)
-        {
-            var data = await _service.GetByCustomerIdAsync(page, pageSize, customerId, ct);
-            return Ok(ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(data, "OK"));
-        }
-
-        ///Author: KhanhDV
-        ///Created Date: 13-2-2026
-        /// <summary>
         /// Tạo 1 thông tin xe máy mới
         /// </summary>
         [HttpPost]
