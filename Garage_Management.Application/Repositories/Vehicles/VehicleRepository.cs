@@ -44,7 +44,7 @@ namespace Garage_Management.Application.Repositories.Vehicles
         {
             if(page <= 0) page = 1;
             if(pageSize <= 0) pageSize = 10; 
-            var query = GetAll().Where(x=>x.CustomerId==customerId).AsNoTracking();
+            var query = GetAll().Where(x=>x.CustomerId==customerId).Include(v => v.Brand).Include(v => v.Model).AsNoTracking();
             var total = await query.CountAsync(ct);
             var data = await query
                 .OrderByDescending(x => x.VehicleId)

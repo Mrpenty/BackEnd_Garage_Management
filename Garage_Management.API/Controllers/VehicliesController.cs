@@ -51,15 +51,18 @@ namespace Garage_Management.API.Controllers
         /// <summary>
         /// Lấy danh sách xe máy theo khách hàng được phân trang
         /// </summary>
-        [HttpGet("by-customer/{customerId:int}")]
+        [HttpGet("Customer/MyVehicle")]
         public async Task<ActionResult<ApiResponse<PagedResult<VehicleResponse>>>> GetByCustomer(
-            int customerId,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
-            var data = await _service.GetByCustomerIdAsync(page, pageSize, customerId, ct);
-            return Ok(ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(data, "OK"));
+            var result = await _service.GetMyVehicle(page, pageSize, ct);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
         ///Author: KhanhDV

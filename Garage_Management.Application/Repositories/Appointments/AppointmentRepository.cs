@@ -59,6 +59,8 @@ namespace Garage_Management.Application.Repositories.Appointments
                         .ThenInclude(x => x.ServiceTasks)
                 .Include(x => x.SpareParts)
                     .ThenInclude(x => x.Inventory)
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
                 .AsNoTracking()
                 .Where(x => x.CustomerId == customerId);
 

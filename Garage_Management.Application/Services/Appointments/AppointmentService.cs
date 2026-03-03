@@ -1,20 +1,22 @@
 using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Application.DTOs.Iventories;
 using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.DTOs.ServiceTasks;
-using Garage_Management.Application.DTOs.Iventories;
-using Garage_Management.Application.Interfaces.Repositories.Appointments;
+using Garage_Management.Application.DTOs.User;
+using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
+using Garage_Management.Base.Common.Models.Appointments;
 using Garage_Management.Base.Entities.Accounts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using System;
 using System.Linq;
-using Garage_Management.Base.Common.Models.Appointments;
+using System.Security.Claims;
 
 namespace Garage_Management.Application.Services.Appointments
 {
@@ -52,16 +54,73 @@ namespace Garage_Management.Application.Services.Appointments
             return entity == null ? null : Map(entity);
         }
 
-        public async Task<PagedResult<AppointmentResponse>> GetByCustomerIdAsync(int page, int pageSize, int customerId, CancellationToken ct = default)
+        public async Task<ApiResponse<PagedResult<AppointmentResponse>>> GetMyAppointmentsAsync( int page ,int pageSize ,CancellationToken ct = default)
         {
-            var data = await _repo.GetByCustomerIdAsync(page, pageSize, customerId, ct);
-            return new PagedResult<AppointmentResponse>
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null || !httpContext.User.Identity?.IsAuthenticated == true)
             {
-                Page = data.Page,
-                PageSize = data.PageSize,
-                Total = data.Total,
-                PageData = data.PageData.Select(Map).ToList()
+                return ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse("Vui lòng đăng nhập để xem lịch hẹn");
+            }
+
+            // Lấy UserId từ claims (NameIdentifier thường là ID của User)
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+            {
+                return ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse("Không thể xác định thông tin người dùng");
+            }
+
+            var userRoles = httpContext.User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+
+            if (!userRoles.Contains("Customer"))
+            {
+                return ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse("khách hàng chỉ có thể xem lịch hẹn cá nhân");
+            }
+            var customer = await _customerRepo.GetAll().FirstAsync(c => c.UserId == currentUserId, ct);
+
+            if (customer == null)
+            {
+                return ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(
+                    new PagedResult<AppointmentResponse>
+                    {
+                        PageData = new List<AppointmentResponse>(),
+                        Total = 0,
+                        Page = page,
+                        PageSize = pageSize
+                    },
+                    "Bạn chưa có thông tin khách hàng nào trong hệ thống"
+                );
+            }
+            int customerId = customer.CustomerId;
+
+            // Gọi repository với customerId lấy từ user hiện tại
+            var pagedData = await _repo.GetByCustomerIdAsync(page, pageSize, customerId, ct);
+
+            if (pagedData == null || pagedData.PageData == null || !pagedData.PageData.Any())
+            {
+                return ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(
+                    new PagedResult<AppointmentResponse>
+                    {
+                        PageData = new List<AppointmentResponse>(),
+                        Total = 0,
+                        Page = page,
+                        PageSize = pageSize
+                    },
+                    "Bạn chưa có lịch hẹn nào"
+                );
+            }
+
+            var appointmentResponses = pagedData.PageData.Select(Map).ToList();
+
+            var result = new PagedResult<AppointmentResponse>
+            {
+                PageData = appointmentResponses,
+                Total = pagedData.Total,
+                Page = pagedData.Page,
+                PageSize = pagedData.PageSize
             };
+
+            return ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse( result,$"Lấy danh sách lịch hẹn cá nhân thành công)"
+            );
         }
 
         public async Task<PagedResult<AppointmentResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
