@@ -87,6 +87,8 @@ namespace Garage_Management.Application.Repositories.Appointments
             if (query.PageSize <= 0) query.PageSize = 10;
 
             var q = _context.Appointments
+                .Include(x => x.Customer)
+                    .ThenInclude(c => c.User)
                 .Include(x => x.Services)
                     .ThenInclude(x => x.Service)
                         .ThenInclude(x => x.ServiceTasks)
@@ -98,11 +100,21 @@ namespace Garage_Management.Application.Repositories.Appointments
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
                 var search = query.Search.Trim().ToLower();
+                var searchDigits = new string(search.Where(char.IsDigit).ToArray());
                 q = q.Where(x =>
                     (x.Description ?? "").ToLower().Contains(search) ||
                     (x.FirstName ?? "").ToLower().Contains(search) ||
                     (x.LastName ?? "").ToLower().Contains(search) ||
-                    (x.Phone ?? "").ToLower().Contains(search)
+                    (x.Phone ?? "").ToLower().Contains(search) ||
+                    (x.Customer != null && (x.Customer.User != null && (x.Customer.User.PhoneNumber ?? "").Contains(search))) ||
+                    (!string.IsNullOrEmpty(searchDigits) &&
+                     (EF.Functions.Like(
+                         (x.Phone ?? "").Replace(" ", "").Replace("-", "").Replace(".", ""),
+                         $"%{searchDigits}%") ||
+                      (x.Customer != null && x.Customer.User != null &&
+                       EF.Functions.Like(
+                           (x.Customer.User.PhoneNumber ?? "").Replace(" ", "").Replace("-", "").Replace(".", ""),
+                           $"%{searchDigits}%"))))
                 );
             }
             if (!string.IsNullOrWhiteSpace(query.Status))
