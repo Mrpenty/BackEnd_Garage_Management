@@ -32,6 +32,7 @@ namespace Garage_Management.API.Controllers
         }
 
         [HttpGet("ListUser")]
+        [Authorize]
         public async Task<IActionResult> GetList([FromQuery] ParamQuery query, CancellationToken ct)
         {
             var result = await _userService.GetPagedAsync(query,ct);
