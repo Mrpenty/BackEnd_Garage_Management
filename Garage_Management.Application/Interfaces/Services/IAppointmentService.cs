@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Common.Models.Appointments;
 
@@ -75,5 +76,14 @@ namespace Garage_Management.Application.Interfaces.Services
         /// </summary>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param> 
         Task<bool> DeleteAsync(int id, CancellationToken ct = default);
+
+        /// Author: KhanhDV
+        /// Created Date: 03-03-2026
+        /// <summary>
+        /// Cập nhật trạng thái lịch đặt
+        /// </summary>
+        /// <param name="status">Đổi status sang 1 trong những status có trong danh sách.</param>
+        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
+        Task<AppointmentResponse?> UpdateStatusAsync(int id, AppointmentStatus status, CancellationToken ct = default);
     }
 }

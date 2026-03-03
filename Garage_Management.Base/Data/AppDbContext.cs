@@ -55,7 +55,8 @@ namespace Garage_Management.Base.Data
         public DbSet<Notification> Notifications => Set<Notification>();
 
         // DbSet - Warranties
-        public DbSet<WarrantyPolicy> WarrantyPolicies => Set<WarrantyPolicy>();
+        public DbSet<SparePartWarrantyPolicy> SparePartWarrantyPolicies => Set<SparePartWarrantyPolicy>();
+        public DbSet<ServiceWarrantyPolicy> ServiceWarrantyPolicies => Set<ServiceWarrantyPolicy>();
         public DbSet<WarrantyService> WarrantyServices => Set<WarrantyService>();
         public DbSet<WarrantySparePart> WarrantySpareParts => Set<WarrantySparePart>();
 

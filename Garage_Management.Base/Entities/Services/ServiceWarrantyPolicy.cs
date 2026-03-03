@@ -33,5 +33,10 @@ namespace Garage_Management.Base.Entities.Services
         /// Các dịch vụ sử dụng chính sách bảo hành này
         /// </summary>
         public ICollection<Service> Services { get; set; } = new List<Service>();
+
+        /// <summary>
+        /// Các bảo hành dịch vụ áp dụng chính sách này
+        /// </summary>
+        public ICollection<Garage_Management.Base.Entities.Warranties.WarrantyService> WarrantyServices { get; set; } = new List<Garage_Management.Base.Entities.Warranties.WarrantyService>();
     }
 }

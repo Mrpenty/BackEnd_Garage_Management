@@ -22,10 +22,10 @@ namespace Garage_Management.Base.Data.Configurations.Warranties
                 .HasForeignKey(wsp => wsp.SparePartId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Quan hệ N-1: Áp dụng WarrantyPolicy
-            builder.HasOne(wsp => wsp.WarrantyPolicy)
-                .WithMany(wp => wp.WarrantySpareParts)
-                .HasForeignKey(wsp => wsp.WarrantyPolicyId)
+            // Quan hệ N-1: Áp dụng SparePartWarrantyPolicy
+            builder.HasOne(wsp => wsp.SparePartWarrantyPolicy)
+                .WithMany(p => p.WarrantySpareParts)
+                .HasForeignKey(wsp => wsp.SparePartWarrantyPolicyId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

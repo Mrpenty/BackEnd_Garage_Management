@@ -24,12 +24,12 @@ namespace Garage_Management.Base.Entities.Warranties
         /// <summary>
         /// Chính sách bảo hành áp dụng
         /// </summary>
-        public int WarrantyPolicyId { get; set; }
+        public int ServiceWarrantyPolicyId { get; set; }
 
         /// <summary>
         /// Thông tin chính sách bảo hành
         /// </summary>
-        public WarrantyPolicy WarrantyPolicy { get; set; } = null!;
+        public ServiceWarrantyPolicy ServiceWarrantyPolicy { get; set; } = null!;
 
         /// <summary>
         /// Ngày bắt đầu hiệu lực bảo hành
