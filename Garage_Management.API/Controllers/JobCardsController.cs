@@ -33,9 +33,12 @@ namespace Garage_Management.API.Controllers
 
 
         [HttpGet("active")]
-        public async Task<IActionResult> GetActive()
+        public async Task<IActionResult> GetActive(
+     string? search,
+     string? from,
+     string? to)
         {
-            return Ok(await _service.GetActiveAsync());
+            return Ok(await _service.GetActiveAsync(search, from, to));
         }
 
 

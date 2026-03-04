@@ -42,11 +42,43 @@ namespace Garage_Management.Application.Repositories.JobCards
         /// Lấy danh sách JobCard chưa hoàn thành.
         /// Dùng cho màn hình đang xử lý.
         /// </summary>
-        public async Task<List<JobCard>> GetActiveAsync()
+        public async Task<List<JobCard>> GetActiveAsync(
+    string? search,
+    string? sortBy,
+    string? sortDirection)
         {
-            return await _context.JobCards
+            var query = _context.JobCards
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
                 .Where(j => j.Status != ServiceStatus.Completed)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim().ToLower();
+
+                query = query.Where(x =>
+                    (x.Customer.FirstName + " " + x.Customer.LastName)
+                        .ToLower().Contains(search) ||
+                    (x.Vehicle.LicensePlate != null &&
+                        x.Vehicle.LicensePlate.ToLower().Contains(search))
+                );
+            }
+
+            query = sortBy switch
+            {
+                "StartDate" => sortDirection == "asc"
+                    ? query.OrderBy(x => x.StartDate)
+                    : query.OrderByDescending(x => x.StartDate),
+
+                "Status" => sortDirection == "asc"
+                    ? query.OrderBy(x => x.Status)
+                    : query.OrderByDescending(x => x.Status),
+
+                _ => query.OrderByDescending(x => x.StartDate)
+            };
+
+            return await query.ToListAsync();
         }
 
         /// <summary>
