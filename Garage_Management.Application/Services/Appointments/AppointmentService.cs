@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using Garage_Management.Base.Common.Models.Appointments;
+using Garage_Management.Base.Common.Enums;
 using System.Security.Claims;
 
 namespace Garage_Management.Application.Services.Appointments
@@ -353,6 +355,21 @@ namespace Garage_Management.Application.Services.Appointments
             _repo.Delete(entity);
             await _repo.SaveAsync(ct);
             return true;
+        }
+
+        public async Task<AppointmentResponse?> UpdateStatusAsync(int id, AppointmentStatus status, CancellationToken ct = default)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            entity.Status = status;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+
+            var detail = await _repo.GetByIdWithDetailsAsync(id, ct);
+            return detail == null ? Map(entity) : Map(detail);
         }
 
         private static AppointmentResponse Map(Appointment entity)

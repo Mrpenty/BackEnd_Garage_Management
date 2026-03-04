@@ -96,6 +96,22 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Updated"));
         }
 
+        /// <summary>
+        /// Duyệt / đổi trạng thái lịch đặt
+        /// </summary>
+        [HttpPatch("{id:int}/status")]
+        public async Task<ActionResult<ApiResponse<AppointmentResponse>>> UpdateStatus(
+            int id,
+            [FromBody] AppointmentStatusUpdateRequest request,
+            CancellationToken ct = default)
+        {
+            var data = await _service.UpdateStatusAsync(id, request.Status, ct);
+            if (data == null)
+                return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Appointment not found"));
+
+            return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Updated"));
+        }
+
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
