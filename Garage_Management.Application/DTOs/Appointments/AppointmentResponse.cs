@@ -1,5 +1,6 @@
 using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.DTOs.Iventories;
+using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Base.Common.Enums;
 
 namespace Garage_Management.Application.DTOs.Appointments
@@ -11,8 +12,12 @@ namespace Garage_Management.Application.DTOs.Appointments
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? Phone { get; set; }
+        public string? CustomVehicleBrand { get; set; }
+        public string? CustomVehicleModel { get; set; }
+        public string? LicensePlate { get; set; }
         public int? VehicleId { get; set; }
         public int? VehicleModelId { get; set; }
+        public VehicleResponse? Vehicle { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public long TotalEstimateMinute { get; set; }

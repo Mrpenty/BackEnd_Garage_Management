@@ -24,6 +24,12 @@ namespace Garage_Management.Application.Repositories.Appointments
             if (pageSize <= 0) pageSize = 10;
 
             var query = _context.Appointments
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Model)
+                        .ThenInclude(m => m.VehicleType)
+                .Include(x => x.VehicleModel)
                 .Include(x => x.Services)
                     .ThenInclude(x => x.Service)
                         .ThenInclude(x => x.ServiceTasks)
@@ -54,13 +60,18 @@ namespace Garage_Management.Application.Repositories.Appointments
             if (pageSize <= 0) pageSize = 10;
 
             var query = _context.Appointments
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Model)
+                        .ThenInclude(m => m.VehicleType)
+                .Include(x => x.VehicleModel)
                 .Include(x => x.Services)
                     .ThenInclude(x => x.Service)
                         .ThenInclude(x => x.ServiceTasks)
                 .Include(x => x.SpareParts)
                     .ThenInclude(x => x.Inventory)
                 .Include(x => x.Customer)
-                .Include(x => x.Vehicle)
                 .AsNoTracking()
                 .Where(x => x.CustomerId == customerId);
 
@@ -87,6 +98,12 @@ namespace Garage_Management.Application.Repositories.Appointments
             if (query.PageSize <= 0) query.PageSize = 10;
 
             var q = _context.Appointments
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Model)
+                        .ThenInclude(m => m.VehicleType)
+                .Include(x => x.VehicleModel)
                 .Include(x => x.Customer)
                     .ThenInclude(c => c.User)
                 .Include(x => x.Services)
@@ -165,6 +182,12 @@ namespace Garage_Management.Application.Repositories.Appointments
         public async Task<Appointment?> GetByIdWithDetailsAsync(int id, CancellationToken ct = default)
         {
             return await _context.Appointments
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Model)
+                        .ThenInclude(m => m.VehicleType)
+                .Include(x => x.VehicleModel)
                 .Include(x => x.Services)
                     .ThenInclude(x => x.Service)
                         .ThenInclude(x => x.ServiceTasks)

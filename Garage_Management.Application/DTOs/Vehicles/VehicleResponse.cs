@@ -8,6 +8,8 @@ namespace Garage_Management.Application.DTOs.Vehicles
         public string BrandName { get; set; } = string.Empty;
         public int ModelId { get; set; }
         public string ModelName { get; set; } = string.Empty;
+        public int? VehicleTypeId { get; set; }
+        public string? VehicleTypeName { get; set; }
         public string? LicensePlate { get; set; }
         public int? Year { get; set; }
         public string? Vin { get; set; }
