@@ -18,6 +18,7 @@ using System;
 using System.Linq;
 using Garage_Management.Base.Common.Models.Appointments;
 using Garage_Management.Base.Common.Enums;
+using System.Security.Claims;
 
 namespace Garage_Management.Application.Services.Appointments
 {

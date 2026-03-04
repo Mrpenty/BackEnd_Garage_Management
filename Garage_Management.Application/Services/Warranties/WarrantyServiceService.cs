@@ -41,7 +41,7 @@ namespace Garage_Management.Application.Services.Warranties
             var entity = new WarrantyService
             {
                 ServiceId = request.ServiceId,
-                WarrantyPolicyId = request.WarrantyPolicyId,
+                ServiceWarrantyPolicyId = request.ServiceWarrantyPolicyId,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
                 Description = request.Description
@@ -58,7 +58,7 @@ namespace Garage_Management.Application.Services.Warranties
             if (entity == null) return null;
 
             if (request.ServiceId.HasValue) entity.ServiceId = request.ServiceId.Value;
-            if (request.WarrantyPolicyId.HasValue) entity.WarrantyPolicyId = request.WarrantyPolicyId.Value;
+            if (request.ServiceWarrantyPolicyId.HasValue) entity.ServiceWarrantyPolicyId = request.ServiceWarrantyPolicyId.Value;
             if (request.StartDate.HasValue) entity.StartDate = request.StartDate.Value;
             if (request.EndDate.HasValue) entity.EndDate = request.EndDate.Value;
             if (request.Description != null) entity.Description = request.Description;
@@ -84,7 +84,7 @@ namespace Garage_Management.Application.Services.Warranties
             {
                 WarrantyServiceId = entity.WarrantyServiceId,
                 ServiceId = entity.ServiceId,
-                WarrantyPolicyId = entity.WarrantyPolicyId,
+                ServiceWarrantyPolicyId = entity.ServiceWarrantyPolicyId,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Description = entity.Description
