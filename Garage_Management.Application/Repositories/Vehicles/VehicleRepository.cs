@@ -40,6 +40,25 @@ namespace Garage_Management.Application.Repositories.Vehicles
             };
         }
 
+        public async Task<PagedResult<Vehicle>> GetByCustomerIdAsync(int page, int pageSize, int customerId, CancellationToken ct = default)
+        {
+            if(page <= 0) page = 1;
+            if(pageSize <= 0) pageSize = 10; 
+            var query = GetAll().Where(x=>x.CustomerId==customerId).Include(v => v.Brand).Include(v => v.Model).AsNoTracking();
+            var total = await query.CountAsync(ct);
+            var data = await query
+                .OrderByDescending(x => x.VehicleId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+            return new PagedResult<Vehicle>
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                PageData = data
+            };
+        }
         public Task<bool> HasAppointmentsAsync(int vehicleId, CancellationToken ct = default)
         {
             return _context.Set<Vehicle>().AsNoTracking().AnyAsync(x=>x.VehicleId == vehicleId);

@@ -1,7 +1,9 @@
 ﻿using Garage_Management.Base.Common.Models;
+using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Interface;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -19,14 +21,16 @@ namespace Garage_Management.Base.Services
     {
         private readonly JwtConfiguration jwtConfig;
         private readonly UserManager<User> _userManager;
+        private readonly AppDbContext _dbContext;
 
-        public GenerateToken(IOptions<JwtConfiguration> jwtConfig, UserManager<User> userManager)
+        public GenerateToken(IOptions<JwtConfiguration> jwtConfig, UserManager<User> userManager, AppDbContext dbContext)
         {
             ArgumentNullException.ThrowIfNull(jwtConfig);
 
 
             this.jwtConfig = jwtConfig.Value;
             _userManager = userManager;
+            _dbContext = dbContext;
         }
 
         public async Task<string> GenerateJwtTokenAsync(User user)
@@ -59,6 +63,22 @@ namespace Garage_Management.Base.Services
 
             var roles = await _userManager.GetRolesAsync(user); 
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+            // Thêm CustomerId nếu user là Customer
+            var customer = await _dbContext.Customers
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+            if (customer != null)
+            {
+                claims.Add(new Claim("CustomerId", customer.CustomerId.ToString()));
+            }
+
+            // Thêm EmployeeId nếu user là nhân viên (giả sử bạn có bảng Employees)
+            var employee = await _dbContext.Employees
+                .FirstOrDefaultAsync(e => e.UserId == user.Id);
+            if (employee != null)
+            {
+                claims.Add(new Claim("EmployeeId", employee.EmployeeId.ToString()));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: jwtConfig.Issuer ?? "MGMS.API",

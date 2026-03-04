@@ -141,17 +141,20 @@ namespace Garage_Management.Application.Services.JobCards
 
             return true;
         }
-        public async Task<IEnumerable<JobCardListDto>> GetActiveAsync()
+        public async Task<IEnumerable<JobCardListDto>> GetActiveAsync(
+        string? search,
+        string? sortBy,
+        string? sortDirection)
         {
-            var entities = await _repository.GetActiveAsync();
+            var data = await _repository.GetActiveAsync(search, sortBy, sortDirection);
 
-            return entities.Select(x => new JobCardListDto
+            return data.Select(x => new JobCardListDto
             {
                 JobCardId = x.JobCardId,
-                CustomerId = x.CustomerId,
-                VehicleId = x.VehicleId,
-                Status = x.Status,
-                StartDate = x.StartDate
+                CustomerName = x.Customer.FirstName + " " + x.Customer.LastName,
+                LicensePlate = x.Vehicle.LicensePlate,
+                StartDate = x.StartDate,
+                Status = x.Status
             });
         }
         public async Task<bool> UpdateAsync(

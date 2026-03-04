@@ -35,13 +35,10 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Phân công kỹ thuật viên
         /// </summary>
         Task<bool> AssignMechanicAsync(int id, AssignMechanicDto dto, CancellationToken cancellationToken);
-        /// <summary>
-        /// Lấy danh sách phiếu đang hoạt động
-        /// </summary>
-        Task<IEnumerable<JobCardListDto>> GetActiveAsync();
-        /// <summary>
-        /// Thêm dịch vụ vào phiếu sửa chữa
-        /// </summary>
+        Task<IEnumerable<JobCardListDto>> GetActiveAsync(
+    string? search,
+    string? sortBy,
+    string? sortDirection);
         Task<bool> AddServiceAsync(int jobCardId, AddServiceToJobCardDto dto,CancellationToken cancellationToken);
 
         /// <summary>
