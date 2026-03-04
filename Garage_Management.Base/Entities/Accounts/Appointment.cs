@@ -20,6 +20,10 @@ namespace Garage_Management.Base.Entities.Accounts
         public string? LastName { get; set; }
         public string? Phone { get; set; }
 
+        public string? CustomVehicleBrand { get; set; }
+        public string? CustomVehicleModel { get; set; }
+        public string? LicensePlate { get; set; }
+
         /// <summary>
         /// Xe của khách hàng 
         /// </summary>
@@ -34,6 +38,7 @@ namespace Garage_Management.Base.Entities.Accounts
         /// Model xe (VehicleModelId)
         /// </summary>
         public int? VehicleModelId { get; set; }
+        public VehicleModel? VehicleModel { get; set; }
 
         /// <summary>
         /// Nhân viên tiếp nhận / tạo lịch hẹn

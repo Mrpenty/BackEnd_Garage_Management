@@ -39,9 +39,14 @@ namespace Garage_Management.Base.Data.Configurations.Accounts
                 .HasForeignKey(a => a.UpdatedBy)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            builder.Property(a => a.CustomVehicleBrand)
+                .HasMaxLength(100);
+            builder.Property(a => a.CustomVehicleModel)
+                .HasMaxLength(100);
+            builder.Property(a => a.LicensePlate)
+                .HasMaxLength(11);
             builder.Property(a => a.Description)
                 .HasMaxLength(500);
-
             builder.Property(a => a.FirstName)
                 .HasMaxLength(100);
             builder.Property(a => a.LastName)
