@@ -23,6 +23,11 @@ namespace Garage_Management.Base.Data.Configurations.Vehiclies
                 .WithMany(vb => vb.Models)
                 .HasForeignKey(vm => vm.BrandId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(vm => vm.VehicleType)
+                .WithMany(vt => vt.VehicleModels)
+                .HasForeignKey(vm => vm.VehicleTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
