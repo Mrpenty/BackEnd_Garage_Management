@@ -71,8 +71,7 @@ namespace Garage_Management.Application.Services.Accounts
 
         public async Task<ApiResponse<LoginResponse>> LoginCustomerAsync(CustomerLoginRequest dto, CancellationToken cancellationToken = default)
         {
-            var user = await _userManager.FindByEmailAsync(dto.PhoneNumber)
-                    ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == dto.PhoneNumber, cancellationToken);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == dto.PhoneNumber, cancellationToken);
 
             if (user == null)
             {
