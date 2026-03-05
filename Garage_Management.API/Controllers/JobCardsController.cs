@@ -27,6 +27,10 @@ namespace Garage_Management.API.Controllers
             );
 
             var result = await _service.CreateAsync(dto, userId, cancellationToken);
+            if (result == null)
+            {
+                return Conflict("Vehicle already has an active job card.");
+            }
 
             return Ok(result);
         }

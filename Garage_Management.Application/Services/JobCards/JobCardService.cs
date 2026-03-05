@@ -46,8 +46,16 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
 
-        public async Task<JobCardDto> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken)
+        public async Task<JobCardDto?> CreateAsync(
+    CreateJobCardDto dto,
+    int currentUserId,
+    CancellationToken cancellationToken)
         {
+            var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
+
+            if (hasActive)
+                return null;
+
             var entity = new JobCard
             {
                 AppointmentId = dto.AppointmentId,
@@ -62,6 +70,15 @@ namespace Garage_Management.Application.Services.JobCards
 
             await _repository.AddAsync(entity, cancellationToken);
             await _repository.SaveAsync(cancellationToken);
+
+            // 🔹 ADD SERVICES
+            if (dto.Services != null && dto.Services.Any())
+            {
+                foreach (var service in dto.Services)
+                {
+                    await AddServiceAsync(entity.JobCardId, service, cancellationToken);
+                }
+            }
 
             return new JobCardDto
             {
@@ -151,8 +168,12 @@ namespace Garage_Management.Application.Services.JobCards
             return data.Select(x => new JobCardListDto
             {
                 JobCardId = x.JobCardId,
+                CustomerId = x.CustomerId,
                 CustomerName = x.Customer.FirstName + " " + x.Customer.LastName,
+
+                VehicleId = x.VehicleId,
                 LicensePlate = x.Vehicle.LicensePlate,
+
                 StartDate = x.StartDate,
                 Status = x.Status
             });

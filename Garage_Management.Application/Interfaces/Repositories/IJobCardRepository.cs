@@ -15,5 +15,6 @@ namespace Garage_Management.Application.Interfaces.Repositories
     string? sortBy,
     string? sortDirection);
         Task SaveChangesAsync();
+        Task<bool> HasActiveJobCardAsync(int vehicleId);
     }
 }
