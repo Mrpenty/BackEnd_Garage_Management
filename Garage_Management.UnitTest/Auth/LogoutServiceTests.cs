@@ -52,6 +52,13 @@ namespace Garage_Management.UnitTest.Auth
                 new Mock<Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider>().Object,
                 new Mock<IUserConfirmation<User>>().Object
             );
+            _mockRoleManager = new Mock<RoleManager<IdentityRole<int>>>(
+                new Mock<IRoleStore<IdentityRole<int>>>().Object,
+                new IRoleValidator<IdentityRole<int>>[0],
+                new Mock<ILookupNormalizer>().Object,
+                new Mock<IdentityErrorDescriber>().Object,
+                new Mock<Microsoft.Extensions.Logging.ILogger<RoleManager<IdentityRole<int>>>>().Object
+            );
 
             _mockTokenGenerator = new Mock<IGenerateToken>();
             _mockTokenCookieService = new Mock<ITokenCookieService>();
@@ -87,7 +94,7 @@ namespace Garage_Management.UnitTest.Auth
             var result = await _authService.LogoutAsync();
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual("Đăng xuất thành công", result.Message);
+            Assert.AreEqual("Thành công", result.Message);
             _mockTokenCookieService.Verify(x => x.DeleteTokenCookie(It.IsAny<HttpContext>()), Times.Once);
         }
     }

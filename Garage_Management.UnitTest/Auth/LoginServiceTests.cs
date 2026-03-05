@@ -1,22 +1,24 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Garage_Management.Application.DTOs.Auth;
+using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Application.Services.Accounts;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Interface;
-using Garage_Management.Application.Interfaces.Repositories;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Moq.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Garage_Management.Application.Interfaces.Services;
-using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
+using Garage_Management.UnitTest.Helper;
 
 namespace Garage_Management.UnitTest.Auth
 {
@@ -104,7 +106,9 @@ namespace Garage_Management.UnitTest.Auth
             var user = new User { Id = 1, PhoneNumber = phoneNumber, IsActive = true };
 
             //_mockUserManager.Setup(x => x.FindByEmailAsync(phoneNumber)).ReturnsAsync((User)null);
-            _mockUserManager.Setup(x => x.Users).Returns(ToAsyncQueryable(new List<User> { user }));
+            var data = new List<User> { user }.AsQueryable();
+            var mockSet = new TestAsyncEnumerable<User>(data);
+            _mockUserManager.Setup(x => x.Users).Returns(mockSet);
 
             _mockSignInManager.Setup(x => x.PasswordSignInAsync(user, "Khach@123!", false, false))
                 .ReturnsAsync(SignInResult.Success);
@@ -130,7 +134,7 @@ namespace Garage_Management.UnitTest.Auth
             var user = new User { Id = 1, PhoneNumber = phoneNumber, IsActive = false };
 
             _mockUserManager.Setup(x => x.FindByEmailAsync(phoneNumber)).ReturnsAsync((User)null);
-            _mockUserManager.Setup(x => x.Users).Returns(ToAsyncQueryable(new List<User> { user }));
+            _mockUserManager.Setup(x => x.Users).Returns(new List<User> { user }.AsQueryable());
 
             var result = await _authService.LoginCustomerAsync(request);
 
@@ -145,7 +149,6 @@ namespace Garage_Management.UnitTest.Auth
             var request = new CustomerLoginRequest { PhoneNumber = phoneNumber };
 
             _mockUserManager.Setup(x => x.FindByEmailAsync(phoneNumber)).ReturnsAsync((User)null);
-            _mockUserManager.Setup(x => x.Users).Returns(ToAsyncQueryable(new List<User>()));
 
             var result = await _authService.LoginCustomerAsync(request);
 
@@ -161,7 +164,7 @@ namespace Garage_Management.UnitTest.Auth
             var user = new User { Id = 1, PhoneNumber = phoneNumber, IsActive = true };
 
             _mockUserManager.Setup(x => x.FindByEmailAsync(phoneNumber)).ReturnsAsync((User)null);
-            _mockUserManager.Setup(x => x.Users).Returns(ToAsyncQueryable(new List<User> { user }));
+            _mockUserManager.Setup(x => x.Users).Returns(new List<User> { user }.AsQueryable());
             _mockSignInManager.Setup(x => x.PasswordSignInAsync(user, "WrongPassword", false, false))
                 .ReturnsAsync(SignInResult.Failed);
 
@@ -179,7 +182,7 @@ namespace Garage_Management.UnitTest.Auth
             var user = new User { Id = 1, PhoneNumber = phoneNumber, IsActive = true };
 
             _mockUserManager.Setup(x => x.FindByEmailAsync(phoneNumber)).ReturnsAsync((User)null);
-            _mockUserManager.Setup(x => x.Users).Returns(ToAsyncQueryable(new List<User> { user }));
+            _mockUserManager.Setup(x => x.Users).Returns(new List<User> { user }.AsQueryable());
 
             var result = await _authService.LoginCustomerAsync(request);
 

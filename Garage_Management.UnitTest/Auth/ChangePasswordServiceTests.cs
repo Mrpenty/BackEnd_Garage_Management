@@ -47,6 +47,28 @@ namespace Garage_Management.UnitTest.Auth
                 new Mock<Microsoft.Extensions.Logging.ILogger<UserManager<User>>>().Object
             );
 
+            _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            var mockHttpContext = new Mock<HttpContext>();
+            _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
+
+            _mockSignInManager = new Mock<SignInManager<User>>(
+                _mockUserManager.Object,
+                _mockHttpContextAccessor.Object,
+                new Mock<IUserClaimsPrincipalFactory<User>>().Object,
+                new Mock<IOptions<IdentityOptions>>().Object,
+                new Mock<Microsoft.Extensions.Logging.ILogger<SignInManager<User>>>().Object,
+                new Mock<Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider>().Object,
+                new Mock<IUserConfirmation<User>>().Object
+            );
+
+            _mockRoleManager = new Mock<RoleManager<IdentityRole<int>>>(
+                new Mock<IRoleStore<IdentityRole<int>>>().Object,
+                new IRoleValidator<IdentityRole<int>>[0],
+                new Mock<ILookupNormalizer>().Object,
+                new Mock<IdentityErrorDescriber>().Object,
+                new Mock<Microsoft.Extensions.Logging.ILogger<RoleManager<IdentityRole<int>>>>().Object
+            );
+
             _mockTokenGenerator = new Mock<IGenerateToken>();
             _mockTokenCookieService = new Mock<ITokenCookieService>();
             _mockSmsService = new Mock<ISmsService>();
@@ -55,11 +77,10 @@ namespace Garage_Management.UnitTest.Auth
             _mockCustomerRepository = new Mock<ICustomerRepository>();
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
 
-            var mockHttpContext = new Mock<HttpContext>();
-            _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
+           
 
             _authService = new AuthService(
-                _mockUserManager.Object,
+                _mockUserManager.Object,    
                 _mockSignInManager.Object,
                 _mockRoleManager.Object,
                 _mockTokenGenerator.Object,
