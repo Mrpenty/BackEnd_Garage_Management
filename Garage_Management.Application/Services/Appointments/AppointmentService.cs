@@ -151,17 +151,7 @@ namespace Garage_Management.Application.Services.Appointments
 
         public async Task<AppointmentResponse> CreateAsync(AppointmentCreateRequest request, CancellationToken ct = default)
         {
-            // Resolve CustomerId from token if user is a customer
-            int? customerIdFromToken = null;
-            var userIdStrForCustomer = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!string.IsNullOrWhiteSpace(userIdStrForCustomer) && int.TryParse(userIdStrForCustomer, out var userIdForCustomer))
-            {
-                var customer = await _customerRepo.GetByUserIdAsync(userIdForCustomer);
-                if (customer != null)
-                    customerIdFromToken = customer.CustomerId;
-            }
-
-            var effectiveCustomerId = customerIdFromToken ?? request.CustomerId;
+            var effectiveCustomerId = request.CustomerId;
 
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
                 throw new InvalidOperationException("CustomerId không hợp lệ");
@@ -243,6 +233,9 @@ namespace Garage_Management.Application.Services.Appointments
                 Phone = request.Phone,
                 VehicleId = request.VehicleId,
                 VehicleModelId = request.VehicleModelId,
+                CustomVehicleBrand = request.CustomVehicleBrand,
+                CustomVehicleModel = request.CustomVehicleModel,
+                LicensePlate = request.LicensePlate,
                 CreatedBy = createdBy,
                 AppointmentDateTime = request.AppointmentDateTime,
                 Status = request.Status,
@@ -390,7 +383,6 @@ namespace Garage_Management.Application.Services.Appointments
                     BrandName = entity.Vehicle.Brand?.BrandName ?? string.Empty,
                     ModelId = entity.Vehicle.ModelId,
                     ModelName = entity.Vehicle.Model?.ModelName ?? string.Empty,
-                    VehicleTypeId = entity.Vehicle.Model?.VehicleTypeId,
                     VehicleTypeName = entity.Vehicle.Model?.VehicleType?.TypeName,
                     LicensePlate = entity.Vehicle.LicensePlate,
                     Year = entity.Vehicle.Year,

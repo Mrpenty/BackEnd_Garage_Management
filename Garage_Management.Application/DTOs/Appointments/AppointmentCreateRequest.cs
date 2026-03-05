@@ -11,6 +11,9 @@ namespace Garage_Management.Application.DTOs.Appointments
         public string? Phone { get; set; }
         public int? VehicleId { get; set; }
         public int? VehicleModelId { get; set; }
+        public string? CustomVehicleBrand { get; set; }
+        public string? CustomVehicleModel { get; set; }
+        public string? LicensePlate { get; set; }   
         public DateTime AppointmentDateTime { get; set; }
         public List<int> ServiceIds { get; set; } = new();
         public List<int> SparePartsIds { get; set; } = new();
