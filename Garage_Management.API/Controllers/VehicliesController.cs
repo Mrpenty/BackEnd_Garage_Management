@@ -22,13 +22,14 @@ namespace Garage_Management.API.Controllers
         /// Lấy danh sách xe máy được phân trang
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<PagedResult<VehicleResponse>>>> GetPaged(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            CancellationToken ct = default)
+        public async Task<ActionResult<ApiResponse<PagedResult<VehicleResponse>>>> GetPaged([FromQuery] ParamQuery query,CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(page, pageSize, ct);
-            return Ok(ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(data, "OK"));
+            var result = await _service.GetPagedAsync(query, ct);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
         ///Author: KhanhDV
