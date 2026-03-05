@@ -105,16 +105,31 @@ namespace Garage_Management.Application.Services.Vehicles
             return ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(result, $"Lấy danh sách phương tiện thành công");
         }
 
-        public async Task<PagedResult<VehicleResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<ApiResponse<PagedResult<VehicleResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
         {
-            var paged = await _repo.GetPagedAsync(page, pageSize, ct);
-            return new PagedResult<VehicleResponse>
+            var paged = await _repo.GetPagedAsync(query, ct);  
+
+            if (!paged.Success)
             {
-                Page = paged.Page,
-                PageSize = paged.PageSize,
-                Total = paged.Total,
-                PageData = paged.PageData.Select(Map).ToList()
+                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse(paged.Message);
+            }
+
+            var responseData = paged.Data.PageData.Select(Map).ToList();  
+
+            var result = new PagedResult<VehicleResponse>
+            {
+                Page = paged.Data.Page,
+                PageSize = paged.Data.PageSize,
+                Total = paged.Data.Total,
+                PageData = responseData
             };
+
+            if(result.PageData == null || !result.PageData.Any())
+            {
+                return ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(result, "Không có phương tiện nào");
+            }
+
+            return ApiResponse<PagedResult<VehicleResponse>>.SuccessResponse(result, "Lấy danh sách phương tiện thành công");
         }
 
         public async Task<VehicleResponse> CreateAsync(VehicleCreateRequest request, CancellationToken ct = default)

@@ -11,10 +11,7 @@ namespace Garage_Management.Application.Interfaces.Repositories.Vehiclies
         /// <summary>
         /// Lấy danh sách Model của xe máy được phân trang
         /// </summary>
-        /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
-        /// <param name="pageSize">Tổng số trang</param>
-        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>  
-        Task<PagedResult<Vehicle>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<ApiResponse<PagedResult<Vehicle>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
