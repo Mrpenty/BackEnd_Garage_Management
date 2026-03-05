@@ -6,6 +6,7 @@ namespace Garage_Management.Application.DTOs.Inventories.SparePartBrands
     {
         [Required]
         public string BrandName { get; set; } = string.Empty;
+        [MaxLength(255)]
 
         public string? Description { get; set; }
     }

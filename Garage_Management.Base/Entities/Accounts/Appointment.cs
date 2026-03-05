@@ -19,9 +19,17 @@ namespace Garage_Management.Base.Entities.Accounts
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? Phone { get; set; }
-
+        /// <summary>
+        /// Khách hàng nhập hãng xe (nếu chưa có trong template)
+        /// </summary>
         public string? CustomVehicleBrand { get; set; }
+        /// <summary>
+        /// Khách hàng nhập model xe (nếu chưa có trong template)
+        /// </summary>
         public string? CustomVehicleModel { get; set; }
+        /// <summary>
+        /// Khách hàng nhập biển số xe (nếu chưa có trong template)
+        /// </summary>
         public string? LicensePlate { get; set; }
 
         /// <summary>

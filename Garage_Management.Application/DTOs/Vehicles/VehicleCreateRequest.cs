@@ -7,8 +7,6 @@ namespace Garage_Management.Application.DTOs.Vehicles
         [Required]
         public int CustomerId { get; set; }
         [Required]
-        public int BrandId { get; set; }
-        [Required]
         public int ModelId { get; set; }
         [MaxLength(10)]
         public string? LicensePlate { get; set; }

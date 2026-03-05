@@ -10,6 +10,8 @@ namespace Garage_Management.Application.DTOs.Vehicles.VehicleModel
     public class VehicleModelUpdate
     {
         [Required]
+        public int TypeId { get; set; }
+        [Required]
         public int BrandId { get; set; }
         [Required]
         public string ModelName { get; set; }

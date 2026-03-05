@@ -4,7 +4,6 @@ namespace Garage_Management.Application.DTOs.Vehicles
     {
         public int VehicleId { get; set; }
         public int CustomerId { get; set; }
-        public int BrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
         public int ModelId { get; set; }
         public string ModelName { get; set; } = string.Empty;

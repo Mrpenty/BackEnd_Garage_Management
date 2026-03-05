@@ -379,7 +379,6 @@ namespace Garage_Management.Application.Services.Appointments
                 Vehicle = entity.Vehicle == null ? null : new VehicleResponse
                 {
                     VehicleId = entity.Vehicle.VehicleId,
-                    BrandId = entity.Vehicle.BrandId,
                     BrandName = entity.Vehicle.Brand?.BrandName ?? string.Empty,
                     ModelId = entity.Vehicle.ModelId,
                     ModelName = entity.Vehicle.Model?.ModelName ?? string.Empty,

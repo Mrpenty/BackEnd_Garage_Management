@@ -144,7 +144,6 @@ namespace Garage_Management.Application.Services.Vehicles
             var entity = new Vehicle
             {
                 CustomerId = request.CustomerId,
-                BrandId = request.BrandId,
                 ModelId = request.ModelId,
                 LicensePlate = request.LicensePlate,
                 Year = request.Year,
@@ -168,7 +167,6 @@ namespace Garage_Management.Application.Services.Vehicles
             //{
             //    throw new InvalidOperationException("Không thể cập nhật vì đang có xe liên kết");
             //}
-            if (request.BrandId.HasValue) entity.BrandId = request.BrandId.Value;
             if (request.ModelId.HasValue) entity.ModelId = request.ModelId.Value;
             if (request.LicensePlate != null) entity.LicensePlate = request.LicensePlate;
             if (request.Year.HasValue) entity.Year = request.Year.Value;
@@ -202,7 +200,6 @@ namespace Garage_Management.Application.Services.Vehicles
             {
                 VehicleId = entity.VehicleId,
                 CustomerId = entity.CustomerId,
-                BrandId = entity.BrandId,
                 BrandName = entity.Brand != null ? (entity.Brand.BrandName ?? string.Empty) : string.Empty,
                 ModelId = entity.ModelId,
                 ModelName = entity.Model != null ? (entity.Model.ModelName ?? string.Empty) : string.Empty,
