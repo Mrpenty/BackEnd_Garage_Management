@@ -28,5 +28,6 @@ namespace Garage_Management.Application.DTOs.Appointments
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
         [MaxLength(500)]
         public string? Description { get; set; }
+        public int? CreateBy { get; set; }
     }
 }

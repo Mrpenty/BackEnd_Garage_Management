@@ -151,6 +151,7 @@ namespace Garage_Management.Application.Services.Appointments
 
         public async Task<AppointmentResponse> CreateAsync(AppointmentCreateRequest request, CancellationToken ct = default)
         {
+            // CustomerId will be provided by FE (no token-based resolution)
             var effectiveCustomerId = request.CustomerId;
 
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
@@ -233,9 +234,6 @@ namespace Garage_Management.Application.Services.Appointments
                 Phone = request.Phone,
                 VehicleId = request.VehicleId,
                 VehicleModelId = request.VehicleModelId,
-                CustomVehicleBrand = request.CustomVehicleBrand,
-                CustomVehicleModel = request.CustomVehicleModel,
-                LicensePlate = request.LicensePlate,
                 CreatedBy = createdBy,
                 AppointmentDateTime = request.AppointmentDateTime,
                 Status = request.Status,
@@ -375,14 +373,17 @@ namespace Garage_Management.Application.Services.Appointments
                 LastName = entity.LastName,
                 Phone = entity.Phone,
                 VehicleId = entity.VehicleId,
-                VehicleModelId = entity.VehicleModelId ?? entity.Vehicle?.ModelId,
+                VehicleModelId = entity.VehicleModelId,
+                CustomVehicleBrand = entity.CustomVehicleBrand,
+                CustomVehicleModel = entity.CustomVehicleModel,
+                LicensePlate = entity.LicensePlate,
                 Vehicle = entity.Vehicle == null ? null : new VehicleResponse
                 {
                     VehicleId = entity.Vehicle.VehicleId,
+                    CustomerId = entity.Vehicle.CustomerId,
                     BrandName = entity.Vehicle.Brand?.BrandName ?? string.Empty,
                     ModelId = entity.Vehicle.ModelId,
                     ModelName = entity.Vehicle.Model?.ModelName ?? string.Empty,
-                    VehicleTypeName = entity.Vehicle.Model?.VehicleType?.TypeName,
                     LicensePlate = entity.Vehicle.LicensePlate,
                     Year = entity.Vehicle.Year,
                     Vin = entity.Vehicle.Vin,
@@ -391,9 +392,6 @@ namespace Garage_Management.Application.Services.Appointments
                     CreatedAt = entity.Vehicle.CreatedAt.ToString("O"),
                     UpdatedAt = entity.Vehicle.UpdatedAt?.ToString("O")
                 },
-                CustomVehicleBrand = entity.CustomVehicleBrand,
-                CustomVehicleModel = entity.CustomVehicleModel,
-                LicensePlate = entity.LicensePlate,
                 TotalEstimateMinute = entity.Services.Sum(s => s.Service?.ServiceTasks.Sum(t => (long)t.EstimateMinute) ?? 0),
                 CreatedBy = entity.CreatedBy,
                 UpdatedBy = entity.UpdatedBy,

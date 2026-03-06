@@ -30,3 +30,4 @@ namespace Garage_Management.Application.DTOs.Appointments
         public DateTime? UpdatedAt { get; set; }
     }
 }
+ 
