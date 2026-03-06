@@ -157,6 +157,8 @@ namespace Garage_Management.Application.Services.Appointments
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
                 throw new InvalidOperationException("CustomerId không hợp lệ");
 
+            //Logic: đã nhập customerId rồi thì không được nhập các thông tin còn lại nữa
+
             //if (effectiveCustomerId.HasValue)
             //{
             //    if (!string.IsNullOrWhiteSpace(request.FirstName) ||
@@ -234,6 +236,9 @@ namespace Garage_Management.Application.Services.Appointments
                 Phone = request.Phone,
                 VehicleId = request.VehicleId,
                 VehicleModelId = request.VehicleModelId,
+                CustomVehicleBrand = request.CustomVehicleBrand,
+                CustomVehicleModel = request.CustomVehicleModel,
+                LicensePlate = request.LicensePlate,
                 CreatedBy = createdBy,
                 AppointmentDateTime = request.AppointmentDateTime,
                 Status = request.Status,

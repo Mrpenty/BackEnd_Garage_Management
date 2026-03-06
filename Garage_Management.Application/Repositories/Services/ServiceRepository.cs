@@ -45,6 +45,15 @@ namespace Garage_Management.Application.Repositories.Services
             => await _context.Services
                 .Include(x => x.ServiceTasks)
                 .FirstOrDefaultAsync(x => x.ServiceId == id);
+
+        public async Task<List<Service>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default)
+            => await _context.Services
+                .Include(x => x.ServiceTasks)
+                .Include(x => x.ServiceVehicleTypes)
+                .Where(x => x.ServiceVehicleTypes.Any(svt => svt.VehicleTypeId == vehicleTypeId))
+                .AsNoTracking()
+                .OrderBy(x => x.ServiceName)
+                .ToListAsync(ct);
         public async Task SaveAsync(CancellationToken cancellationToken)
             => await _context.SaveChangesAsync(cancellationToken);
     }

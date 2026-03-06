@@ -47,5 +47,12 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Xóa 1 dịch vụ
         /// </summary>
         Task<bool> DeleteAsync(int id, CancellationToken ct = default);
+
+        /// Author: KhanhDV
+        /// Created Date: 6-3-2026
+        /// <summary>
+        /// Lấy danh sách dịch vụ theo loại xe (VehicleType)
+        /// </summary>
+        Task<List<ServiceResponse>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default);
     }
 }

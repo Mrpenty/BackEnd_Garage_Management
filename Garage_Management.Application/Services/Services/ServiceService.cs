@@ -80,6 +80,15 @@ namespace Garage_Management.Application.Services.Services
             return true;
         }
 
+        public async Task<List<ServiceResponse>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default)
+        {
+            if (vehicleTypeId <= 0)
+                throw new InvalidOperationException("VehicleTypeId không hợp lệ");
+
+            var data = await _repo.GetByVehicleTypeAsync(vehicleTypeId, ct);
+            return data.Select(Map).ToList();
+        }
+
         private static ServiceResponse Map(Service entity)
         {
             return new ServiceResponse
