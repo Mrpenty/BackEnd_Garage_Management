@@ -12,8 +12,7 @@ namespace Garage_Management.Base.Entities.Accounts
     /// <summary>
     /// Bảng Employee - Lưu thông tin chi tiết của nhân viên trong gara
     /// </summary>
-    public class 
-        Employee : AuditableEntity
+    public class Employee : AuditableEntity
     {
         public int EmployeeId { get; set; }
 

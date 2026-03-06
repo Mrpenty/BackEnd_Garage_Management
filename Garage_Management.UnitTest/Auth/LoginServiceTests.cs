@@ -18,7 +18,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Garage_Management.UnitTest.Helper;
+using Garage_Management.UnitTest;
 
 namespace Garage_Management.UnitTest.Auth
 {
@@ -106,10 +106,10 @@ namespace Garage_Management.UnitTest.Auth
             var user = new User { Id = 1, PhoneNumber = phoneNumber, IsActive = true };
 
             //_mockUserManager.Setup(x => x.FindByEmailAsync(phoneNumber)).ReturnsAsync((User)null);
-            var data = new List<User> { user }.AsQueryable();
-            var mockSet = new TestAsyncEnumerable<User>(data);
-            _mockUserManager.Setup(x => x.Users).Returns(mockSet);
-
+            //var data = new List<User> { user }.AsQueryable();
+            //var mockSet = new TestAsyncEnumerable<User>(data);
+            //_mockUserManager.Setup(x => x.Users).Returns(mockSet);    
+           
             _mockSignInManager.Setup(x => x.PasswordSignInAsync(user, "Khach@123!", false, false))
                 .ReturnsAsync(SignInResult.Success);
             _mockTokenGenerator.Setup(x => x.GenerateJwtTokenAsync(user)).ReturnsAsync("test-token");

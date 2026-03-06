@@ -99,14 +99,14 @@ namespace Garage_Management.UnitTest.Auth
             var request = new CustomerRegisterRequest
             {
                 PhoneNumber = phone,
-                Password = "Password123",
+                Password = "Password@123",
                 FirstName = "John",
                 LastName = "Doe"
             };
 
             _mockUserRepository.Setup(x => x.ExistsByPhoneNumberAsync(phone, It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync(false);
             _mockSmsService.Setup(x => x.SendOtpAsync(phone)).ReturnsAsync((true, "OTP sent"));
-            _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), "Password123"))
+            _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), "Password@123"))
                 .ReturnsAsync(IdentityResult.Success);
             _mockUserManager.Setup(x => x.AddToRoleAsync(It.IsAny<User>(), "Customer"))
                 .ReturnsAsync(IdentityResult.Success);
@@ -117,7 +117,7 @@ namespace Garage_Management.UnitTest.Auth
 
             Assert.IsTrue(result.Success);
             Assert.AreEqual("Tạo tài khoản thành công", result.Message);
-            _mockUserManager.Verify(x => x.CreateAsync(It.IsAny<User>(), "Password123"), Times.Once);
+            _mockUserManager.Verify(x => x.CreateAsync(It.IsAny<User>(), "Password@123"), Times.Once);
         }
 
         [TestMethod]
