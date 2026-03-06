@@ -23,7 +23,13 @@ namespace Garage_Management.Application.Repositories.JobCards
         {
             _context = context;
         }
-
+        public async Task<bool> HasActiveJobCardAsync(int vehicleId)
+        {
+            return await _context.JobCards
+                .AnyAsync(x =>
+                    x.VehicleId == vehicleId &&
+                    x.Status != ServiceStatus.Completed);
+        }
         /// <summary>
         /// Lấy một JobCard theo Id.
         /// Include các navigation property để tránh lazy loading và null reference.
