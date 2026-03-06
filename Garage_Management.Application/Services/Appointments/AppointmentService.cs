@@ -157,24 +157,24 @@ namespace Garage_Management.Application.Services.Appointments
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
                 throw new InvalidOperationException("CustomerId không hợp lệ");
 
-            if (effectiveCustomerId.HasValue)
-            {
-                if (!string.IsNullOrWhiteSpace(request.FirstName) ||
-                    !string.IsNullOrWhiteSpace(request.LastName) ||
-                    !string.IsNullOrWhiteSpace(request.Phone))
-                {
-                    throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName/LastName/Phone");
-                }
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(request.FirstName) ||
-                    string.IsNullOrWhiteSpace(request.LastName) ||
-                    string.IsNullOrWhiteSpace(request.Phone))
-                {
-                    throw new InvalidOperationException("Khách vãng lai cần FirstName, LastName và Phone");
-                }
-            }
+            //if (effectiveCustomerId.HasValue)
+            //{
+            //    if (!string.IsNullOrWhiteSpace(request.FirstName) ||
+            //        !string.IsNullOrWhiteSpace(request.LastName) ||
+            //        !string.IsNullOrWhiteSpace(request.Phone))
+            //    {
+            //        throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName/LastName/Phone");
+            //    }
+            //}
+            //else
+            //{
+            //    if (string.IsNullOrWhiteSpace(request.FirstName) ||
+            //        string.IsNullOrWhiteSpace(request.LastName) ||
+            //        string.IsNullOrWhiteSpace(request.Phone))
+            //    {
+            //        throw new InvalidOperationException("Khách vãng lai cần FirstName, LastName và Phone");
+            //    }
+            //}
 
             if (effectiveCustomerId.HasValue)
             {
