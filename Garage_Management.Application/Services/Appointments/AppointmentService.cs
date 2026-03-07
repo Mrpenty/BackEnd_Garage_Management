@@ -397,6 +397,16 @@ namespace Garage_Management.Application.Services.Appointments
                     CreatedAt = entity.Vehicle.CreatedAt.ToString("O"),
                     UpdatedAt = entity.Vehicle.UpdatedAt?.ToString("O")
                 },
+                Customer = entity.Customer == null ? null : new CustomerSummaryResponse
+                {
+                    CustomerId = entity.Customer.CustomerId,
+                    FirstName = entity.Customer.FirstName,
+                    LastName = entity.Customer.LastName,
+                    Address = entity.Customer.Address,
+                    UserId = entity.Customer.UserId,
+                    PhoneNumber = entity.Customer.User?.PhoneNumber,
+                    Email = entity.Customer.User?.Email
+                },
                 TotalEstimateMinute = entity.Services.Sum(s => s.Service?.ServiceTasks.Sum(t => (long)t.EstimateMinute) ?? 0),
                 CreatedBy = entity.CreatedBy,
                 UpdatedBy = entity.UpdatedBy,

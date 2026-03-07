@@ -18,6 +18,7 @@ namespace Garage_Management.Application.DTOs.Appointments
         public int? VehicleId { get; set; }
         public int? VehicleModelId { get; set; }
         public VehicleResponse? Vehicle { get; set; }
+        public CustomerSummaryResponse? Customer { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public long TotalEstimateMinute { get; set; }
