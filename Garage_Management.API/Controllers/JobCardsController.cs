@@ -129,7 +129,12 @@ namespace Garage_Management.API.Controllers
             return Ok("Work bay released successfully");
         }
 
-
+        [HttpGet("supervisor/{supervisorId}")]
+        public async Task<IActionResult> GetBySupervisorId(int supervisorId)
+        {
+            var jobCards = await _service.GetJobCardsBySupervisorIdAsync(supervisorId);
+            return Ok(jobCards);
+        }
 
     }
 

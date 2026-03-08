@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +57,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// </summary>
         Task<bool> ReleaseWorkBayAsync(ReleaseWorkBayDto dto, CancellationToken cancellationToken);
 
-
+        Task<List<JobCard>> GetJobCardsBySupervisorIdAsync(int supervisorId);
     }
 
 }

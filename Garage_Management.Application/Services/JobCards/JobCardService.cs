@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
+using Garage_Management.Application.Interfaces.Repositories.Appointments;
 
 
 
@@ -27,6 +28,7 @@ namespace Garage_Management.Application.Services.JobCards
         private readonly IJobCardServiceRepository _jobCardServiceRepository;
         private readonly IJobCardSparePartRepository _jobCardSparePartRepository;
         private readonly IWorkBayRepository _workBayRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
 
 
         public JobCardService(
@@ -35,7 +37,8 @@ namespace Garage_Management.Application.Services.JobCards
             IInventoryRepository inventoryRepository,
             IJobCardServiceRepository jobCardServiceRepository,
             IJobCardSparePartRepository jobCardSparePartRepository,
-            IWorkBayRepository workBayRepository)
+            IWorkBayRepository workBayRepository,
+            IAppointmentRepository appointmentRepository)
         {
             _repository = repository;
             _serviceRepository = serviceRepository;
@@ -43,14 +46,22 @@ namespace Garage_Management.Application.Services.JobCards
             _jobCardServiceRepository = jobCardServiceRepository;
             _jobCardSparePartRepository = jobCardSparePartRepository;
             _workBayRepository = workBayRepository;
+            _appointmentRepository = appointmentRepository;
         }
 
 
         public async Task<JobCardDto?> CreateAsync(
-    CreateJobCardDto dto,
-    int currentUserId,
-    CancellationToken cancellationToken)
+ CreateJobCardDto dto,
+ int currentUserId,
+ CancellationToken cancellationToken)
         {
+            // ❗ CHECK 1: Appointment đã có JobCard chưa
+            var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
+
+            if (hasJobCard)
+                return null;
+
+            // ❗ CHECK 2: Xe đã có JobCard active chưa
             var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
 
             if (hasActive)
@@ -71,6 +82,7 @@ namespace Garage_Management.Application.Services.JobCards
             await _repository.AddAsync(entity, cancellationToken);
             await _repository.SaveAsync(cancellationToken);
 
+
             // 🔹 ADD SERVICES
             if (dto.Services != null && dto.Services.Any())
             {
@@ -78,6 +90,15 @@ namespace Garage_Management.Application.Services.JobCards
                 {
                     await AddServiceAsync(entity.JobCardId, service, cancellationToken);
                 }
+            }
+
+            // ❗ UPDATE APPOINTMENT STATUS
+            if (dto.AppointmentId.HasValue)
+            {
+                await _appointmentRepository.UpdateStatusAsync(
+                    dto.AppointmentId.Value,
+                    AppointmentStatus.ConvertedToJobCard,
+                    cancellationToken);
             }
 
             return new JobCardDto
@@ -330,7 +351,10 @@ namespace Garage_Management.Application.Services.JobCards
             return true;
         }
 
-
+        public async Task<List<JobCard>> GetJobCardsBySupervisorIdAsync(int supervisorId)
+        {
+            return await _repository.GetBySupervisorIdAsync(supervisorId);
+        }
 
     }
 }

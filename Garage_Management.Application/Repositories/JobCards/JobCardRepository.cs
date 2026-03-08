@@ -135,5 +135,17 @@ namespace Garage_Management.Application.Repositories.JobCards
         {
             throw new NotImplementedException(); // TODO: implement hoặc xoá
         }
+       
+        public async Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId)
+        {
+            return await _context.JobCards
+                .Where(j => j.SupervisorId == supervisorId)
+                .ToListAsync();
+        }
+        public async Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId)
+        {
+            return await _context.JobCards
+                .AnyAsync(j => j.AppointmentId == appointmentId);
+        }
     }
 }

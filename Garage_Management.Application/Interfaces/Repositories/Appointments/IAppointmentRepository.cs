@@ -1,4 +1,5 @@
-﻿using Garage_Management.Base.Common.Models;
+﻿using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Common.Models.Appointments;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Interface;
@@ -36,6 +37,8 @@ namespace Garage_Management.Application.Interfaces.Repositories.Appointments
         /// Lấy danh sách lịch đặt có phân trang, lọc, tìm kiếm, sắp xếp
         /// </summary>
         Task<PagedResult<Appointment>> GetPagedAsync(AppointmentQuery query, CancellationToken ct = default);
-
+        Task<Appointment?> GetByIdAsync(int id);
+        Task SaveAsync(CancellationToken cancellationToken);
+        Task UpdateStatusAsync(int appointmentId, AppointmentStatus status, CancellationToken cancellationToken);
     }
 }
