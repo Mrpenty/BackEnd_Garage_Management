@@ -1,4 +1,5 @@
-﻿using Garage_Management.Application.Interfaces.Repositories;
+﻿using Garage_Management.Application.DTOs.JobCard;
+using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.JobCards;
@@ -135,12 +136,47 @@ namespace Garage_Management.Application.Repositories.JobCards
         {
             throw new NotImplementedException(); // TODO: implement hoặc xoá
         }
-       
-        public async Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId)
+
+        public async Task<List<JobcardListBySupervisor>> GetBySupervisorIdAsync(int supervisorId)
         {
-            return await _context.JobCards
-                .Where(j => j.SupervisorId == supervisorId)
+            var jobCards = await _context.JobCards
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
+                .Include(x => x.Supervisor)
+                .Include(x => x.Appointment)
+                .Include(x => x.Mechanics)
+                .Include(x => x.Services)
+                .Include(x => x.SpareParts)
+                .Where(x => x.SupervisorId == supervisorId)
                 .ToListAsync();
+
+            return jobCards.Select(j => new JobcardListBySupervisor
+            {
+                JobCardId = j.JobCardId,
+                AppointmentId = j.AppointmentId,
+                Appointment = j.Appointment,
+
+                CustomerId = j.CustomerId,
+                Customer = j.Customer,
+
+                VehicleId = j.VehicleId,
+                Vehicle = j.Vehicle,
+
+                StartDate = j.StartDate,
+                EndDate = j.EndDate,
+                Status = (int)j.Status,
+                Note = j.Note,
+
+                SupervisorId = (int)j.SupervisorId,
+                Supervisor = j.Supervisor,
+
+                Mechanics = j.Mechanics.Cast<object>().ToList(),
+                Services = j.Services.Cast<object>().ToList(),
+                SpareParts = j.SpareParts.Cast<object>().ToList(),
+
+                CreatedAt = j.CreatedAt,
+                CreatedBy = (int)j.CreatedBy
+            }).ToList();
         }
         public async Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId)
         {

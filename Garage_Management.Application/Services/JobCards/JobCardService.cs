@@ -351,7 +351,7 @@ namespace Garage_Management.Application.Services.JobCards
             return true;
         }
 
-        public async Task<List<JobCard>> GetJobCardsBySupervisorIdAsync(int supervisorId)
+        public async Task<List<JobcardListBySupervisor>> GetJobCardsBySupervisorIdAsync(int supervisorId)
         {
             return await _repository.GetBySupervisorIdAsync(supervisorId);
         }

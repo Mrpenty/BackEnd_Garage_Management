@@ -57,7 +57,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// </summary>
         Task<bool> ReleaseWorkBayAsync(ReleaseWorkBayDto dto, CancellationToken cancellationToken);
 
-        Task<List<JobCard>> GetJobCardsBySupervisorIdAsync(int supervisorId);
+        Task<List<JobcardListBySupervisor>> GetJobCardsBySupervisorIdAsync(int supervisorId);
     }
 
 }
