@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.Workbays;
 
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,10 +22,10 @@ namespace Garage_Management.API.Controllers
         /// Lấy danh sách WorkBay
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<WorkBayDto>>>> GetList(
+        public async Task<ActionResult<ApiResponse<IEnumerable<WorkBayDto>>>> GetList([FromQuery] WorkBayStatus? status,
             CancellationToken ct = default)
         {
-            var result = await _service.GetListAsync(ct);
+            var result = await _service.GetListAsync(status,ct);
             return Ok(result);
         }
     }

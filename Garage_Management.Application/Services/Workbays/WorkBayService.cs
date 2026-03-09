@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.Workbays;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Common.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -19,10 +20,16 @@ namespace Garage_Management.Application.Services.Workbays
             _workBayRepository = workBayRepository;
         }
 
-        public async Task<List<WorkBayDto>> GetListAsync(CancellationToken cancellationToken)
+        public async Task<List<WorkBayDto>> GetListAsync(WorkBayStatus? status, CancellationToken cancellationToken)
         {
-            return await _workBayRepository
-                .Query()
+            var query = _workBayRepository.Query();
+
+            if (status.HasValue)
+            {
+                query = query.Where(x => x.Status == status.Value);
+            }
+
+            return await query
                 .Select(x => new WorkBayDto
                 {
                     Id = x.Id,

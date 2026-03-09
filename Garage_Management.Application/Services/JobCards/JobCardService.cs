@@ -75,7 +75,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Note = dto.Note,
                 SupervisorId = dto.SupervisorId,
                 StartDate = DateTime.UtcNow,
-                Status = ServiceStatus.Pending,
+                Status = JobCardStatus.Created,
                 CreatedBy = currentUserId
             };
 
@@ -138,14 +138,14 @@ namespace Garage_Management.Application.Services.JobCards
                 CreatedByEmployeeId = entity.CreatedBy
             };
         }
-        public async Task<bool> UpdateStatusAsync(int id, ServiceStatus status, CancellationToken cancellationToken)
+        public async Task<bool> UpdateStatusAsync(int id, JobCardStatus status, CancellationToken cancellationToken)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null) return false;
 
             entity.Status = status;
 
-            if (status == ServiceStatus.Completed)
+            if (status == JobCardStatus.Completed)
                 entity.EndDate = DateTime.UtcNow;
 
             _repository.Update(entity);
@@ -173,7 +173,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Note = dto.Note,
                 Status = (MechanicAssignmentStatus)1
             });
-
+            jobCard.Status = JobCardStatus.WaitingMechanic;
             _repository.Update(jobCard);
             await _repository.SaveAsync(cancellationToken);
 

@@ -17,7 +17,7 @@ namespace Garage_Management.Application.DTOs.JobCard
         public int VehicleId { get; set; }
         public string? LicensePlate { get; set; }
 
-        public ServiceStatus Status { get; set; }
+        public JobCardStatus Status { get; set; }
         public DateTime StartDate { get; set; }
     }
 

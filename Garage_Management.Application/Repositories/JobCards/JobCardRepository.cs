@@ -29,7 +29,7 @@ namespace Garage_Management.Application.Repositories.JobCards
             return await _context.JobCards
                 .AnyAsync(x =>
                     x.VehicleId == vehicleId &&
-                    x.Status != ServiceStatus.Completed);
+                    x.Status != JobCardStatus.Completed);
         }
         /// <summary>
         /// Lấy một JobCard theo Id.
@@ -57,7 +57,7 @@ namespace Garage_Management.Application.Repositories.JobCards
             var query = _context.JobCards
                 .Include(x => x.Customer)
                 .Include(x => x.Vehicle)
-                .Where(j => j.Status != ServiceStatus.Completed)
+                .Where(j => j.Status != JobCardStatus.Completed)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -157,7 +157,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                 AppointmentId = j.AppointmentId,
                 Appointment = j.Appointment == null ? null : new
                 {
-                    j.Appointment.AppointmentId
+                    j.Appointment.AppointmentDateTime
                 },
 
                 CustomerId = j.CustomerId,
@@ -196,7 +196,8 @@ namespace Garage_Management.Application.Repositories.JobCards
 
                 Services = j.Services.Select(s => new
                 {
-                    s.ServiceId
+                    s.ServiceId,
+                    s.Service
                 }).Cast<object>().ToList(),
 
                 SpareParts = j.SpareParts.Select(sp => new
