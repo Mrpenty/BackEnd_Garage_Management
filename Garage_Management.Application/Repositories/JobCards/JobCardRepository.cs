@@ -153,14 +153,28 @@ namespace Garage_Management.Application.Repositories.JobCards
             return jobCards.Select(j => new JobcardListBySupervisor
             {
                 JobCardId = j.JobCardId,
+
                 AppointmentId = j.AppointmentId,
-                Appointment = j.Appointment,
+                Appointment = j.Appointment == null ? null : new
+                {
+                    j.Appointment.AppointmentId
+                },
 
                 CustomerId = j.CustomerId,
-                Customer = j.Customer,
+                Customer = j.Customer == null ? null : new
+                {
+                    j.Customer.CustomerId,
+                    j.Customer.FirstName,
+                    j.Customer.LastName,
+                },
 
                 VehicleId = j.VehicleId,
-                Vehicle = j.Vehicle,
+                Vehicle = j.Vehicle == null ? null : new
+                {
+                    j.Vehicle.VehicleId,
+                    j.Vehicle.LicensePlate,
+                    j.Vehicle.Brand
+                },
 
                 StartDate = j.StartDate,
                 EndDate = j.EndDate,
@@ -168,11 +182,27 @@ namespace Garage_Management.Application.Repositories.JobCards
                 Note = j.Note,
 
                 SupervisorId = (int)j.SupervisorId,
-                Supervisor = j.Supervisor,
+                Supervisor = j.Supervisor == null ? null : new
+                {
+                    j.Supervisor.UserId,
+                    j.Supervisor.FirstName,
+                    j.Supervisor.LastName,
+                },
 
-                Mechanics = j.Mechanics.Cast<object>().ToList(),
-                Services = j.Services.Cast<object>().ToList(),
-                SpareParts = j.SpareParts.Cast<object>().ToList(),
+                Mechanics = j.Mechanics.Select(m => new
+                {
+                    m.EmployeeId
+                }).Cast<object>().ToList(),
+
+                Services = j.Services.Select(s => new
+                {
+                    s.ServiceId
+                }).Cast<object>().ToList(),
+
+                SpareParts = j.SpareParts.Select(sp => new
+                {
+                    sp.SparePartId
+                }).Cast<object>().ToList(),
 
                 CreatedAt = j.CreatedAt,
                 CreatedBy = (int)j.CreatedBy
