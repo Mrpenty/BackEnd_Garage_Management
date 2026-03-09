@@ -185,12 +185,12 @@ namespace Garage_Management.Application.Services.Appointments
                     throw new InvalidOperationException("CustomerId không tồn tại");
             }
 
-            if (request.VehicleId.HasValue)
-            {
-                var vehicle = await _vehicleRepo.GetByIdAsync(request.VehicleId.Value);
-                if (vehicle == null)
-                    throw new InvalidOperationException("VehicleId không tồn tại");
-            }
+            //if (request.VehicleId.HasValue)
+            //{
+            //    var vehicle = await _vehicleRepo.GetByIdAsync(request.VehicleId.Value);
+            //    if (vehicle == null)
+            //        throw new InvalidOperationException("VehicleId không tồn tại");
+            //}
 
             var serviceIds = request.ServiceIds?
                 .Where(x => x > 0)
