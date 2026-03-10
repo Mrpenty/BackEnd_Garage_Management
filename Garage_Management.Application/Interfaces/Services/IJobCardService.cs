@@ -1,6 +1,8 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Data.Configurations.JobCards;
+using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +26,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <summary>
         /// Cập nhật trạng thái phiếu sửa chữa
         /// </summary>
-        Task<bool> UpdateStatusAsync(int id, ServiceStatus status, CancellationToken cancellationToken);
+        Task<bool> UpdateStatusAsync(int id, JobCardStatus status, CancellationToken cancellationToken);
 
         /// <summary>
         /// Cập nhật thông tin phiếu sửa chữa
@@ -56,7 +58,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// </summary>
         Task<bool> ReleaseWorkBayAsync(ReleaseWorkBayDto dto, CancellationToken cancellationToken);
 
-
+        Task<List<JobcardListBySupervisor>> GetJobCardsBySupervisorIdAsync(int supervisorId);
     }
 
 }

@@ -200,5 +200,25 @@ namespace Garage_Management.Application.Repositories.Appointments
                     .ThenInclude(x => x.Inventory)
                 .FirstOrDefaultAsync(x => x.AppointmentId == id, ct);
         }
+        public async Task<Appointment?> GetByIdAsync(int id)
+        {
+            return await _context.Appointments
+                .FirstOrDefaultAsync(a => a.AppointmentId == id);
+        }
+        public async Task SaveAsync(CancellationToken cancellationToken)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        public async Task UpdateStatusAsync(int appointmentId, AppointmentStatus status, CancellationToken cancellationToken)
+        {
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(x => x.AppointmentId == appointmentId);
+
+            if (appointment != null)
+            {
+                appointment.Status = status;
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+        }
     }
 }

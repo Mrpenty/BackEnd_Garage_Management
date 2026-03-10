@@ -47,7 +47,7 @@ namespace Garage_Management.Base.Entities.JobCards
         /// <summary>
         /// Trạng thái tổng thể của phiếu sửa chữa
         /// </summary>
-        public ServiceStatus Status { get; set; } = ServiceStatus.Pending;
+        public JobCardStatus Status { get; set; } = JobCardStatus.Created;
 
         /// <summary>
         /// Ghi chú tổng quát cho phiếu (mô tả tình trạng, yêu cầu khách hàng, lưu ý đặc biệt...)
