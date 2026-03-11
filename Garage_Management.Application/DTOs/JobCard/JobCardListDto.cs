@@ -10,9 +10,14 @@ namespace Garage_Management.Application.DTOs.JobCard
     public class JobCardListDto
     {
         public int JobCardId { get; set; }
+
         public int CustomerId { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+
         public int VehicleId { get; set; }
-        public ServiceStatus Status { get; set; }
+        public string? LicensePlate { get; set; }
+
+        public JobCardStatus Status { get; set; }
         public DateTime StartDate { get; set; }
     }
 

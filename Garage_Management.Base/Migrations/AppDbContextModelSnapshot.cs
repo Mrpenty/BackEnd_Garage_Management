@@ -39,7 +39,15 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
-                    b.Property<int>("CustomerId")
+                    b.Property<string>("CustomVehicleBrand")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CustomVehicleModel")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -55,6 +63,22 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int?>("EmployeeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LicensePlate")
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -65,6 +89,9 @@ namespace Garage_Management.Base.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VehicleModelId")
                         .HasColumnType("int");
 
                     b.HasKey("AppointmentId");
@@ -78,6 +105,8 @@ namespace Garage_Management.Base.Migrations
                     b.HasIndex("UpdatedBy");
 
                     b.HasIndex("VehicleId");
+
+                    b.HasIndex("VehicleModelId");
 
                     b.ToTable("Appointments");
                 });
@@ -168,7 +197,7 @@ namespace Garage_Management.Base.Migrations
                         {
                             CustomerId = 1,
                             Address = "123 Đường Láng, Đống Đa, Hà Nội",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1260),
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 784, DateTimeKind.Utc).AddTicks(5369),
                             FirstName = "Nguyễn Văn",
                             LastName = "An",
                             UserId = 10
@@ -177,7 +206,7 @@ namespace Garage_Management.Base.Migrations
                         {
                             CustomerId = 2,
                             Address = "45 Nguyễn Trãi, Thanh Xuân, Hà Nội",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1263),
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 784, DateTimeKind.Utc).AddTicks(5375),
                             FirstName = "Trần Thị",
                             LastName = "Bình",
                             UserId = 11
@@ -231,6 +260,9 @@ namespace Garage_Management.Base.Migrations
                     b.Property<DateTime?>("StartWorkingDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -260,49 +292,53 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 1,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1143),
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 784, DateTimeKind.Utc).AddTicks(5192),
                             EmployeeCode = "NV-ADMIN-001",
                             FirstName = "Nguyễn Văn",
                             IsActive = true,
                             LastName = "Admin",
                             Position = "Quản trị hệ thống",
                             StartWorkingDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Status = 1,
                             UserId = 1
                         },
                         new
                         {
                             EmployeeId = 2,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1150),
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 784, DateTimeKind.Utc).AddTicks(5209),
                             EmployeeCode = "QL-001",
                             FirstName = "Trần Thị",
                             IsActive = true,
                             LastName = "Quản",
                             Position = "Quản lý gara",
                             StartWorkingDate = new DateTime(2024, 2, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Status = 1,
                             UserId = 2
                         },
                         new
                         {
                             EmployeeId = 3,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1153),
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 784, DateTimeKind.Utc).AddTicks(5212),
                             EmployeeCode = "KT-001",
                             FirstName = "Lê Văn",
                             IsActive = true,
                             LastName = "Hùng",
                             Position = "Kỹ thuật viên",
                             StartWorkingDate = new DateTime(2024, 3, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Status = 1,
                             UserId = 3
                         },
                         new
                         {
                             EmployeeId = 4,
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(1157),
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 784, DateTimeKind.Utc).AddTicks(5215),
                             EmployeeCode = "LT-001",
                             FirstName = "Phạm Thị",
                             IsActive = true,
                             LastName = "Lan",
                             Position = "Lễ tân",
                             StartWorkingDate = new DateTime(2024, 4, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Status = 1,
                             UserId = 4
                         });
                 });
@@ -429,18 +465,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a9dc8cd5b3fe4b6b94e4f706aa4298e1",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 782, DateTimeKind.Utc).AddTicks(1581),
+                            ConcurrencyStamp = "887993aa32894599b4fd6b76b439666d",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 394, DateTimeKind.Utc).AddTicks(8913),
                             Email = "admin@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GARAGE.VN",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJed9HXx145yvsGSBpy/WhhvBAfgV8w04urb8OZMyJdGtMvE6w5eDFl/PdibKcFADg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGhX7KvSFWurT9tpZpJiCyTKaD4qFQqSV1E3F3WsTTQB7S07sGt4jCQxrUlGIrhZ0Q==",
                             PhoneNumber = "0909123456",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "1830b41e-3bda-4a81-a41d-c5d95578c96e",
+                            SecurityStamp = "3a465575-4348-46fa-b956-a8bc0edb4278",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         },
@@ -448,18 +484,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d72207bfb52541bdba18b59a2e6f8926",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 845, DateTimeKind.Utc).AddTicks(162),
+                            ConcurrencyStamp = "856bbeda21d140eca86aa7427127e173",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 452, DateTimeKind.Utc).AddTicks(8701),
                             Email = "manager01@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER01@GARAGE.VN",
                             NormalizedUserName = "SUPERVISOR01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGCkh7e6z1mNNCXzrCasW5j2k6VQuOjXrr5HAtI63FKDLcsh2IIDfaZGhDCVu7QDKg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEG3R9LtTkHOx/NoBUuCabFJkN+bm81uU94HtKduw/SrllsFY6VBiGaL2Ufqz2bohSQ==",
                             PhoneNumber = "0912345678",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "d40c9066-12b1-46bb-8b0f-8567da96a6cc",
+                            SecurityStamp = "9b179718-a492-4784-86c1-0b106773e3c7",
                             TwoFactorEnabled = false,
                             UserName = "Supervisor01"
                         },
@@ -467,18 +503,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 3,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "7d7c5414389342fa8d1eaa6404bf8188",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 915, DateTimeKind.Utc).AddTicks(994),
+                            ConcurrencyStamp = "ed083484d69f4066902ba778b7a20738",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 510, DateTimeKind.Utc).AddTicks(4596),
                             Email = "mechanic01@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "MECHANIC01@GARAGE.VN",
                             NormalizedUserName = "MECHANIC01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOqzmiokN5dfo0+eRg0phnMBpxkdxr5rcfyeBxiRM2imvo3RJFmW24ZfQxAX9AIcuw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKGF/ZSGazZxkx3B1zcrSdKOSOYqdy3fLmb5bNT+FGXoj68gxPE9stbrrxks6ON1Aw==",
                             PhoneNumber = "0987654321",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "8fc84749-26a4-48ea-9266-b9ea82633c57",
+                            SecurityStamp = "59602cb3-168a-40fa-9e96-8a6be4519ebd",
                             TwoFactorEnabled = false,
                             UserName = "mechanic01"
                         },
@@ -486,18 +522,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 4,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ab70cc182d1a4c62ada7ea2331b19d92",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 52, 976, DateTimeKind.Utc).AddTicks(9524),
+                            ConcurrencyStamp = "64ab95a2ceb648108418f227f5bcf123",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 580, DateTimeKind.Utc).AddTicks(4388),
                             Email = "reception@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "RECEPTION@GARAGE.VN",
                             NormalizedUserName = "RECEP01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEERy+rUjDv5x1N6N8j2AbN0eUIroFKjLE4eDX0cD0jG6PuMlbF6HMeR3SFvepyx4sw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECBBkT+4A0G8HSTaRpik6144DtDhMBbOVg2jG/VZ507M3jRwYwGw7ggyMOV7lwaQxg==",
                             PhoneNumber = "0978123456",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "83c3e873-a3fe-4685-94d2-af68d1511d65",
+                            SecurityStamp = "3f4cb836-f792-4556-be0a-325257a66332",
                             TwoFactorEnabled = false,
                             UserName = "recep01"
                         },
@@ -505,18 +541,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 5,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0516a083511c4e249a6a1c07976e7023",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 40, DateTimeKind.Utc).AddTicks(4304),
+                            ConcurrencyStamp = "2822cfa152b94d7bbf392b66bed6e024",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 661, DateTimeKind.Utc).AddTicks(1740),
                             Email = "stocker@garage.vn",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "STOCKER@GARAGE.VN",
                             NormalizedUserName = "STOCKER01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJ1+kndM2puiO6mEPjnBBjNw6quRKFk2HZJ/1M/CjR12q0CiNO7GwnLJ3R1Q7+4D+w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHDxVuHn4MmubaZpW8pY+XnoXgGSgCN+rMY/iNtAZzI1sJtryt9GX6e/EU2NJUCF7A==",
                             PhoneNumber = "0978123356",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "25edc126-d572-44d5-b6d5-b4843ec69a10",
+                            SecurityStamp = "34f936f4-d90f-4649-9809-d8ec91a82cee",
                             TwoFactorEnabled = false,
                             UserName = "stocker01"
                         },
@@ -524,18 +560,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 10,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "54ad441c96514daaa03a427b04fbc537",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 105, DateTimeKind.Utc).AddTicks(9781),
+                            ConcurrencyStamp = "bdb35c70a0774c9ca76b55f5ffd12a08",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 726, DateTimeKind.Utc).AddTicks(3295),
                             Email = "nguyen.van.a@gmail.com",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "NGUYEN.VAN.A@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJpA0Oi/Q2ok3lQNQhS6hdnwECM6+zJ8Bf8wzlWzVo2U2v94NT6T6xBkfn7nNlrIAg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPH2PLmSidgPlzXLYiXpUnDb0iFUm/oHfbdTX9UicAOWz4vilUUah5BaJT8RA9QQew==",
                             PhoneNumber = "0912345670",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "5c6add17-1ea6-47a9-82db-1a57051b27d8",
+                            SecurityStamp = "0d1779e2-137b-4f8d-bcf6-98263cbc9ee3",
                             TwoFactorEnabled = false,
                             UserName = "khachhang01"
                         },
@@ -543,18 +579,18 @@ namespace Garage_Management.Base.Migrations
                         {
                             Id = 11,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "61c719c2a31b44118563f55bccef9148",
-                            CreatedAt = new DateTime(2026, 2, 23, 3, 1, 53, 192, DateTimeKind.Utc).AddTicks(169),
+                            ConcurrencyStamp = "be566b9e711241af84854f529d567873",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 31, 34, 784, DateTimeKind.Utc).AddTicks(3954),
                             Email = "tran.thi.b@gmail.com",
                             EmailConfirmed = true,
                             IsActive = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TRAN.THI.B@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG02",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFmApE/8+NtWVdn33ACWzOeqoUicibg9tS894o90HzqLkhLIyhljAOCZv4Bq6r+q/g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGgTQvUqWTUm2akiN9qSe/ditccuQfuU9Hm4wix67L9umSNS3BBo9Pq+Qo4qZIQWaQ==",
                             PhoneNumber = "0987654312",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "bfa0f8c1-91b1-4f21-9013-433232a1ef76",
+                            SecurityStamp = "533cc87c-05a7-44b8-abb7-ba812797ffb9",
                             TwoFactorEnabled = false,
                             UserName = "khachhang02"
                         });
@@ -1341,6 +1377,21 @@ namespace Garage_Management.Base.Migrations
                     b.ToTable("ServiceTasks");
                 });
 
+            modelBuilder.Entity("Garage_Management.Base.Entities.Services.ServiceVehicleType", b =>
+                {
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VehicleTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ServiceId", "VehicleTypeId");
+
+                    b.HasIndex("VehicleTypeId");
+
+                    b.ToTable("ServiceVehicleTypes");
+                });
+
             modelBuilder.Entity("Garage_Management.Base.Entities.Services.ServiceWarrantyPolicy", b =>
                 {
                     b.Property<int>("PolicyId")
@@ -1383,7 +1434,7 @@ namespace Garage_Management.Base.Migrations
 
                     b.HasKey("PolicyId");
 
-                    b.ToTable("ServiceWarrantyPolicy");
+                    b.ToTable("ServiceWarrantyPolicies");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Vehiclies.Vehicle", b =>
@@ -1487,20 +1538,52 @@ namespace Garage_Management.Base.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("VehicleTypeId")
+                        .HasColumnType("int");
+
                     b.HasKey("ModelId");
 
                     b.HasIndex("BrandId");
 
+                    b.HasIndex("VehicleTypeId");
+
                     b.ToTable("VehicleModels");
                 });
 
-            modelBuilder.Entity("Garage_Management.Base.Entities.Warranties.WarrantyPolicy", b =>
+            modelBuilder.Entity("Garage_Management.Base.Entities.Vehiclies.VehicleType", b =>
                 {
-                    b.Property<int>("WarrantyPolicyId")
+                    b.Property<int>("VehicleTypeId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WarrantyPolicyId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleTypeId"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("TypeName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("VehicleTypeId");
+
+                    b.ToTable("VehicleTypes");
+                });
+
+            modelBuilder.Entity("Garage_Management.Base.Entities.Warranties.SparePartWarrantyPolicy", b =>
+                {
+                    b.Property<int>("PolicyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PolicyId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -1514,10 +1597,16 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int?>("DeletedBy")
                         .HasColumnType("int");
 
+                    b.Property<int?>("DurationMonths")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MileageLimit")
+                        .HasColumnType("int");
+
                     b.Property<string>("PolicyName")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("TermsAndConditions")
                         .HasMaxLength(2000)
@@ -1529,12 +1618,9 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("int");
 
-                    b.Property<int>("WarrantyMonths")
-                        .HasColumnType("int");
+                    b.HasKey("PolicyId");
 
-                    b.HasKey("WarrantyPolicyId");
-
-                    b.ToTable("WarrantyPolicies");
+                    b.ToTable("SparePartWarrantyPolicies");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Warranties.WarrantyService", b =>
@@ -1555,17 +1641,22 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
 
+                    b.Property<int>("ServiceWarrantyPolicyId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ServiceWarrantyPolicyPolicyId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("WarrantyPolicyId")
-                        .HasColumnType("int");
 
                     b.HasKey("WarrantyServiceId");
 
                     b.HasIndex("ServiceId");
 
-                    b.HasIndex("WarrantyPolicyId");
+                    b.HasIndex("ServiceWarrantyPolicyId");
+
+                    b.HasIndex("ServiceWarrantyPolicyPolicyId");
 
                     b.ToTable("WarrantyServices");
                 });
@@ -1588,17 +1679,17 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int>("SparePartId")
                         .HasColumnType("int");
 
+                    b.Property<int>("SparePartWarrantyPolicyId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("WarrantyPolicyId")
-                        .HasColumnType("int");
 
                     b.HasKey("WarrantySparePartId");
 
                     b.HasIndex("SparePartId");
 
-                    b.HasIndex("WarrantyPolicyId");
+                    b.HasIndex("SparePartWarrantyPolicyId");
 
                     b.ToTable("WarrantySpareParts");
                 });
@@ -1821,8 +1912,7 @@ namespace Garage_Management.Base.Migrations
                     b.HasOne("Garage_Management.Base.Entities.Accounts.Customer", "Customer")
                         .WithMany("Appointments")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Garage_Management.Base.Entities.Accounts.Employee", null)
                         .WithMany("CreatedAppointments")
@@ -1838,6 +1928,10 @@ namespace Garage_Management.Base.Migrations
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Garage_Management.Base.Entities.Vehiclies.VehicleModel", "VehicleModel")
+                        .WithMany()
+                        .HasForeignKey("VehicleModelId");
+
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("Customer");
@@ -1845,6 +1939,8 @@ namespace Garage_Management.Base.Migrations
                     b.Navigation("UpdatedByUser");
 
                     b.Navigation("Vehicle");
+
+                    b.Navigation("VehicleModel");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Accounts.AppointmentService", b =>
@@ -2215,6 +2311,25 @@ namespace Garage_Management.Base.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("Garage_Management.Base.Entities.Services.ServiceVehicleType", b =>
+                {
+                    b.HasOne("Garage_Management.Base.Entities.Services.Service", "Service")
+                        .WithMany("ServiceVehicleTypes")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Garage_Management.Base.Entities.Vehiclies.VehicleType", "VehicleType")
+                        .WithMany("ServiceVehicleTypes")
+                        .HasForeignKey("VehicleTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+
+                    b.Navigation("VehicleType");
+                });
+
             modelBuilder.Entity("Garage_Management.Base.Entities.Vehiclies.Vehicle", b =>
                 {
                     b.HasOne("Garage_Management.Base.Entities.Vehiclies.VehicleBrand", "Brand")
@@ -2250,7 +2365,14 @@ namespace Garage_Management.Base.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Garage_Management.Base.Entities.Vehiclies.VehicleType", "VehicleType")
+                        .WithMany("VehicleModels")
+                        .HasForeignKey("VehicleTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Brand");
+
+                    b.Navigation("VehicleType");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Warranties.WarrantyService", b =>
@@ -2261,15 +2383,19 @@ namespace Garage_Management.Base.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Garage_Management.Base.Entities.Warranties.WarrantyPolicy", "WarrantyPolicy")
-                        .WithMany("WarrantyServices")
-                        .HasForeignKey("WarrantyPolicyId")
+                    b.HasOne("Garage_Management.Base.Entities.Services.ServiceWarrantyPolicy", "ServiceWarrantyPolicy")
+                        .WithMany()
+                        .HasForeignKey("ServiceWarrantyPolicyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Garage_Management.Base.Entities.Services.ServiceWarrantyPolicy", null)
+                        .WithMany("WarrantyServices")
+                        .HasForeignKey("ServiceWarrantyPolicyPolicyId");
+
                     b.Navigation("Service");
 
-                    b.Navigation("WarrantyPolicy");
+                    b.Navigation("ServiceWarrantyPolicy");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Warranties.WarrantySparePart", b =>
@@ -2280,15 +2406,15 @@ namespace Garage_Management.Base.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Garage_Management.Base.Entities.Warranties.WarrantyPolicy", "WarrantyPolicy")
+                    b.HasOne("Garage_Management.Base.Entities.Warranties.SparePartWarrantyPolicy", "SparePartWarrantyPolicy")
                         .WithMany("WarrantySpareParts")
-                        .HasForeignKey("WarrantyPolicyId")
+                        .HasForeignKey("SparePartWarrantyPolicyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Inventory");
 
-                    b.Navigation("WarrantyPolicy");
+                    b.Navigation("SparePartWarrantyPolicy");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -2439,6 +2565,8 @@ namespace Garage_Management.Base.Migrations
 
                     b.Navigation("ServiceTasks");
 
+                    b.Navigation("ServiceVehicleTypes");
+
                     b.Navigation("WarrantyServices");
                 });
 
@@ -2450,6 +2578,8 @@ namespace Garage_Management.Base.Migrations
             modelBuilder.Entity("Garage_Management.Base.Entities.Services.ServiceWarrantyPolicy", b =>
                 {
                     b.Navigation("Services");
+
+                    b.Navigation("WarrantyServices");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Vehiclies.Vehicle", b =>
@@ -2471,10 +2601,15 @@ namespace Garage_Management.Base.Migrations
                     b.Navigation("Vehicles");
                 });
 
-            modelBuilder.Entity("Garage_Management.Base.Entities.Warranties.WarrantyPolicy", b =>
+            modelBuilder.Entity("Garage_Management.Base.Entities.Vehiclies.VehicleType", b =>
                 {
-                    b.Navigation("WarrantyServices");
+                    b.Navigation("ServiceVehicleTypes");
 
+                    b.Navigation("VehicleModels");
+                });
+
+            modelBuilder.Entity("Garage_Management.Base.Entities.Warranties.SparePartWarrantyPolicy", b =>
+                {
                     b.Navigation("WarrantySpareParts");
                 });
 #pragma warning restore 612, 618

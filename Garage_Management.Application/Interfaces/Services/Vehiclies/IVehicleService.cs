@@ -24,19 +24,17 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         /// </summary>
         /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
         /// <param name="pageSize">Tổng số trang</param>
-        /// <param name="customerId">Id của khách hàng</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>   
-        Task<PagedResult<VehicleResponse>> GetByCustomerIdAsync(int page, int pageSize, int customerId, CancellationToken ct = default);
+        Task<ApiResponse<PagedResult<VehicleResponse>>> GetMyVehicle(int page, int pageSize, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>
         /// Lấy danh sách xe máy có phân trạng
         /// </summary>
-        /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
-        /// <param name="pageSize">Tổng số trang</param>
+        /// <param name="query">phân trang và tìm kiếm</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>   
-        Task<PagedResult<VehicleResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<ApiResponse<PagedResult<VehicleResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 13-2-2026

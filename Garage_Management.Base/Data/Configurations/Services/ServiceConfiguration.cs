@@ -30,6 +30,11 @@ namespace Garage_Management.Base.Data.Configurations.Services
                    .WithOne(js => js.Service)
                    .HasForeignKey(js => js.ServiceId)
                    .OnDelete(DeleteBehavior.Restrict); // Ngăn xóa Service nếu đang dùng trong phiếu
+
+            builder.HasMany(s => s.ServiceVehicleTypes)
+                   .WithOne(sv => sv.Service)
+                   .HasForeignKey(sv => sv.ServiceId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -55,5 +55,6 @@ namespace Garage_Management.Base.Entities.Services
         /// Các bảo hành dịch vụ liên quan (nếu có chính sách bảo hành riêng)
         /// </summary>
         public ICollection<WarrantyService> WarrantyServices { get; set; } = new List<WarrantyService>();
+        public ICollection<ServiceVehicleType> ServiceVehicleTypes { get; set; } = new List<ServiceVehicleType>();
     }
 }

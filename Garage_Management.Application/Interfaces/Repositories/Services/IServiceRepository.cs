@@ -15,5 +15,12 @@ namespace Garage_Management.Application.Interfaces.Repositories.Services
         /// <param name="pageSize">Tổng số trang</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<PagedResult<Service>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+
+        /// Author: KhanhDV
+        /// Created Date: 6-3-2026
+        /// <summary>
+        /// Lấy danh sách dịch vụ theo loại xe (VehicleType)
+        /// </summary>
+        Task<List<Service>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default);
     }
 }

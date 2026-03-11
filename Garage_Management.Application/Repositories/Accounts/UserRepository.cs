@@ -21,6 +21,7 @@ namespace Garage_Management.Application.Repositories.Accounts
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly ICustomerRepository _customerRepository;
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly AppDbContext dbContext;
 
         public UserRepository(AppDbContext dbContext, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, ICustomerRepository customerRepository, IEmployeeRepository employeeRepository) : base(dbContext)
         {
@@ -28,6 +29,7 @@ namespace Garage_Management.Application.Repositories.Accounts
             _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
             _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
             _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
+            this.dbContext = dbContext;
         }
         public async Task<bool> CheckPasswordAsync(User user, string password)
         {
@@ -147,6 +149,68 @@ namespace Garage_Management.Application.Repositories.Accounts
             await _userManager.UpdateAsync(user);
 
             return true;
+        }
+
+        public async Task<PagedResult<User>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
+        {
+            var q = dbSet.AsNoTracking().AsQueryable();
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                var search = query.Search.Trim().ToLower();
+                q = q.Where(u =>
+                    (u.UserName ?? "").ToLower().Contains(search) ||
+                    (u.Email ?? "").ToLower().Contains(search) ||
+                    (u.PhoneNumber ?? "").ToLower().Contains(search));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Filter))
+            {
+                var roleNames = query.Filter.Trim()
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(r => r.Trim().ToLower())  
+                    .ToList();
+
+                if (roleNames.Any())
+                {
+                    var roleIds = await _roleManager.Roles
+                        .Where(r => roleNames.Contains(r.Name.ToLower()))  
+                        .Select(r => r.Id)
+                        .ToListAsync(ct);
+
+                    if (roleIds.Any())
+                    {
+                        q = q.Where(u => dbContext.UserRoles.Any(ur => ur.UserId == u.Id && roleIds.Contains(ur.RoleId)));
+                    }
+                    else
+                    {
+                        q = q.Where(u => false);
+                    }
+                }
+            }
+            q = q.OrderByDescending(u => u.CreatedAt);
+
+            var total = await q.CountAsync(ct);
+
+            var data = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync(ct);
+
+            return new PagedResult<User>
+            {
+                PageData = data,
+                Total = total,
+                Page = query.Page,
+                PageSize = query.PageSize
+            };
+        }
+
+        public async Task<List<string>> GetUserRolesAsync(int userId, CancellationToken ct = default)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            return (List<string>)(user != null ? await _userManager.GetRolesAsync(user) : new List<string>());
         }
     }
 }

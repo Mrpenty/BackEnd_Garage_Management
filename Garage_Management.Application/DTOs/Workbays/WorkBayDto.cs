@@ -1,0 +1,28 @@
+﻿using Garage_Management.Base.Common.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Garage_Management.Application.DTOs.Workbays
+{
+    public class WorkBayDto
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+
+        public string? Note { get; set; }
+
+        public WorkBayStatus Status { get; set; }
+
+        public int? JobcardId { get; set; }
+
+        public DateTime CreateAt { get; set; }
+
+        public DateTime? StartAt { get; set; }
+
+        public DateTime? EndAt { get; set; }
+    }
+}

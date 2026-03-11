@@ -78,5 +78,13 @@ namespace Garage_Management.Application.Interfaces.Repositories
         /// </summary>
         Task<bool> SoftDeleteAsync(int userId, int? deletedBy, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Lấy danh sách người dùng có phân trang và filter theo các tiêu chí trong ParamQuery (như tên, email, vai trò...)
+        /// </summary>
+        /// <returns></returns>
+        Task<PagedResult<User>> GetPagedAsync(ParamQuery query, CancellationToken ct = default);
+
+        // Nếu cần filter role riêng
+        Task<List<string>> GetUserRolesAsync(int userId, CancellationToken ct = default);
     }
 }

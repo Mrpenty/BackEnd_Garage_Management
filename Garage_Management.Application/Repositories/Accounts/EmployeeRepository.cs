@@ -21,5 +21,12 @@ namespace Garage_Management.Application.Repositories.Accounts
             return await dbSet
             .FirstOrDefaultAsync(c => c.UserId == userId);
         }
+        public async Task<List<Employee>> GetAllMechanicsAsync()
+        {
+            return await dbSet
+                .Where(e => e.Position == "Kỹ thuật viên" && e.IsActive)
+                .ToListAsync();
+        }
     }
+
 }

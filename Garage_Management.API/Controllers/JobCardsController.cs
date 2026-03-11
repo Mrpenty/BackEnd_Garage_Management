@@ -27,22 +27,29 @@ namespace Garage_Management.API.Controllers
             );
 
             var result = await _service.CreateAsync(dto, userId, cancellationToken);
+            if (result == null)
+            {
+                return Conflict("Vehicle already has an active job card.");
+            }
 
             return Ok(result);
         }
 
 
         [HttpGet("active")]
-        public async Task<IActionResult> GetActive()
+        public async Task<IActionResult> GetActive(
+     string? search,
+     string? from,
+     string? to)
         {
-            return Ok(await _service.GetActiveAsync());
+            return Ok(await _service.GetActiveAsync(search, from, to));
         }
 
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var result = await _service.GetByIdAsync(id);
+            [HttpGet("{id}")]
+            public async Task<IActionResult> GetById(int id)
+            {
+                var result = await _service.GetByIdAsync(id);
             if (result == null) return NotFound();
             return Ok(result);
         }
@@ -122,7 +129,12 @@ namespace Garage_Management.API.Controllers
             return Ok("Work bay released successfully");
         }
 
-
+        [HttpGet("supervisor/{supervisorId}")]
+        public async Task<IActionResult> GetBySupervisorId(int supervisorId)
+        {
+            var jobCards = await _service.GetJobCardsBySupervisorIdAsync(supervisorId);
+            return Ok(jobCards);
+        }
 
     }
 

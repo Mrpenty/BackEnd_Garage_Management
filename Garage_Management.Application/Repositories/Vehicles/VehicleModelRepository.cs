@@ -43,10 +43,10 @@ namespace Garage_Management.Application.Repositories.Vehicles
             };
         }
 
-        public Task<bool> ExistsAsync(int brandId, string modelName, int? excludeId = null, CancellationToken ct = default)
+        public Task<bool> ExistsAsync(int brandId,int typeId, string modelName, int? excludeId = null, CancellationToken ct = default)
         {
             var name = modelName.Trim().ToLower();
-            var query = GetAll().AsNoTracking().Where(x => x.BrandId == brandId && x.ModelName.ToLower() == name);
+            var query = GetAll().AsNoTracking().Where(x => x.BrandId == brandId && x.ModelName.ToLower() == name && x.VehicleTypeId == typeId);
             if (excludeId.HasValue)
                 query = query.Where(x => x.ModelId != excludeId.Value);
 

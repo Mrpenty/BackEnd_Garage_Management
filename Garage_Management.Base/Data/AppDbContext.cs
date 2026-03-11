@@ -30,6 +30,7 @@ namespace Garage_Management.Base.Data
         // DbSet - Vehicles
         public DbSet<VehicleBrand> VehicleBrands => Set<VehicleBrand>();
         public DbSet<VehicleModel> VehicleModels => Set<VehicleModel>();
+        public DbSet<VehicleType> VehicleTypes => Set<VehicleType>();
         public DbSet<Vehicle> Vehicles => Set<Vehicle>();
       
         // DbSet - JobCards
@@ -55,12 +56,14 @@ namespace Garage_Management.Base.Data
         public DbSet<Notification> Notifications => Set<Notification>();
 
         // DbSet - Warranties
-        public DbSet<WarrantyPolicy> WarrantyPolicies => Set<WarrantyPolicy>();
+        public DbSet<SparePartWarrantyPolicy> SparePartWarrantyPolicies => Set<SparePartWarrantyPolicy>();
+        public DbSet<ServiceWarrantyPolicy> ServiceWarrantyPolicies => Set<ServiceWarrantyPolicy>();
         public DbSet<WarrantyService> WarrantyServices => Set<WarrantyService>();
         public DbSet<WarrantySparePart> WarrantySpareParts => Set<WarrantySparePart>();
 
         // DbSet - Services 
         public DbSet<Service> Services => Set<Service>();
+        public DbSet<ServiceVehicleType> ServiceVehicleTypes => Set<ServiceVehicleType>();
         public DbSet<ServiceTask> ServiceTasks => Set<ServiceTask>();
         public DbSet<WorkBay> WorkBay { get; set; }
 

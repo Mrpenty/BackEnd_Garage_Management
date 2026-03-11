@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Garage_Management.Base", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Garage_Management.Application", "Garage_Management.Application\Garage_Management.Application.csproj", "{D0797A3A-6425-4133-8CD2-C2AA7594575C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Garage_Management.UnitTest", "Garage_Management.UnitTest\Garage_Management.UnitTest.csproj", "{61B2D97E-A7C6-4939-B563-B1918478B8BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{D0797A3A-6425-4133-8CD2-C2AA7594575C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0797A3A-6425-4133-8CD2-C2AA7594575C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0797A3A-6425-4133-8CD2-C2AA7594575C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61B2D97E-A7C6-4939-B563-B1918478B8BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61B2D97E-A7C6-4939-B563-B1918478B8BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61B2D97E-A7C6-4939-B563-B1918478B8BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61B2D97E-A7C6-4939-B563-B1918478B8BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

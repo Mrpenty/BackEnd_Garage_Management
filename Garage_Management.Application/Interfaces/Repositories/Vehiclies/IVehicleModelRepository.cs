@@ -27,11 +27,12 @@ namespace Garage_Management.Application.Interfaces.Repositories.Vehiclies
         /// <summary>
         /// Kiểm tra model này đã tồn tại hay chưa
         /// </summary>   
+        /// <param name="typeId">Loại xe cần kiểm tra</param>
         /// <param name="brandId">Hãng xe cần kiểm tra</param>
         /// <param name="modelName">Tên model cần kiểm tra khi trùng</param>
         /// <param name="excludeId">Bỏ qua 1 modelId khi update</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
-        Task<bool> ExistsAsync(int brandId, string modelName, int? excludeId = null, CancellationToken ct = default);
+        Task<bool> ExistsAsync(int brandId, int typeId, string modelName, int? excludeId = null, CancellationToken ct = default);
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>

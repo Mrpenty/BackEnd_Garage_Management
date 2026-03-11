@@ -9,7 +9,7 @@ namespace Garage_Management.Application.DTOs.JobCard
 {
     public class UpdateJobCardStatusDto
     {
-        public ServiceStatus Status { get; set; }
+        public JobCardStatus Status { get; set; }
     }
 
 }

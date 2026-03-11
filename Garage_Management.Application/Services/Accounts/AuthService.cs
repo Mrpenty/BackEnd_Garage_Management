@@ -71,8 +71,7 @@ namespace Garage_Management.Application.Services.Accounts
 
         public async Task<ApiResponse<LoginResponse>> LoginCustomerAsync(CustomerLoginRequest dto, CancellationToken cancellationToken = default)
         {
-            var user = await _userManager.FindByEmailAsync(dto.PhoneNumber)
-                    ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == dto.PhoneNumber, cancellationToken);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == dto.PhoneNumber, cancellationToken);
 
             if (user == null)
             {
@@ -87,7 +86,7 @@ namespace Garage_Management.Application.Services.Accounts
             {
                 if (string.IsNullOrEmpty(dto.Otp))
                 {
-                    return new ApiResponse<LoginResponse>{Success = false,Message = "MSG01"};
+                    return new ApiResponse<LoginResponse>{Success = false,Message = "Vui lòng nhập OTP"};
                 }
 
                 var formatted = new FormatPhoneNumber().FormatPhoneNumberHepler(user.PhoneNumber);
@@ -102,7 +101,7 @@ namespace Garage_Management.Application.Services.Accounts
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
-                var token = _tokenGenerator.GenerateJwtToken(user);
+                var token = await _tokenGenerator.GenerateJwtTokenAsync(user);
                 var refreshToken = _tokenGenerator.GenerateRefreshToken();
 
                 user.RefreshToken = refreshToken;
@@ -131,13 +130,13 @@ namespace Garage_Management.Application.Services.Accounts
             // Login bằng password
             if (string.IsNullOrEmpty(dto.Password))
             {
-                return new ApiResponse<LoginResponse>{Success = false,Message = "MSG01"};
+                return new ApiResponse<LoginResponse>{Success = false,Message = "Vui lòng nhập mật khẩu"};
             }
             var signInResult = await _signInManager.PasswordSignInAsync(user,dto.Password,isPersistent: false,lockoutOnFailure: false);
 
             if (signInResult.Succeeded)
             {
-                var token = _tokenGenerator.GenerateJwtToken(user);
+                var token = await _tokenGenerator.GenerateJwtTokenAsync(user);
                 var refreshToken = _tokenGenerator.GenerateRefreshToken();
 
                 user.RefreshToken = refreshToken;
@@ -163,7 +162,7 @@ namespace Garage_Management.Application.Services.Accounts
                 }, "Đăng nhập thành công");
             }
 
-            return new ApiResponse<LoginResponse>{Success = false,Message = "MSG02"};
+            return new ApiResponse<LoginResponse>{Success = false,Message = "Thông tin đăng nhập không chính xác"};
         }
 
         public async Task<ApiResponse<LoginResponse>> LoginStaffAsync(StaffLoginRequest dto, CancellationToken cancellationToken = default)
@@ -195,7 +194,7 @@ namespace Garage_Management.Application.Services.Accounts
             {
                 return new ApiResponse<LoginResponse>{Success = true,Message = "Email hoặc mật khẩu không chính xác." };
             }
-            var accessToken = _tokenGenerator.GenerateJwtToken(user);
+            var accessToken = await _tokenGenerator.GenerateJwtTokenAsync(user);
             var refreshToken = _tokenGenerator.GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
@@ -282,8 +281,7 @@ namespace Garage_Management.Application.Services.Accounts
         {
             ArgumentNullException.ThrowIfNullOrEmpty(phoneOrEmail);
 
-            var user = await _userManager.FindByEmailAsync(phoneOrEmail)
-                    ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneOrEmail, cancellationToken);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneOrEmail, cancellationToken);
 
             if (user == null || string.IsNullOrEmpty(user.PhoneNumber))
             {
@@ -298,7 +296,7 @@ namespace Garage_Management.Application.Services.Accounts
             }
             catch (Exception ex)
             {
-                return new ApiResponse<User>{Success = false,Message = $"{"MSG04"}: {ex.Message}" };
+                return new ApiResponse<User>{Success = false,Message = $"{"Không thể gửi OTP. Xin hãy thử lại hoặc nhập mật khẩu "}: {ex.Message}" };
             }
         }
 

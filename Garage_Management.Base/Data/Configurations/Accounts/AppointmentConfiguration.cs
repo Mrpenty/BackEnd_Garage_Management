@@ -19,7 +19,7 @@ namespace Garage_Management.Base.Data.Configurations.Accounts
             builder.HasOne(a => a.Customer)
                 .WithMany(c => c.Appointments)
                 .HasForeignKey(a => a.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Quan hệ N-1: Lịch hẹn có thể gắn với một Vehicle
             builder.HasOne(a => a.Vehicle)
@@ -39,8 +39,21 @@ namespace Garage_Management.Base.Data.Configurations.Accounts
                 .HasForeignKey(a => a.UpdatedBy)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            builder.Property(a => a.CustomVehicleBrand)
+                .HasMaxLength(100);
+            builder.Property(a => a.CustomVehicleModel)
+                .HasMaxLength(100);
+            builder.Property(a => a.LicensePlate)
+                .HasMaxLength(11);
             builder.Property(a => a.Description)
                 .HasMaxLength(500);
+            builder.Property(a => a.FirstName)
+                .HasMaxLength(100);
+            builder.Property(a => a.LastName)
+                .HasMaxLength(100);
+            builder.Property(a => a.Phone)
+                .HasMaxLength(20);
+            builder.Property(a => a.VehicleModelId);
 
         }
     }

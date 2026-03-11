@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Base.Common.Base;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,7 @@ namespace Garage_Management.Base.Entities.Accounts
     /// <summary>
     /// Bảng Employee - Lưu thông tin chi tiết của nhân viên trong gara
     /// </summary>
-    public class 
-        Employee : AuditableEntity
+    public class Employee : AuditableEntity
     {
         public int EmployeeId { get; set; }
 
@@ -34,6 +34,8 @@ namespace Garage_Management.Base.Entities.Accounts
         // Chức vụ / Vị trí công việc
         public string? Position { get; set; } // Ví dụ: "Kỹ thuật viên", "Lễ tân", "Quản lý gara", "Kế toán"
 
+        //trạng thái làm việc của nhân viên 
+        public WorkingStatus Status { get; set; } = WorkingStatus.Available;
 
         // Trạng thái hoạt động
         public bool IsActive { get; set; } = true;

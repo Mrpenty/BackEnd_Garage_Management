@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
+using Garage_Management.Base.Common.Models.Appointments;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
@@ -18,15 +19,14 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Lấy danh sách lịch đặt được phân trang
+        /// Lấy danh sách lịch đặt có phân trang, lọc, tìm kiếm, sắp xếp
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<PagedResult<AppointmentResponse>>>> GetPaged(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
+            [FromQuery] AppointmentQuery query,
             CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(page, pageSize, ct);
+            var data = await _service.GetPagedAsync(query, ct);
             return Ok(ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(data, "OK"));
         }
         ///Author: KhanhDV
@@ -49,15 +49,19 @@ namespace Garage_Management.API.Controllers
         /// <summary>
         /// Lấy danh sách lịch đặt theo khách hàng được phân trang
         /// </summary>
-        [HttpGet("by-customer/{customerId:int}")]
+        [HttpGet("Customer/MyAppointment")]
         public async Task<ActionResult<ApiResponse<PagedResult<AppointmentResponse>>>> GetByCustomer(
-            int customerId,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
-            var data = await _service.GetByCustomerIdAsync(page, pageSize, customerId, ct);
-            return Ok(ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(data, "OK"));
+            var result = await _service.GetMyAppointmentsAsync(page, pageSize, ct);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
         ///Author: KhanhDV
@@ -86,6 +90,22 @@ namespace Garage_Management.API.Controllers
             CancellationToken ct = default)
         {
             var data = await _service.UpdateAsync(id, request, ct);
+            if (data == null)
+                return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Appointment not found"));
+
+            return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Updated"));
+        }
+
+        /// <summary>
+        /// Duyệt / đổi trạng thái lịch đặt
+        /// </summary>
+        [HttpPatch("{id:int}/status")]
+        public async Task<ActionResult<ApiResponse<AppointmentResponse>>> UpdateStatus(
+            int id,
+            [FromBody] AppointmentStatusUpdateRequest request,
+            CancellationToken ct = default)
+        {
+            var data = await _service.UpdateStatusAsync(id, request.Status, ct);
             if (data == null)
                 return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Appointment not found"));
 

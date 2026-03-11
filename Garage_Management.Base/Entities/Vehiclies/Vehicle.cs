@@ -1,4 +1,4 @@
-﻿using Garage_Management.Base.Common.Base;
+﻿    using Garage_Management.Base.Common.Base;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using System.ComponentModel.DataAnnotations;

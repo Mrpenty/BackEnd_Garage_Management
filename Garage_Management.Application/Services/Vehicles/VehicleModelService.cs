@@ -42,14 +42,16 @@ namespace Garage_Management.Application.Services.Vehicles
         public async Task<VehicleModelResponse> CreateAsync(VehicleModelCreateRequest request, CancellationToken ct = default)
         {
             var brand = await _brandRepo.GetByIdAsync(request.BrandId);
+
             if (brand == null)
                 throw new InvalidOperationException("BrandId không tồn tại");
 
-            if (await _repo.ExistsAsync(request.BrandId, request.ModelName, null, ct))
+            if (await _repo.ExistsAsync(request.BrandId,request.TypeId, request.ModelName, null, ct))
                 throw new InvalidOperationException("ModelName đã tồn tại trong brand này");
 
             var entity = new VehicleModel
             {
+                VehicleTypeId = request.TypeId,
                 BrandId = request.BrandId,
                 ModelName = request.ModelName.Trim(),
                 IsActive = request.isActive
@@ -69,12 +71,12 @@ namespace Garage_Management.Application.Services.Vehicles
             if (brand == null)
                 throw new InvalidOperationException("BrandId không tồn tại");
 
-            if (await _repo.ExistsAsync(request.BrandId, request.ModelName, id, ct))
+            if (await _repo.ExistsAsync(request.BrandId,request.TypeId, request.ModelName, id, ct))
                 throw new InvalidOperationException("ModelName đã tồn tại");
 
             if (await _repo.HasVehiclesAsync(id, ct))
                 throw new InvalidOperationException("Không thể cập nhật vì đang có xe liên kết");
-
+            entity.VehicleTypeId = request.TypeId;
             entity.BrandId = request.BrandId;
             entity.ModelName = request.ModelName.Trim();
             entity.IsActive = request.isActive;

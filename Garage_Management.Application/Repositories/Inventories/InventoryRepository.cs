@@ -28,6 +28,12 @@ namespace Garage_Management.Application.Repositories.Inventories
                 => await _context.Inventories
                     .FirstOrDefaultAsync(x => x.SparePartId == id);
 
+            public async Task<List<Inventory>> GetByBrandIdAsync(int brandId, CancellationToken ct = default)
+                => await _context.Inventories
+                    .Include(x => x.SparePartBrand)
+                    .Where(x => x.SparePartBrandId == brandId)
+                    .ToListAsync(ct);
+
             public async Task SaveAsync(CancellationToken cancellationToken)
                 => await _context.SaveChangesAsync(cancellationToken);
         }

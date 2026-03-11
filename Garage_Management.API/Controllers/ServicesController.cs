@@ -31,6 +31,20 @@ namespace Garage_Management.API.Controllers
         }
 
         ///Author: KhanhDV
+        ///Created Date: 6-3-2026
+        /// <summary>
+        /// Lấy danh sách dịch vụ theo loại xe (VehicleType)
+        /// </summary>
+        [HttpGet("by-vehicle-type/{vehicleTypeId:int}")]
+        public async Task<ActionResult<ApiResponse<List<ServiceResponse>>>> GetByVehicleType(
+            int vehicleTypeId,
+            CancellationToken ct = default)
+        {
+            var data = await _service.GetByVehicleTypeAsync(vehicleTypeId, ct);
+            return Ok(ApiResponse<List<ServiceResponse>>.SuccessResponse(data, "OK"));
+        }
+
+        ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
         /// Lấy chi tiết 1 dịch vụ

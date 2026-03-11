@@ -17,7 +17,7 @@ namespace Garage_Management.Application.DTOs.JobCard
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-        public ServiceStatus Status { get; set; }
+        public JobCardStatus Status { get; set; }
         public string? Note { get; set; }
 
         public int? SupervisorId { get; set; }
