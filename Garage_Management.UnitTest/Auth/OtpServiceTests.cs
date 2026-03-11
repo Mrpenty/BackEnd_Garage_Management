@@ -1,19 +1,20 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using Garage_Management.Application.DTOs.Auth;
+﻿using Garage_Management.Application.DTOs.Auth;
+using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Application.Services.Accounts;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Interface;
-using Garage_Management.Application.Interfaces.Repositories;
-using Microsoft.AspNetCore.Identity;
+using Garage_Management.UnitTest.Helper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Garage_Management.Application.Interfaces.Services;
-using Microsoft.Extensions.Options;
 
 namespace Garage_Management.UnitTest.Auth
 {
@@ -99,8 +100,10 @@ namespace Garage_Management.UnitTest.Auth
             var phone = "0987654321";
             var user = new User { Id = 1, PhoneNumber = phone };
 
-            _mockUserManager.Setup(x => x.FindByEmailAsync(phone)).ReturnsAsync((User)null);
-            _mockUserManager.Setup(x => x.Users).Returns(new List<User> { user }.AsQueryable());
+            //_mockUserManager.Setup(x => x.FindByEmailAsync(phone)).ReturnsAsync((User)null);
+            var users = new List<User> { user }.AsQueryable();
+            var mockDbSet = new TestAsyncEnumerable<User>(users);
+            _mockUserManager.Setup(x => x.Users).Returns(mockDbSet);
             _mockSmsService.Setup(x => x.SendOtpAsync(phone)).ReturnsAsync((true, "OTP sent"));
 
             var result = await _authService.SendOtpLoginAsync(phone);
@@ -114,9 +117,9 @@ namespace Garage_Management.UnitTest.Auth
         {
             var phone = "0987654321";
 
-            _mockUserManager.Setup(x => x.FindByEmailAsync(phone)).ReturnsAsync((User)null);
-            _mockUserManager.Setup(x => x.Users).Returns(new List<User>().AsQueryable());
-
+            var users = new List<User>().AsQueryable();
+            var asyncUsers = new TestAsyncEnumerable<User>(users);
+            _mockUserManager.Setup(x => x.Users).Returns(asyncUsers);
             var result = await _authService.SendOtpLoginAsync(phone);
 
             Assert.IsFalse(result.Success);

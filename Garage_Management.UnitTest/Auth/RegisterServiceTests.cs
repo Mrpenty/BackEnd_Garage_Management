@@ -111,7 +111,7 @@ namespace Garage_Management.UnitTest.Auth
             _mockUserManager.Setup(x => x.AddToRoleAsync(It.IsAny<User>(), "Customer"))
                 .ReturnsAsync(IdentityResult.Success);
             _mockCustomerRepository.Setup(x => x.AddAsync(It.IsAny<Customer>(), It.IsAny<System.Threading.CancellationToken>())).Returns(Task.CompletedTask);
-            _mockCustomerRepository.Setup(x => x.SaveAsync(It.IsAny<System.Threading.CancellationToken>())).Returns((Task<int>)Task.CompletedTask);
+            _mockCustomerRepository.Setup(x => x.SaveAsync(It.IsAny<System.Threading.CancellationToken>())).Returns(Task.FromResult(1));
 
             var result = await _authService.RegisterCustomerAsync(request);
 
