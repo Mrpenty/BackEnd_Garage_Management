@@ -9,7 +9,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Moq.EntityFrameworkCore" Version="8.0.1.7" />
     <PackageReference Include="MSTest" Version="3.6.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Garage_Management.API\Garage_Management.API.csproj" />
+    <ProjectReference Include="..\Garage_Management.Application\Garage_Management.Application.csproj" />
+    <ProjectReference Include="..\Garage_Management.Base\Garage_Management.Base.csproj" />
   </ItemGroup>
 
   <ItemGroup>
