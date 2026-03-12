@@ -28,6 +28,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>    
         Task<ApiResponse<PagedResult<AppointmentResponse>>> GetMyAppointmentsAsync(int page, int pageSize, CancellationToken ct = default);
 
+        //Cái này bỏ qua
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>
@@ -36,7 +37,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
         /// <param name="pageSize">Tổng số trang</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param> 
-        Task<PagedResult<AppointmentResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        //Task<PagedResult<AppointmentResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 26-2-2026
