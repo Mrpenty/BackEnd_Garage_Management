@@ -52,22 +52,28 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
 
-        public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto,Appointment app ,int currentUserId, CancellationToken cancellationToken)
+        public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto ,int currentUserId, CancellationToken cancellationToken)
         {
-            // ❗ CHECK 1: Appointment đã có JobCard chưa
+            //  CHECK 1: Appointment đã có JobCard chưa
             var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
 
             if (hasJobCard)
-                return null;
+                throw new Exception("Appointment already has a JobCard.");
 
-            // ❗ CHECK 2: Xe đã có JobCard active chưa
+            //  CHECK 2: Xe đã có JobCard active chưa
             var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
 
             if (hasActive)
-                return null;
+                throw new Exception("Vehicle already has an active JobCard.");
 
-            if (app.Status != AppointmentStatus.Pending)
-                return null;
+            var app = await _appointmentRepository.GetByIdAsync((int)dto.AppointmentId);
+
+            if (app == null)
+                throw new Exception("Appointment not found.");
+
+            // CHECK 4: status
+            if (app.Status != AppointmentStatus.Confirmed)
+                throw new Exception("Appointment must be confirmed.");
 
             var entity = new JobCard
             {

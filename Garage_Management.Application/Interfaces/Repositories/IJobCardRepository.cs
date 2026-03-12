@@ -6,10 +6,7 @@ namespace Garage_Management.Application.Interfaces.Repositories
 {
     public interface IJobCardRepository : IBaseRepository<JobCard>
     {
-        Task<List<JobCard>> GetActiveAsync(
-    string? search,
-    string? sortBy,
-    string? sortDirection);
+        Task<List<JobCard>> GetActiveAsync(string? search,string? sortBy, string? sortDirection);
         Task SaveChangesAsync();
         Task<bool> HasActiveJobCardAsync(int vehicleId);
         Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId);

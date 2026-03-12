@@ -18,7 +18,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <summary>
         /// Tạo phiếu sửa chữa
         /// </summary>
-        Task<JobCardDto> CreateAsync(CreateJobCardDto dto,Appointment app, int currentUserId, CancellationToken cancellationToken);
+        Task<JobCardDto> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Lấy chi tiết phiếu sửa chữa

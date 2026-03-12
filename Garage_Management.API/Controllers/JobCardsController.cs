@@ -21,19 +21,22 @@ namespace Garage_Management.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create(CreateJobCardDto dto, Appointment app,CancellationToken cancellationToken)
+        public async Task<IActionResult> Create( CreateJobCardDto dto, CancellationToken cancellationToken)
         {
-            var userId = int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
-            );
-
-            var result = await _service.CreateAsync(dto, app, userId, cancellationToken);
-            if (result == null)
+            try
             {
-                return Conflict("Vehicle already has an active job card.");
-            }
+                var userId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+                );
 
-            return Ok(result);
+                var result = await _service.CreateAsync(dto, userId, cancellationToken);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 
