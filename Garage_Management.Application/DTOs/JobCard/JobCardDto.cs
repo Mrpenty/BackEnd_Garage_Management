@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,5 +23,6 @@ namespace Garage_Management.Application.DTOs.JobCard
 
         public int? SupervisorId { get; set; }
         public int? CreatedByEmployeeId { get; set; }
+        public ICollection<JobCardService> Service { get; internal set; }
     }
 }

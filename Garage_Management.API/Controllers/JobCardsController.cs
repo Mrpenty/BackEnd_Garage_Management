@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Entities.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -20,13 +21,13 @@ namespace Garage_Management.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create(CreateJobCardDto dto,CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(CreateJobCardDto dto, Appointment app,CancellationToken cancellationToken)
         {
             var userId = int.Parse(
                 User.FindFirst(ClaimTypes.NameIdentifier)!.Value
             );
 
-            var result = await _service.CreateAsync(dto, userId, cancellationToken);
+            var result = await _service.CreateAsync(dto, app, userId, cancellationToken);
             if (result == null)
             {
                 return Conflict("Vehicle already has an active job card.");

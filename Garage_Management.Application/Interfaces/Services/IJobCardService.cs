@@ -2,6 +2,7 @@
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Data.Configurations.JobCards;
+using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <summary>
         /// Tạo phiếu sửa chữa
         /// </summary>
-        Task<JobCardDto> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken);
+        Task<JobCardDto> CreateAsync(CreateJobCardDto dto,Appointment app, int currentUserId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Lấy chi tiết phiếu sửa chữa

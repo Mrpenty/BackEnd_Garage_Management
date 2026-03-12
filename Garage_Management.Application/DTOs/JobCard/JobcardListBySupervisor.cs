@@ -29,11 +29,7 @@ namespace Garage_Management.Application.DTOs.JobCard
             public int SupervisorId { get; set; }
             public object? Supervisor { get; set; }
 
-            public List<object> Mechanics { get; set; } = new();
             public List<object> Services { get; set; } = new();
-            public List<object> SpareParts { get; set; } = new();
 
-            public DateTime CreatedAt { get; set; }
-            public int CreatedBy { get; set; }
         }
     }

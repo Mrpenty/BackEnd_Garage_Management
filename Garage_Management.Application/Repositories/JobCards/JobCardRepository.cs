@@ -137,77 +137,19 @@ namespace Garage_Management.Application.Repositories.JobCards
             throw new NotImplementedException(); // TODO: implement hoặc xoá
         }
 
-        public async Task<List<JobcardListBySupervisor>> GetBySupervisorIdAsync(int supervisorId)
+        public async Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId)
         {
-            var jobCards = await _context.JobCards
+            return await _context.JobCards
+                .Include(x => x.Appointment)
                 .Include(x => x.Customer)
                 .Include(x => x.Vehicle)
                 .Include(x => x.Supervisor)
-                .Include(x => x.Appointment)
                 .Include(x => x.Mechanics)
                 .Include(x => x.Services)
+                 .ThenInclude(s => s.Service)
                 .Include(x => x.SpareParts)
                 .Where(x => x.SupervisorId == supervisorId)
                 .ToListAsync();
-
-            return jobCards.Select(j => new JobcardListBySupervisor
-            {
-                JobCardId = j.JobCardId,
-
-                AppointmentId = j.AppointmentId,
-                Appointment = j.Appointment == null ? null : new
-                {
-                    j.Appointment.AppointmentDateTime
-                },
-
-                CustomerId = j.CustomerId,
-                Customer = j.Customer == null ? null : new
-                {
-                    j.Customer.CustomerId,
-                    j.Customer.FirstName,
-                    j.Customer.LastName,
-                },
-
-                VehicleId = j.VehicleId,
-                Vehicle = j.Vehicle == null ? null : new
-                {
-                    j.Vehicle.VehicleId,
-                    j.Vehicle.LicensePlate,
-                    j.Vehicle.Brand
-                },
-
-                StartDate = j.StartDate,
-                EndDate = j.EndDate,
-                Status = (int)j.Status,
-                Note = j.Note,
-
-                SupervisorId = (int)j.SupervisorId,
-                Supervisor = j.Supervisor == null ? null : new
-                {
-                    j.Supervisor.UserId,
-                    j.Supervisor.FirstName,
-                    j.Supervisor.LastName,
-                },
-
-                Mechanics = j.Mechanics.Select(m => new
-                {
-                    m.EmployeeId
-                }).Cast<object>().ToList(),
-
-                Services = j.Services.Select(s => new
-                {
-                    s.ServiceId,
-                    s.Service
-                }).Cast<object>().ToList(),
-
-                SpareParts = j.SpareParts.Select(sp => new
-                {
-                    sp.SparePartId
-                }).Cast<object>().ToList(),
-
-                CreatedAt = j.CreatedAt,
-                CreatedBy = (int)j.CreatedBy
-            }).ToList();
         }
         public async Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId)
         {

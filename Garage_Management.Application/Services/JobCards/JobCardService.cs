@@ -1,11 +1,13 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
-using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Repositories;
-using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Application.Repositories.JobCards;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,8 +15,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Twilio.TwiML.Voice;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
-using Garage_Management.Application.Interfaces.Repositories.Appointments;
 
 
 
@@ -50,10 +52,7 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
 
-        public async Task<JobCardDto?> CreateAsync(
- CreateJobCardDto dto,
- int currentUserId,
- CancellationToken cancellationToken)
+        public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto,Appointment app ,int currentUserId, CancellationToken cancellationToken)
         {
             // ❗ CHECK 1: Appointment đã có JobCard chưa
             var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
@@ -65,6 +64,9 @@ namespace Garage_Management.Application.Services.JobCards
             var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
 
             if (hasActive)
+                return null;
+
+            if (app.Status != AppointmentStatus.Pending)
                 return null;
 
             var entity = new JobCard
@@ -110,6 +112,7 @@ namespace Garage_Management.Application.Services.JobCards
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
+                Service = entity.Services,
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId
             };
@@ -133,6 +136,7 @@ namespace Garage_Management.Application.Services.JobCards
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
+                Service = entity.Services,
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
                 CreatedByEmployeeId = entity.CreatedBy
@@ -194,7 +198,7 @@ namespace Garage_Management.Application.Services.JobCards
 
                 VehicleId = x.VehicleId,
                 LicensePlate = x.Vehicle.LicensePlate,
-
+                Service = x.Services,
                 StartDate = x.StartDate,
                 Status = x.Status
             });
@@ -353,7 +357,52 @@ namespace Garage_Management.Application.Services.JobCards
 
         public async Task<List<JobcardListBySupervisor>> GetJobCardsBySupervisorIdAsync(int supervisorId)
         {
-            return await _repository.GetBySupervisorIdAsync(supervisorId);
+            var jobCards = await _repository.GetBySupervisorIdAsync(supervisorId);
+
+            return jobCards.Select(x => new JobcardListBySupervisor
+            {
+                JobCardId = x.JobCardId,
+                AppointmentId = x.AppointmentId,
+                Appointment = x.Appointment == null ? null : new
+                {
+                    x.Appointment.AppointmentDateTime
+                },
+                CustomerId = x.CustomerId,
+                Customer = x.Customer == null ? null : new
+                {
+                    x.Customer.FirstName,
+                    x.Customer.LastName,
+                },
+
+                VehicleId = x.VehicleId,
+                Vehicle = x.Vehicle == null ? null : new
+                {
+                  
+                    x.Vehicle.LicensePlate
+                },
+
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+
+                Status = (int)x.Status,
+                Note = x.Note,
+
+                SupervisorId = x.SupervisorId ?? 0,
+                Supervisor = x.Supervisor == null ? null : new
+                {
+                    x.Supervisor.FullName
+                },
+
+                Services = x.Services
+                    .Select(s => new
+                        {
+                         s.ServiceId,
+                         ServiceName = s.Service.ServiceName,
+        
+    })
+    .Cast<object>()
+    .ToList()
+            }).ToList();
         }
 
     }

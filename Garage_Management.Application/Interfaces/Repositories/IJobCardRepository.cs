@@ -12,8 +12,9 @@ namespace Garage_Management.Application.Interfaces.Repositories
     string? sortDirection);
         Task SaveChangesAsync();
         Task<bool> HasActiveJobCardAsync(int vehicleId);
-        Task<List<JobcardListBySupervisor>> GetBySupervisorIdAsync(int supervisorId);
+        Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId);
        
         Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId);
+     
     }
 }
