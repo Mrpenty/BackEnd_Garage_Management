@@ -42,15 +42,24 @@ namespace Garage_Management.API.Controllers
 
         [HttpGet("active")]
         public async Task<IActionResult> GetActive(
-     string? search,
-     string? from,
-     string? to)
+     [FromQuery] string? search,
+     [FromQuery] string? sortBy,
+     [FromQuery] string? sortDirection,
+     [FromQuery] int page = 1,
+     [FromQuery] int pageSize = 10)
         {
-            return Ok(await _service.GetActiveAsync(search, from, to));
+            var result = await _service.GetActiveAsync(
+                search,
+                sortBy,
+                sortDirection,
+                page,
+                pageSize);
+
+            return Ok(result);
         }
 
 
-            [HttpGet("{id}")]
+        [HttpGet("{id}")]
             public async Task<IActionResult> GetById(int id)
             {
                 var result = await _service.GetByIdAsync(id);

@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data.Configurations.JobCards;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
@@ -38,10 +39,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Phân công kỹ thuật viên
         /// </summary>
         Task<bool> AssignMechanicAsync(int id, AssignMechanicDto dto, CancellationToken cancellationToken);
-        Task<IEnumerable<JobCardListDto>> GetActiveAsync(
-    string? search,
-    string? sortBy,
-    string? sortDirection);
+        Task<PagedResult<JobCardListDto>> GetActiveAsync(string? search,string? sortBy,string? sortDirection,int page, int pageSize);
         Task<bool> AddServiceAsync(int jobCardId, AddServiceToJobCardDto dto,CancellationToken cancellationToken);
 
         /// <summary>

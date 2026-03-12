@@ -49,16 +49,19 @@ namespace Garage_Management.Application.Repositories.JobCards
         /// Lấy danh sách JobCard chưa hoàn thành.
         /// Dùng cho màn hình đang xử lý.
         /// </summary>
-        public async Task<List<JobCard>> GetActiveAsync(
-    string? search,
-    string? sortBy,
-    string? sortDirection)
+        public async Task<(List<JobCard>Items, int TotalCount)> GetActiveAsync(string? search, string? sortBy,string? sortDirection, int page,
+    int pageSize)
         {
-            var query = _context.JobCards
-                .Include(x => x.Customer)
-                .Include(x => x.Vehicle)
-                .Where(j => j.Status != JobCardStatus.Completed)
-                .AsQueryable();
+           var query = _context.JobCards
+    .Include(x => x.Customer)
+    .Include(x => x.Vehicle)
+        .ThenInclude(v => v.Brand)
+    .Include(x => x.Vehicle)
+        .ThenInclude(v => v.Model)
+    .Include(x => x.Services)
+        .ThenInclude(s => s.Service)
+    .Where(j => j.Status != JobCardStatus.Completed)
+    .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -85,7 +88,14 @@ namespace Garage_Management.Application.Repositories.JobCards
                 _ => query.OrderByDescending(x => x.StartDate)
             };
 
-            return await query.ToListAsync();
+            var total = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
 
         /// <summary>

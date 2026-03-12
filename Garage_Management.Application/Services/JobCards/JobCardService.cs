@@ -1,4 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.JobCard;
+using Garage_Management.Application.DTOs.JobCardServices;
+using Garage_Management.Application.DTOs.Services;
+using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
@@ -7,6 +10,7 @@ using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Application.Repositories.JobCards;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using Microsoft.EntityFrameworkCore;
@@ -189,26 +193,51 @@ namespace Garage_Management.Application.Services.JobCards
 
             return true;
         }
-        public async Task<IEnumerable<JobCardListDto>> GetActiveAsync(
-        string? search,
-        string? sortBy,
-        string? sortDirection)
+        public async Task<PagedResult<JobCardListDto>> GetActiveAsync(
+     string? search,
+     string? sortBy,
+     string? sortDirection,
+     int page,
+     int pageSize)
         {
-            var data = await _repository.GetActiveAsync(search, sortBy, sortDirection);
+            var (jobCards, totalCount) = await _repository.GetActiveAsync(
+                search, sortBy, sortDirection, page, pageSize);
 
-            return data.Select(x => new JobCardListDto
+            var result = jobCards.Select(x => new JobCardListDto
             {
                 JobCardId = x.JobCardId,
+
                 CustomerId = x.CustomerId,
                 CustomerName = x.Customer.FirstName + " " + x.Customer.LastName,
 
-                VehicleId = x.VehicleId,
-                LicensePlate = x.Vehicle.LicensePlate,
-                Service = x.Services,
+                Vehicle = new VehicleListDto
+                {
+                    VehicleId = x.VehicleId,
+                    BrandName = x.Vehicle.Brand.BrandName,
+                    ModelName = x.Vehicle.Model.ModelName,
+                    LicensePlate = x.Vehicle.LicensePlate
+                },
+
+                Status = x.Status,
                 StartDate = x.StartDate,
-                Status = x.Status
-            });
+
+                Services = x.Services.Select(s => new ServiceResponse
+                {
+                    ServiceId = s.ServiceId,
+                    ServiceName = s.Service.ServiceName
+                }).ToList()
+
+            }).ToList();
+
+            return new PagedResult<JobCardListDto>
+            {
+                PageData = result,
+                Page = page,
+                PageSize = pageSize,
+                Total = totalCount
+            };
         }
+        
         public async Task<bool> UpdateAsync(
             int id,
             UpdateJobCardDto dto,
