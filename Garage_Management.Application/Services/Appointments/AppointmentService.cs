@@ -424,6 +424,12 @@ namespace Garage_Management.Application.Services.Appointments
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
+            if (entity.Status == AppointmentStatus.Cancelled || entity.Status == AppointmentStatus.Completed)
+                throw new InvalidOperationException("Lịch hẹn đã kết thúc, không thể chuyển trạng thái");
+
+            if (!IsValidStatusTransition(entity.Status, status))
+                throw new InvalidOperationException($"Không thể chuyển trạng thái từ {entity.Status} sang {status}");
+
             entity.Status = status;
             entity.UpdatedAt = DateTime.UtcNow;
 
@@ -432,6 +438,37 @@ namespace Garage_Management.Application.Services.Appointments
 
             var detail = await _repo.GetByIdWithDetailsAsync(id, ct);
             return detail == null ? Map(entity) : Map(detail);
+        }
+
+        private static bool IsValidStatusTransition(AppointmentStatus current, AppointmentStatus next)
+        {
+            if (current == next) return true;
+
+            return current switch
+            {
+                AppointmentStatus.Pending =>
+                    next == AppointmentStatus.Confirmed ||
+                    next == AppointmentStatus.Cancelled,
+
+                AppointmentStatus.Confirmed =>
+                    next == AppointmentStatus.InProgress ||
+                    next == AppointmentStatus.Cancelled ||
+                    next == AppointmentStatus.NoShow,
+
+                AppointmentStatus.InProgress =>
+                    next == AppointmentStatus.Completed ||
+                    next == AppointmentStatus.ConvertedToJobCard,
+
+                AppointmentStatus.ConvertedToJobCard =>
+                    next == AppointmentStatus.Completed,
+
+                AppointmentStatus.NoShow =>
+                    next == AppointmentStatus.Pending,
+
+                AppointmentStatus.Cancelled => false,
+                AppointmentStatus.Completed => false,
+                _ => false
+            };
         }
 
         private static AppointmentResponse Map(Appointment entity)
