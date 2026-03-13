@@ -76,24 +76,6 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Cập nhật 1 dịch vụ
-        /// </summary>
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<ApiResponse<ServiceResponse>>> Update(
-            int id,
-            [FromBody] ServiceUpdateRequest request,
-            CancellationToken ct = default)
-        {
-            var data = await _service.UpdateAsync(id, request, ct);
-            if (data == null)
-                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
-
-            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Updated"));
-        }
-
-        ///Author: KhanhDV
-        ///Created Date: 13-2-2026
-        /// <summary>
         /// Xóa 1 dịch vụ
         /// </summary>
         [HttpDelete("{id:int}")]
@@ -104,6 +86,19 @@ namespace Garage_Management.API.Controllers
                 return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));
 
             return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
+        }
+
+        /// <summary>
+        /// Deactivate 1 service.
+        /// </summary>
+        [HttpPatch("{id:int}/deactivate")]
+        public async Task<ActionResult<ApiResponse<ServiceResponse>>> Deactivate(int id, CancellationToken ct = default)
+        {
+            var data = await _service.DeactivateAsync(id, ct);
+            if (data == null)
+                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
+
+            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Deactivated"));
         }
     }
 }

@@ -54,6 +54,21 @@ namespace Garage_Management.Application.Repositories.Services
                 .AsNoTracking()
                 .OrderBy(x => x.ServiceName)
                 .ToListAsync(ct);
+
+        public async Task<bool> HasDependenciesAsync(int serviceId, CancellationToken ct = default)
+        {
+            return await _context.AppointmentServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct)
+                || await _context.JobCardServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct)
+                || await _context.RepairEstimateServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct)
+                || await _context.WarrantyServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct);
+        }
+
+        public Task<bool> ExistsByNameAsync(string serviceName, CancellationToken ct = default)
+        {
+            var name = serviceName.Trim().ToLower();
+            return _context.Services.AsNoTracking().AnyAsync(x => x.ServiceName.ToLower() == name, ct);
+        }
+
         public async Task SaveAsync(CancellationToken cancellationToken)
             => await _context.SaveChangesAsync(cancellationToken);
     }

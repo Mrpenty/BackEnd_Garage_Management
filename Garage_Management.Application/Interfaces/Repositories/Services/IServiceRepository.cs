@@ -22,5 +22,15 @@ namespace Garage_Management.Application.Interfaces.Repositories.Services
         /// Lấy danh sách dịch vụ theo loại xe (VehicleType)
         /// </summary>
         Task<List<Service>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Kiểm tra service đã phát sinh dữ liệu liên quan ở các bảng con hay chưa.
+        /// </summary>
+        Task<bool> HasDependenciesAsync(int serviceId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Kiểm tra tên dịch vụ đã tồn tại hay chưa.
+        /// </summary>
+        Task<bool> ExistsByNameAsync(string serviceName, CancellationToken ct = default);
     }
 }
