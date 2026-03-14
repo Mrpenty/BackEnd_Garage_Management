@@ -103,6 +103,7 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             return new VehicleModelResponse
             {
+                TypeId = entity.VehicleTypeId ?? 0,
                 ModelId = entity.ModelId,
                 BrandId = entity.BrandId,
                 ModelName = entity.ModelName,
