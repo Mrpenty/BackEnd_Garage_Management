@@ -41,6 +41,13 @@ namespace Garage_Management.Application.Services.Vehicles
 
         public async Task<VehicleModelResponse> CreateAsync(VehicleModelCreateRequest request, CancellationToken ct = default)
         {
+            if (request.TypeId <= 0)
+                throw new InvalidOperationException("TypeId không hợp lệ");
+            if (request.BrandId <= 0)
+                throw new InvalidOperationException("BrandId không hợp lệ");
+            if (string.IsNullOrWhiteSpace(request.ModelName))
+                throw new InvalidOperationException("ModelName không hợp lệ");
+
             var brand = await _brandRepo.GetByIdAsync(request.BrandId);
 
             if (brand == null)
@@ -66,6 +73,13 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
+
+            if (request.TypeId <= 0)
+                throw new InvalidOperationException("TypeId không hợp lệ");
+            if (request.BrandId <= 0)
+                throw new InvalidOperationException("BrandId không hợp lệ");
+            if (string.IsNullOrWhiteSpace(request.ModelName))
+                throw new InvalidOperationException("ModelName không hợp lệ");
 
             var brand = await _brandRepo.GetByIdAsync(request.BrandId);
             if (brand == null)
