@@ -49,7 +49,7 @@ namespace Garage_Management.Application.Services.Vehicles
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null || !httpContext.User.Identity?.IsAuthenticated == true)
             {
-                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("Vui lòng đăng nhập để xem lịch hẹn");
+                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("Vui lòng đăng nhập để xem danh sách xe máy");
             }
 
             // Lấy UserId từ claims (NameIdentifier thường là ID của User)
@@ -63,7 +63,7 @@ namespace Garage_Management.Application.Services.Vehicles
 
             if (!userRoles.Contains("Customer"))
             {
-                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("khách hàng chỉ có thể xem lịch hẹn cá nhân");
+                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("khách hàng chỉ có thể xem danh sách xe máy cá nhân");
             }
             var customer = await _customerRepo.GetAll().FirstAsync(c => c.UserId == currentUserId, ct);
 
