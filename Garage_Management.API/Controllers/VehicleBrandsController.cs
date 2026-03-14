@@ -78,19 +78,21 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Updated"));
         }
 
-        ///Author: KhanhDV
-        ///Created Date: 13-2-2026
         /// <summary>
-        /// Deactive 1 brand xe máy
+        /// Cập nhật trạng thái isActive của brand xe máy.
         /// </summary>
-        [HttpPatch("{id:int}")]
-        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
+        [HttpPatch("{id:int}/status")]
+        public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> UpdateStatus(
+            int id,
+            [FromBody] VehicleBrandStatusUpdateRequest request,
+            CancellationToken ct = default)
         {
-            var ok = await _service.DeActiveAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("VehicleBrand not found"));
+            var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
+            if (data == null)
+                return NotFound(ApiResponse<VehicleBrandResponse>.ErrorResponse("VehicleBrand not found"));
 
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deactivated"));
+            return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Updated status"));
         }
+
     }
 }
