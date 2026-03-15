@@ -5,6 +5,7 @@ using Garage_Management.Base.Entities.Services;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace Garage_Management.Base.Entities.JobCards
 {
     /// <summary>
