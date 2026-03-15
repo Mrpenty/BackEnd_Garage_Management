@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.DTOs.JobCard;
+﻿using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Entities.Accounts;

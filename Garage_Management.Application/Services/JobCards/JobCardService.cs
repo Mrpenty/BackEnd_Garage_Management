@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.DTOs.JobCard;
+﻿using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.DTOs.Vehicles;
@@ -169,9 +169,7 @@ namespace Garage_Management.Application.Services.JobCards
         }
         public async Task<bool> AssignMechanicAsync(int jobCardId, AssignMechanicDto dto, CancellationToken cancellationToken)
         {
-            var jobCard = await _repository.GetAll()
-                .Include(x => x.Mechanics)
-                .FirstOrDefaultAsync(x => x.JobCardId == jobCardId);
+            var jobCard = await _repository.GetWithMechanicsAsync(jobCardId);
 
             if (jobCard == null)
                 return false;
@@ -185,9 +183,11 @@ namespace Garage_Management.Application.Services.JobCards
                 EmployeeId = dto.MechanicId,
                 AssignedAt = DateTime.UtcNow,
                 Note = dto.Note,
-                Status = (MechanicAssignmentStatus)1
+                Status = MechanicAssignmentStatus.Assigned
             });
+
             jobCard.Status = JobCardStatus.WaitingMechanic;
+
             _repository.Update(jobCard);
             await _repository.SaveAsync(cancellationToken);
 
@@ -317,9 +317,7 @@ namespace Garage_Management.Application.Services.JobCards
             if (jobCard == null) return false;
 
             // 2️⃣ Lấy Inventory theo SparePartId
-            var inventory = await _inventoryRepository
-                .Query()
-                .FirstOrDefaultAsync(x => x.SparePartId == dto.SparePartId, cancellationToken);
+            var inventory = await _inventoryRepository.GetByIdAsync(dto.SparePartId);
 
             if (inventory == null) return false;
 

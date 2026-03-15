@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.DTOs.JobCard;
+﻿using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 
 namespace Garage_Management.Application.Interfaces.Services
-{
+{   
     public interface IJobCardService
     {
         /// <summary>

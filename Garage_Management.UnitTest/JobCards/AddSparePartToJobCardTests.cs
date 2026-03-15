@@ -1,4 +1,5 @@
-using Garage_Management.Application.DTOs.JobCard;
+using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Repositories.Appointments;
 using Garage_Management.Application.Repositories.Inventories;
 using Garage_Management.Application.Repositories.JobCards;
@@ -9,93 +10,137 @@ using Garage_Management.Base.Entities.Inventories;
 using Garage_Management.Base.Entities.JobCards;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-
+using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
+using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
+using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 namespace Garage_Management.UnitTest.JobCard
 {
     [TestClass]
     public class AddSparePartToJobCardTests
     {
-        private JobCardService BuildService(AppDbContext ctx)
+        private Mock<IJobCardRepository> _jobCardRepo;
+        private Mock<IInventoryRepository> _inventoryRepo;
+        private Mock<IJobCardSparePartRepository> _jobCardSparePartRepo;
+        private JobCardServiceApp _service;
+
+        [TestInitialize]
+        public void Setup()
         {
-            return new JobCardService(
-                new JobCardRepository(ctx),
-                new ServiceRepository(ctx),
-                new InventoryRepository(ctx),
-                new JobCardServiceRepository(ctx),
-                new JobCardSparePartRepository(ctx),
-                new WorkBayRepository(ctx),
-                new AppointmentRepository(ctx)
+            _jobCardRepo = new Mock<IJobCardRepository>();
+            _inventoryRepo = new Mock<IInventoryRepository>();
+            _jobCardSparePartRepo = new Mock<IJobCardSparePartRepository>();
+
+            _service = new JobCardServiceApp(
+                _jobCardRepo.Object,
+                null,
+                _inventoryRepo.Object,
+                null,
+                _jobCardSparePartRepo.Object,
+                null,
+                null
             );
         }
 
         [TestMethod]
         public async Task AddSparePartAsync_ReturnFalse_WhenJobCardNotFound()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            var service = BuildService(context);
+            _jobCardRepo
+                .Setup(x => x.GetByIdAsync(999))
+                .ReturnsAsync((JobCardEntity)null);
+
             var dto = new AddSparePartToJobCardDto { SparePartId = 1, Quantity = 1 };
-            var result = await service.AddSparePartAsync(999, dto, CancellationToken.None);
+
+            var result = await _service.AddSparePartAsync(999, dto, CancellationToken.None);
+
             Assert.IsFalse(result);
         }
 
         [TestMethod]
         public async Task AddSparePartAsync_ReturnFalse_WhenInventoryNotFound()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.JobCards.Add(new JobCard { JobCardId = 1, CustomerId = 1, VehicleId = 1, StartDate = DateTime.UtcNow });
-            await context.SaveChangesAsync();
+            _jobCardRepo
+                .Setup(x => x.GetByIdAsync(1))
+                .ReturnsAsync(new JobCardEntity { JobCardId = 1 });
 
-            var service = BuildService(context);
+            _inventoryRepo
+                .Setup(x => x.GetByIdAsync(999))
+                .ReturnsAsync((Inventory)null);
+
             var dto = new AddSparePartToJobCardDto { SparePartId = 999, Quantity = 1 };
-            var result = await service.AddSparePartAsync(1, dto, CancellationToken.None);
+
+            var result = await _service.AddSparePartAsync(1, dto, CancellationToken.None);
+
             Assert.IsFalse(result);
         }
 
         [TestMethod]
         public async Task AddSparePartAsync_ReturnFalse_WhenQuantityNonPositive()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.JobCards.Add(new JobCard { JobCardId = 1, CustomerId = 1, VehicleId = 1, StartDate = DateTime.UtcNow });
-            context.Set<Inventory>().Add(new Inventory { SparePartId = 5, SellingPrice = 10m });
-            await context.SaveChangesAsync();
+            _jobCardRepo
+                .Setup(x => x.GetByIdAsync(1))
+                .ReturnsAsync(new JobCardEntity { JobCardId = 1 });
 
-            var service = BuildService(context);
+            _inventoryRepo
+                .Setup(x => x.GetByIdAsync(5))
+                .ReturnsAsync(new Inventory { SparePartId = 5, SellingPrice = 10m });
+
             var dto = new AddSparePartToJobCardDto { SparePartId = 5, Quantity = 0 };
-            var result = await service.AddSparePartAsync(1, dto, CancellationToken.None);
+
+            var result = await _service.AddSparePartAsync(1, dto, CancellationToken.None);
+
             Assert.IsFalse(result);
         }
 
         [TestMethod]
         public async Task AddSparePartAsync_ReturnTrue_WhenValid()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.JobCards.Add(new JobCard { JobCardId = 7, CustomerId = 1, VehicleId = 1, StartDate = DateTime.UtcNow });
-            context.Set<Inventory>().Add(new Inventory { SparePartId = 7, SellingPrice = 20m });
-            await context.SaveChangesAsync();
+            var jobCard = new JobCardEntity { JobCardId = 7 };
 
-            var service = BuildService(context);
-            var dto = new AddSparePartToJobCardDto { SparePartId = 7, Quantity = 2, IsUnderWarranty = true, Note = "ok" };
-            var result = await service.AddSparePartAsync(7, dto, CancellationToken.None);
+            var inventory = new Inventory
+            {
+                SparePartId = 7,
+                SellingPrice = 20m
+            };
+
+            _jobCardRepo
+                .Setup(x => x.GetByIdAsync(7))
+                .ReturnsAsync(jobCard);
+
+            _inventoryRepo
+                .Setup(x => x.GetByIdAsync(7))
+                .ReturnsAsync(inventory);
+
+            _jobCardSparePartRepo
+                .Setup(x => x.AddAsync(It.IsAny<JobCardSparePart>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            _jobCardSparePartRepo
+                .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var dto = new AddSparePartToJobCardDto
+            {
+                SparePartId = 7,
+                Quantity = 2,
+                IsUnderWarranty = true,
+                Note = "ok"
+            };
+
+            var result = await _service.AddSparePartAsync(7, dto, CancellationToken.None);
+
             Assert.IsTrue(result);
 
-            var created = context.Set<JobCardSparePart>().FirstOrDefault(j => j.JobCardId == 7 && j.SparePartId == 7);
-            Assert.IsNotNull(created);
-            Assert.AreEqual(40m, created.TotalAmount);
+            _jobCardSparePartRepo.Verify(
+                x => x.AddAsync(It.Is<JobCardSparePart>(j =>
+                    j.JobCardId == 7 &&
+                    j.SparePartId == 7 &&
+                    j.TotalAmount == 40m),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
     }
 }

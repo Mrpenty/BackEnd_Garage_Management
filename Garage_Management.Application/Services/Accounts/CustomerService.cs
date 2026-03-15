@@ -162,13 +162,18 @@ namespace Garage_Management.Application.Services.Accounts
                 await _userManager.AddToRoleAsync(newUser, "Customer");
             }
 
+            if (newUser == null)
+            {
+                return ApiResponse<CustomerDto>.ErrorResponse("Không thể tạo tài khoản người dùng cho khách hàng.");
+            }
+
             // 4. Tạo Customer
             var customer = new Customer
             {
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Address = request.Address,
-                UserId = newUser?.Id,
+                UserId = newUser.Id,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = receptionistUserId
             };
@@ -180,8 +185,8 @@ namespace Garage_Management.Application.Services.Accounts
             {
                 CustomerId = customer.CustomerId,
                 FullName = $"{customer.FirstName} {customer.LastName}".Trim(),
-                PhoneNumber = customer.User.PhoneNumber,
-                Email = customer.User.Email,
+                PhoneNumber = request.PhoneNumber,
+                Email = newUser?.Email,
                 Address = customer.Address,
                 UserId = customer.UserId,
                 CreatedAt = customer.CreatedAt,
@@ -190,7 +195,7 @@ namespace Garage_Management.Application.Services.Accounts
                 //    .Select(v => new VehicleDto
                 //    {
                 //        VehicleId = v.VehicleId,
-                //        LicensePlate = v.LicensePlate,
+                //        LicensePlate = v.LicensePlate,    
                 //        Brand = v.Brand.BrandName,
                 //        Model = v.Model.ModelName,
                 //        Year = v.Year,

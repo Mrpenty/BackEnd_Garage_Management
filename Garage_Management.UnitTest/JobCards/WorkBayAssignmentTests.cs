@@ -1,98 +1,140 @@
-using Garage_Management.Application.DTOs.JobCard;
-using Garage_Management.Application.Repositories.Appointments;
-using Garage_Management.Application.Repositories.Inventories;
-using Garage_Management.Application.Repositories.JobCards;
-using Garage_Management.Application.Repositories.Services;
+using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Repositories.Appointments;
+using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Services.JobCards;
 using Garage_Management.Base.Common.Enums;
-using Garage_Management.Base.Data;
-using Garage_Management.Base.Entities.JobCards;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using Moq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Garage_Management.UnitTest.JobCard
+using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
+using WorkBayEntity = Garage_Management.Base.Entities.JobCards.WorkBay;
+
+namespace Garage_Management.UnitTest.JobCards
 {
     [TestClass]
     public class WorkBayAssignmentTests
     {
-        private JobCardService BuildService(AppDbContext ctx)
+        private Mock<IJobCardRepository> _jobCardRepo;
+        private Mock<IServiceRepository> _serviceRepo;
+        private Mock<IInventoryRepository> _inventoryRepo;
+        private Mock<IJobCardServiceRepository> _jobCardServiceRepo;
+        private Mock<IJobCardSparePartRepository> _jobCardSparePartRepo;
+        private Mock<IWorkBayRepository> _workBayRepo;
+        private Mock<IAppointmentRepository> _appointmentRepo;
+
+        private JobCardService _service;
+
+        [TestInitialize]
+        public void Setup()
         {
-            return new JobCardService(
-                new JobCardRepository(ctx),
-                new ServiceRepository(ctx),
-                new InventoryRepository(ctx),
-                new JobCardServiceRepository(ctx),
-                new JobCardSparePartRepository(ctx),
-                new WorkBayRepository(ctx),
-                new AppointmentRepository(ctx)
+            _jobCardRepo = new Mock<IJobCardRepository>();
+            _serviceRepo = new Mock<IServiceRepository>();
+            _inventoryRepo = new Mock<IInventoryRepository>();
+            _jobCardServiceRepo = new Mock<IJobCardServiceRepository>();
+            _jobCardSparePartRepo = new Mock<IJobCardSparePartRepository>();
+            _workBayRepo = new Mock<IWorkBayRepository>();
+            _appointmentRepo = new Mock<IAppointmentRepository>();
+
+            _service = new JobCardService(
+                _jobCardRepo.Object,
+                _serviceRepo.Object,
+                _inventoryRepo.Object,
+                _jobCardServiceRepo.Object,
+                _jobCardSparePartRepo.Object,
+                _workBayRepo.Object,
+                _appointmentRepo.Object
             );
         }
 
         [TestMethod]
         public async Task AssignWorkBayAsync_ReturnFalse_WhenJobCardNotFound()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.Set<WorkBay>().Add(new WorkBay { Id = 1, Name = "Bay1", Status = WorkBayStatus.Available });
-            await context.SaveChangesAsync();
+            _jobCardRepo.Setup(x => x.GetByIdAsync(999))
+                        .ReturnsAsync((JobCardEntity)null);
 
-            var service = BuildService(context);
-            var result = await service.AssignWorkBayAsync(new AssignWorkBayRequestDto { JobCardId = 999, WorkBayId = 1 }, CancellationToken.None);
+            var result = await _service.AssignWorkBayAsync(
+                new AssignWorkBayRequestDto { JobCardId = 999, WorkBayId = 1 },
+                CancellationToken.None);
+
             Assert.IsFalse(result);
         }
 
         [TestMethod]
         public async Task AssignWorkBayAsync_ReturnFalse_WhenWorkBayNotFound()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.JobCards.Add(new JobCard { JobCardId = 2, CustomerId = 1, VehicleId = 1, StartDate = DateTime.UtcNow });
-            await context.SaveChangesAsync();
+            var jobCard = new JobCardEntity { JobCardId = 2 };
 
-            var service = BuildService(context);
-            var result = await service.AssignWorkBayAsync(new AssignWorkBayRequestDto { JobCardId = 2, WorkBayId = 99 }, CancellationToken.None);
+            _jobCardRepo.Setup(x => x.GetByIdAsync(2))
+                        .ReturnsAsync(jobCard);
+
+            _workBayRepo.Setup(x => x.GetByIdAsync(99))
+                        .ReturnsAsync((WorkBayEntity)null);
+
+            var result = await _service.AssignWorkBayAsync(
+                new AssignWorkBayRequestDto { JobCardId = 2, WorkBayId = 99 },
+                CancellationToken.None);
+
             Assert.IsFalse(result);
         }
 
         [TestMethod]
         public async Task AssignWorkBayAsync_ReturnFalse_WhenWorkBayOccupied()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.JobCards.Add(new JobCard { JobCardId = 3, CustomerId = 1, VehicleId = 1, StartDate = DateTime.UtcNow });
-            context.Set<WorkBay>().Add(new WorkBay { Id = 5, Name = "Bay5", Status = WorkBayStatus.Occupied, JobcardId = 123 });
-            await context.SaveChangesAsync();
+            var jobCard = new JobCardEntity { JobCardId = 3 };
 
-            var service = BuildService(context);
-            var result = await service.AssignWorkBayAsync(new AssignWorkBayRequestDto { JobCardId = 3, WorkBayId = 5 }, CancellationToken.None);
+            var bay = new WorkBayEntity
+            {
+                Id = 5,
+                Status = WorkBayStatus.Occupied,
+                JobcardId = 123
+            };
+
+            _jobCardRepo.Setup(x => x.GetByIdAsync(3))
+                        .ReturnsAsync(jobCard);
+
+            _workBayRepo.Setup(x => x.GetByIdAsync(5))
+                        .ReturnsAsync(bay);
+
+            var result = await _service.AssignWorkBayAsync(
+                new AssignWorkBayRequestDto { JobCardId = 3, WorkBayId = 5 },
+                CancellationToken.None);
+
             Assert.IsFalse(result);
         }
 
         [TestMethod]
         public async Task AssignWorkBayAsync_ReturnTrue_WhenValid()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.JobCards.Add(new JobCard { JobCardId = 4, CustomerId = 1, VehicleId = 1, StartDate = DateTime.UtcNow });
-            context.Set<WorkBay>().Add(new WorkBay { Id = 6, Name = "Bay6", Status = WorkBayStatus.Available });
-            await context.SaveChangesAsync();
+            var jobCard = new JobCardEntity { JobCardId = 4 };
 
-            var service = BuildService(context);
-            var result = await service.AssignWorkBayAsync(new AssignWorkBayRequestDto { JobCardId = 4, WorkBayId = 6 }, CancellationToken.None);
+            var bay = new WorkBayEntity
+            {
+                Id = 6,
+                Status = WorkBayStatus.Available
+            };
+
+            _jobCardRepo.Setup(x => x.GetByIdAsync(4))
+                        .ReturnsAsync(jobCard);
+
+            _workBayRepo.Setup(x => x.GetByIdAsync(6))
+                        .ReturnsAsync(bay);
+
+            
+
+            _workBayRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                        .Returns(Task.FromResult(1));
+
+            var result = await _service.AssignWorkBayAsync(
+                new AssignWorkBayRequestDto { JobCardId = 4, WorkBayId = 6 },
+                CancellationToken.None);
+
             Assert.IsTrue(result);
-
-            var bay = context.Set<WorkBay>().Find(6);
             Assert.AreEqual(WorkBayStatus.Occupied, bay.Status);
             Assert.AreEqual(4, bay.JobcardId);
         }
@@ -100,30 +142,38 @@ namespace Garage_Management.UnitTest.JobCard
         [TestMethod]
         public async Task ReleaseWorkBayAsync_ReturnFalse_WhenWorkBayNotFound()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            var service = BuildService(context);
-            var result = await service.ReleaseWorkBayAsync(new ReleaseWorkBayDto { WorkBayId = 999 }, CancellationToken.None);
+            _workBayRepo.Setup(x => x.GetByIdAsync(999))
+                        .ReturnsAsync((WorkBayEntity)null);
+
+            var result = await _service.ReleaseWorkBayAsync(
+                new ReleaseWorkBayDto { WorkBayId = 999 },
+                CancellationToken.None);
+
             Assert.IsFalse(result);
         }
 
         [TestMethod]
         public async Task ReleaseWorkBayAsync_ReturnTrue_WhenValid()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            using var context = new AppDbContext(options);
-            context.Set<WorkBay>().Add(new WorkBay { Id = 7, Name = "Bay7", Status = WorkBayStatus.Occupied, JobcardId = 55 });
-            await context.SaveChangesAsync();
+            var bay = new WorkBayEntity
+            {
+                Id = 7,
+                Status = WorkBayStatus.Occupied,
+                JobcardId = 55
+            };
 
-            var service = BuildService(context);
-            var result = await service.ReleaseWorkBayAsync(new ReleaseWorkBayDto { WorkBayId = 7 }, CancellationToken.None);
+            _workBayRepo.Setup(x => x.GetByIdAsync(7))
+                        .ReturnsAsync(bay);
+
+            _workBayRepo
+    .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+    .Returns(Task.CompletedTask);
+
+            var result = await _service.ReleaseWorkBayAsync(
+                new ReleaseWorkBayDto { WorkBayId = 7 },
+                CancellationToken.None);
+
             Assert.IsTrue(result);
-
-            var bay = context.Set<WorkBay>().Find(7);
             Assert.AreEqual(WorkBayStatus.Available, bay.Status);
             Assert.IsNull(bay.JobcardId);
         }

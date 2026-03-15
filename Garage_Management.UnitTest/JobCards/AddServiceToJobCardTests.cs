@@ -1,12 +1,16 @@
-using Garage_Management.Application.DTOs.JobCard;
+using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Services;
+using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.Services;
-using Garage_Management.Base.Entities.JobCards; // Add this import for JobCard
+using Garage_Management.UnitTest.Helper;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using JobCardService = Garage_Management.Application.Services.JobCards.JobCardService;
+using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
+using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
+using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 
 namespace Garage_Management.UnitTest.JobCards
 {
@@ -21,7 +25,7 @@ namespace Garage_Management.UnitTest.JobCards
         private Mock<IWorkBayRepository> _workBayRepo;
         private Mock<IAppointmentRepository> _appointmentRepo;
 
-        private JobCardService _service;
+        private JobCardServiceApp _service;
 
         [TestInitialize]
         public void Setup()
@@ -34,7 +38,7 @@ namespace Garage_Management.UnitTest.JobCards
             _workBayRepo = new Mock<IWorkBayRepository>();
             _appointmentRepo = new Mock<IAppointmentRepository>();
 
-            _service = new JobCardService(
+            _service = new JobCardServiceApp(
                 _jobCardRepo.Object,
                 _serviceRepo.Object,
                 _inventoryRepo.Object,
@@ -54,9 +58,9 @@ namespace Garage_Management.UnitTest.JobCards
                 Description = "Test service"
             };
 
-            var jobCards = new List<JobCard>
+            var jobCards = new List<JobCardEntity>
             {
-                new JobCard { JobCardId = 1 }
+                new JobCardEntity { JobCardId = 1 }
             }.AsQueryable();
 
             var services = new List<Service>
@@ -69,21 +73,24 @@ namespace Garage_Management.UnitTest.JobCards
                 }
             }.AsQueryable();
 
-            var asyncJobCards = new TestAsyncEnumerable<JobCard>(jobCards);
+            var asyncJobCards = new TestAsyncEnumerable<JobCardEntity>(jobCards);
             var asyncServices = new TestAsyncEnumerable<Service>(services);
 
             _jobCardRepo.Setup(x => x.GetAll()).Returns(asyncJobCards);
             _serviceRepo.Setup(x => x.GetAll()).Returns(asyncServices);
 
-            JobCardService? captured = null;
+            JobCardServiceEntity? captured = null;
 
-            _jobCardServiceRepo.Setup(x => x.AddAsync(It.IsAny<JobCardService>(), It.IsAny<CancellationToken>()))
-                .Callback<JobCardService, CancellationToken>((entity, _) =>
+            _jobCardServiceRepo
+                .Setup(x => x.AddAsync(It.IsAny<JobCardServiceEntity>(), It.IsAny<CancellationToken>()))
+                .Callback<JobCardServiceEntity, CancellationToken>((entity, _) =>
                 {
                     captured = entity;
                 })
                 .Returns(Task.CompletedTask);
-
+            _jobCardRepo
+    .Setup(x => x.GetByIdAsync(1))
+    .ReturnsAsync(new JobCardEntity { JobCardId = 1 });
             var result = await _service.AddServiceAsync(1, dto, CancellationToken.None);
 
             Assert.IsTrue(result);
@@ -100,8 +107,8 @@ namespace Garage_Management.UnitTest.JobCards
                 ServiceId = 1
             };
 
-            var jobCards = new List<JobCard>().AsQueryable();
-            var asyncJobCards = new TestAsyncEnumerable<JobCard>(jobCards);
+            var jobCards = new List<JobCardEntity>().AsQueryable();
+            var asyncJobCards = new TestAsyncEnumerable<JobCardEntity>(jobCards);
 
             _jobCardRepo.Setup(x => x.GetAll()).Returns(asyncJobCards);
 
@@ -118,14 +125,47 @@ namespace Garage_Management.UnitTest.JobCards
                 ServiceId = 10
             };
 
-            var jobCards = new List<JobCard>
+            var jobCards = new List<JobCardEntity>
             {
-                new JobCard { JobCardId = 1 }
+                new JobCardEntity { JobCardId = 1 }
             }.AsQueryable();
 
             var services = new List<Service>().AsQueryable();
 
-            var asyncJobCards = new TestAsyncEnumerable<JobCard>(jobCards);
+            var asyncJobCards = new TestAsyncEnumerable<JobCardEntity>(jobCards);
+            var asyncServices = new TestAsyncEnumerable<Service>(services);
+
+            _jobCardRepo.Setup(x => x.GetAll()).Returns(asyncJobCards);
+            _serviceRepo.Setup(x => x.GetAll()).Returns(asyncServices);
+
+            var result = await _service.AddServiceAsync(1, dto, CancellationToken.None);
+
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public async Task AddServiceAsync_WhenServiceAlreadyExists_ReturnsFalse()
+        {
+            var dto = new AddServiceToJobCardDto
+            {
+                ServiceId = 1
+            };
+
+            var jobCards = new List<JobCardEntity>
+    {
+        new JobCardEntity { JobCardId = 1 }
+    }.AsQueryable();
+
+            var services = new List<Service>
+    {
+        new Service
+        {
+            ServiceId = 1,
+            BasePrice = 100
+        }
+    }.AsQueryable();
+
+            var asyncJobCards = new TestAsyncEnumerable<JobCardEntity>(jobCards);
             var asyncServices = new TestAsyncEnumerable<Service>(services);
 
             _jobCardRepo.Setup(x => x.GetAll()).Returns(asyncJobCards);
