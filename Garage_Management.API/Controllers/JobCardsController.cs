@@ -1,6 +1,7 @@
-﻿using Garage_Management.Application.DTOs.JobCard;
+﻿using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Entities.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -20,33 +21,45 @@ namespace Garage_Management.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create(CreateJobCardDto dto,CancellationToken cancellationToken)
+        public async Task<IActionResult> Create( CreateJobCardDto dto, CancellationToken cancellationToken)
         {
-            var userId = int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
-            );
-
-            var result = await _service.CreateAsync(dto, userId, cancellationToken);
-            if (result == null)
+            try
             {
-                return Conflict("Vehicle already has an active job card.");
-            }
+                var userId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+                );
 
-            return Ok(result);
+                var result = await _service.CreateAsync(dto, userId, cancellationToken);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 
         [HttpGet("active")]
         public async Task<IActionResult> GetActive(
-     string? search,
-     string? from,
-     string? to)
+     [FromQuery] string? search,
+     [FromQuery] string? sortBy,
+     [FromQuery] string? sortDirection,
+     [FromQuery] int page = 1,
+     [FromQuery] int pageSize = 10)
         {
-            return Ok(await _service.GetActiveAsync(search, from, to));
+            var result = await _service.GetActiveAsync(
+                search,
+                sortBy,
+                sortDirection,
+                page,
+                pageSize);
+
+            return Ok(result);
         }
 
 
-            [HttpGet("{id}")]
+        [HttpGet("{id}")]
             public async Task<IActionResult> GetById(int id)
             {
                 var result = await _service.GetByIdAsync(id);

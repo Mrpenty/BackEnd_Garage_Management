@@ -53,8 +53,8 @@ namespace Garage_Management.Application.Services.Vehicles
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
-            if (await _repo.HasVehiclesAsync(id, ct))
-                throw new InvalidOperationException("Không thể cập nhật hãng xe vì đang có xe liên kết");
+            if (await _repo.HasModelsAsync(id, ct) || await _repo.HasVehiclesAsync(id, ct))
+                throw new InvalidOperationException("Không thể cập nhật hãng xe vì đã có dữ liệu con liên kết");
 
             entity.BrandName = request.BrandName;
             entity.IsActive = request.isActive;
@@ -65,13 +65,24 @@ namespace Garage_Management.Application.Services.Vehicles
             return Map(entity);
         }
 
+        public async Task<VehicleBrandResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            if (entity.IsActive == isActive)
+                return Map(entity);
+
+            entity.IsActive = isActive;
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return Map(entity);
+        }
+
         public async Task<bool> DeActiveAsync(int id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
-
-            if (await _repo.HasVehiclesAsync(id, ct))
-                throw new InvalidOperationException("Khong the xoa hang xe vi dang co xe lien ket");
 
             entity.IsActive = false;
             _repo.Update(entity);

@@ -41,6 +41,11 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         /// </summary>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>    
         Task<VehicleBrandResponse?> UpdateAsync(int id, VehicleBrandUpdate request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Cập nhật trạng thái isActive của vehicle brand.
+        /// </summary>
+        Task<VehicleBrandResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default);
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>

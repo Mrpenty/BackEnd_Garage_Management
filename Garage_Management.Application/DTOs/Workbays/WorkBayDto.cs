@@ -19,6 +19,8 @@ namespace Garage_Management.Application.DTOs.Workbays
 
         public int? JobcardId { get; set; }
 
+       
+
         public DateTime CreateAt { get; set; }
 
         public DateTime? StartAt { get; set; }

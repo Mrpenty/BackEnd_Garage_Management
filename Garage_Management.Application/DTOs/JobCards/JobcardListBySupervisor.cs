@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Garage_Management.Application.DTOs.JobCard
+namespace Garage_Management.Application.DTOs.JobCards
 {
     public class JobcardListBySupervisor
     {
@@ -29,11 +29,7 @@ namespace Garage_Management.Application.DTOs.JobCard
             public int SupervisorId { get; set; }
             public object? Supervisor { get; set; }
 
-            public List<object> Mechanics { get; set; } = new();
             public List<object> Services { get; set; } = new();
-            public List<object> SpareParts { get; set; } = new();
 
-            public DateTime CreatedAt { get; set; }
-            public int CreatedBy { get; set; }
         }
     }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Garage_Management.Application.DTOs.JobCard
+namespace Garage_Management.Application.DTOs.JobCards
 {
     public class CreateJobCardDto
     {
