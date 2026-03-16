@@ -60,38 +60,33 @@ namespace Garage_Management.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = data.BrandId }, ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Created"));
         }
 
-        ///Author: KhanhDV
-        ///Created Date: 13-2-2026
-        /// <summary>
-        /// Cập nhật brand xe máy
-        /// </summary>
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> Update(
-            int id,
-            [FromBody] VehicleBrandUpdate request,
-            CancellationToken ct = default)
-        {
-            var data = await _service.UpdateAsync(id, request, ct);
-            if (data == null)
-                return NotFound(ApiResponse<VehicleBrandResponse>.ErrorResponse("VehicleBrand not found"));
-
-            return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Updated"));
-        }
-
         /// <summary>
         /// Cập nhật trạng thái isActive của brand xe máy.
         /// </summary>
         [HttpPatch("{id:int}/status")]
-        public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> UpdateStatus(
+        public async Task<ActionResult<ApiResponse<bool>>> UpdateStatus(
             int id,
             [FromBody] VehicleBrandStatusUpdateRequest request,
             CancellationToken ct = default)
         {
             var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
-            if (data == null)
-                return NotFound(ApiResponse<VehicleBrandResponse>.ErrorResponse("VehicleBrand not found"));
+            if (!data)
+                return NotFound(ApiResponse<bool>.ErrorResponse("VehicleBrand not found"));
 
-            return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Updated status"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Updated status"));
+        }
+
+        /// <summary>
+        /// Xóa cứng brand xe máy.
+        /// </summary>
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
+        {
+            var deleted = await _service.DeleteAsync(id, ct);
+            if (!deleted)
+                return NotFound(ApiResponse<object>.ErrorResponse("VehicleBrand not found"));
+
+            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
         }
 
     }
