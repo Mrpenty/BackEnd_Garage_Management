@@ -551,8 +551,8 @@ namespace Garage_Management.Application.Services.Appointments
                         SparePartBrandId = x.Inventory.SparePartBrandId,
                         SparePartBrandName = x.Inventory.SparePartBrand != null ? x.Inventory.SparePartBrand.BrandName : null,
                         LastPurchasePrice = x.Inventory.LastPurchasePrice,
-                        ModelCompatible = x.Inventory.ModelCompatible,
-                        VehicleBrand = x.Inventory.VehicleBrand,
+                        //ModelCompatible = x.Inventory.ModelCompatible,
+                        //VehicleBrand = x.Inventory.VehicleBrand,
                         SellingPrice = x.Inventory.SellingPrice,
                         IsActive = x.Inventory.IsActive
                     })

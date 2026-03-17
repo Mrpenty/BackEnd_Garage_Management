@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Services;
+﻿using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.DTOs.ServiceTasks;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Services;
@@ -100,6 +100,26 @@ namespace Garage_Management.Application.Services.Services
 
             var data = await _repo.GetByVehicleTypeAsync(vehicleTypeId, ct);
             return data.Select(Map).ToList();
+        }
+
+        public async Task<PagedResult<ServiceVehicleTypePairResponse>> GetServiceVehicleTypePairsAsync(int page, int pageSize, CancellationToken ct = default)
+        {
+            var paged = await _repo.GetServiceVehicleTypePairsPagedAsync(page, pageSize, ct);
+            return new PagedResult<ServiceVehicleTypePairResponse>
+            {
+                Page = paged.Page,
+                PageSize = paged.PageSize,
+                Total = paged.Total,
+                PageData = paged.PageData.Select(x => new ServiceVehicleTypePairResponse
+                {
+                    ServiceId = x.ServiceId,
+                    ServiceName = x.Service.ServiceName,
+                    ServiceIsActive = x.Service.IsActive,
+                    VehicleTypeId = x.VehicleTypeId,
+                    VehicleTypeName = x.VehicleType.TypeName,
+                    VehicleTypeIsActive = x.VehicleType.IsActive
+                }).ToList()
+            };
         }
 
         private static ServiceResponse Map(Service entity)

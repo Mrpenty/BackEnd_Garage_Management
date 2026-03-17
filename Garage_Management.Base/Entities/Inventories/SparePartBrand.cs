@@ -1,3 +1,4 @@
+using Garage_Management.Base.Common.Base;
 using System.Collections.Generic;
 
 namespace Garage_Management.Base.Entities.Inventories
@@ -5,7 +6,7 @@ namespace Garage_Management.Base.Entities.Inventories
     /// <summary>
     /// Bảng SparePartBrand - Hãng / nhà sản xuất phụ tùng
     /// </summary>
-    public class SparePartBrand
+    public class SparePartBrand : AuditableEntity
     {
         public int SparePartBrandId { get; set; }
 
@@ -18,6 +19,8 @@ namespace Garage_Management.Base.Entities.Inventories
         /// Ghi chú / mô tả thêm về hãng
         /// </summary>
         public string? Description { get; set; }
+
+        public bool IsActive { get; set; } = true;
 
         /// <summary>
         /// Danh sách phụ tùng thuộc hãng này
