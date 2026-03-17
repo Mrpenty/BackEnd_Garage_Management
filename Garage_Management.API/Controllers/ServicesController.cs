@@ -10,6 +10,7 @@ namespace Garage_Management.API.Controllers
     public class ServicesController : ControllerBase
     {
         private readonly IServiceService _service;
+
         public ServicesController(IServiceService service)
         {
             _service = service;
@@ -42,6 +43,16 @@ namespace Garage_Management.API.Controllers
         {
             var data = await _service.GetByVehicleTypeAsync(vehicleTypeId, ct);
             return Ok(ApiResponse<List<ServiceResponse>>.SuccessResponse(data, "OK"));
+        }
+
+        [HttpGet("service-vehicle-type-pairs")]
+        public async Task<ActionResult<ApiResponse<PagedResult<ServiceVehicleTypePairResponse>>>> GetServiceVehicleTypePairs(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken ct = default)
+        {
+            var result = await _service.GetServiceVehicleTypePairsAsync(page, pageSize, ct);
+            return Ok(ApiResponse<PagedResult<ServiceVehicleTypePairResponse>>.SuccessResponse(result, "OK"));
         }
 
         ///Author: KhanhDV

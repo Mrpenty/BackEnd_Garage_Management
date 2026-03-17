@@ -51,5 +51,6 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Lấy danh sách dịch vụ theo loại xe (VehicleType)
         /// </summary>
         Task<List<ServiceResponse>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default);
+        Task<PagedResult<ServiceVehicleTypePairResponse>> GetServiceVehicleTypePairsAsync(int page, int pageSize, CancellationToken ct = default);
     }
 }
