@@ -14,7 +14,10 @@ namespace Garage_Management.Base.Entities.Inventories
     public class Inventory : AuditableEntity
     {
         public int SparePartId { get; set; }
-
+        /// <summary>
+        /// Mã phụ tùng
+        /// </summary>
+        public string? PartCode { get; set; }
         /// <summary>
         /// Tên phụ tùng
         /// </summary>
@@ -24,7 +27,24 @@ namespace Garage_Management.Base.Entities.Inventories
         /// Đơn vị tính (cái, bộ, lít,...)
         /// </summary>
         public string? Unit { get; set; }
+        /// <summary>
+        /// nhóm phụ tùng
+        /// </summary>
+        public int? CategoryId { get; set; }
+        /// <summary>
+        /// thông tin nhóm phụ tùng
+        /// </summary>
+        public SparePartCategory? SparePartCategory { get; set; }
 
+        /// <summary>
+        /// Số lượng phụ tùng
+        /// </summary>
+        public int Quantity { get; set; }
+
+        /// <summary>
+        /// Ngưỡng cảnh báo hết hàng
+        /// </summary>
+        public int? MinQuantity { get; set; }
         /// <summary>
         /// Hãng / nhà sản xuất phụ tùng
         /// </summary>
@@ -39,16 +59,6 @@ namespace Garage_Management.Base.Entities.Inventories
         /// Giá nhập gần nhất
         /// </summary>
         public decimal? LastPurchasePrice { get; set; }
-
-        /// <summary>
-        /// Model xe tương thích với phụ tùng (model_compatible).
-        /// </summary>
-        public string? ModelCompatible { get; set; }
-
-        /// <summary>
-        /// Hãng xe tương thích (Vehicle_brand) - dạng text mô tả.
-        /// </summary>
-        public string? VehicleBrand { get; set; }
 
         /// <summary>
         /// Giá bán đề xuất
@@ -79,6 +89,15 @@ namespace Garage_Management.Base.Entities.Inventories
         /// Các lần xuất kho bảo hành phụ tùng
         /// </summary>
         public ICollection<WarrantySparePart> WarrantySpareParts { get; set; } = new List<WarrantySparePart>();
+        /// <summary>
+        /// Các lần xuất nhâp kho
+        /// </summary>
+        public ICollection<StockTransaction> StockTransactions { get; set; } = new List<StockTransaction>();
+
+        /// <summary>
+        /// Các model phù hợp với phụ tùng này
+        /// </summary>
+        public ICollection<InventoryVehicleModel> CompatibleModels { get; set; } = new List<InventoryVehicleModel>();
     }
 }
 

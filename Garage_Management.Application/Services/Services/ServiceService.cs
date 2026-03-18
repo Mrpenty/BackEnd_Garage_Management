@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Services;
+﻿using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.DTOs.ServiceTasks;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Services;
@@ -40,9 +40,19 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceResponse> CreateAsync(ServiceCreateRequest request, CancellationToken ct = default)
         {
+            if (string.IsNullOrWhiteSpace(request.ServiceName))
+                throw new InvalidOperationException("ServiceName không hợp lệ");
+
+            if (request.BasePrice <= 0)
+                throw new InvalidOperationException("BasePrice phải lớn hơn 0");
+
+            var normalizedName = request.ServiceName.Trim();
+            if (await _repo.ExistsByNameAsync(normalizedName, ct))
+                throw new InvalidOperationException("ServiceName đã tồn tại");
+
             var entity = new Service
             {
-                ServiceName = request.ServiceName,
+                ServiceName = normalizedName,
                 BasePrice = request.BasePrice,
                 Description = request.Description,
                 IsActive = request.IsActive,
@@ -54,30 +64,33 @@ namespace Garage_Management.Application.Services.Services
             return Map(entity);
         }
 
-        public async Task<ServiceResponse?> UpdateAsync(int id, ServiceUpdateRequest request, CancellationToken ct = default)
-        {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return null;
-
-            if (!string.IsNullOrWhiteSpace(request.ServiceName)) entity.ServiceName = request.ServiceName;
-            if (request.BasePrice.HasValue) entity.BasePrice = request.BasePrice.Value;
-            if (request.Description != null) entity.Description = request.Description;
-            if (request.IsActive.HasValue) entity.IsActive = request.IsActive.Value;
-            entity.UpdatedAt = DateTime.UtcNow;
-
-            _repo.Update(entity);
-            await _repo.SaveAsync(ct);
-            return Map(entity);
-        }
-
         public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
 
+            if (await _repo.HasDependenciesAsync(id, ct))
+                throw new InvalidOperationException("Không thể xóa dịch vụ vì đã phát sinh dữ liệu liên quan");
+
             _repo.Delete(entity);
             await _repo.SaveAsync(ct);
             return true;
+        }
+
+        public async Task<ServiceResponse?> DeactivateAsync(int id, CancellationToken ct = default)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            if (!entity.IsActive)
+                return Map(entity);
+
+            entity.IsActive = false;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return Map(entity);
         }
 
         public async Task<List<ServiceResponse>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default)
@@ -87,6 +100,26 @@ namespace Garage_Management.Application.Services.Services
 
             var data = await _repo.GetByVehicleTypeAsync(vehicleTypeId, ct);
             return data.Select(Map).ToList();
+        }
+
+        public async Task<PagedResult<ServiceVehicleTypePairResponse>> GetServiceVehicleTypePairsAsync(int page, int pageSize, CancellationToken ct = default)
+        {
+            var paged = await _repo.GetServiceVehicleTypePairsPagedAsync(page, pageSize, ct);
+            return new PagedResult<ServiceVehicleTypePairResponse>
+            {
+                Page = paged.Page,
+                PageSize = paged.PageSize,
+                Total = paged.Total,
+                PageData = paged.PageData.Select(x => new ServiceVehicleTypePairResponse
+                {
+                    ServiceId = x.ServiceId,
+                    ServiceName = x.Service.ServiceName,
+                    ServiceIsActive = x.Service.IsActive,
+                    VehicleTypeId = x.VehicleTypeId,
+                    VehicleTypeName = x.VehicleType.TypeName,
+                    VehicleTypeIsActive = x.VehicleType.IsActive
+                }).ToList()
+            };
         }
 
         private static ServiceResponse Map(Service entity)

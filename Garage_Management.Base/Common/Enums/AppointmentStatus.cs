@@ -12,6 +12,5 @@
         Cancelled = 5,// Khách hủy
         ConvertedToJobCard = 6, // Đã chuyển thành phiếu sửa chữa
         Completed = 7,// Hoàn thành
-
     }
 }

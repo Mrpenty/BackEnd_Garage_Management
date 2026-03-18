@@ -30,8 +30,8 @@ namespace Garage_Management.Application.Services.Inventories
                     var search = query.Search.Trim().ToLower();
                     q = q.Where(x =>
                         (x.PartName ?? "").ToLower().Contains(search) ||
-                        (x.VehicleBrand ?? "").ToLower().Contains(search) ||
-                        (x.ModelCompatible ?? "").ToLower().Contains(search) ||
+                        //(x.VehicleBrand ?? "").ToLower().Contains(search) ||
+                        //(x.ModelCompatible ?? "").ToLower().Contains(search) ||
                         (x.SparePartBrand != null && (x.SparePartBrand.BrandName ?? "").ToLower().Contains(search))
                     );
                 }
@@ -73,8 +73,8 @@ namespace Garage_Management.Application.Services.Inventories
                         SparePartBrandId = x.SparePartBrandId,
                         SparePartBrandName = x.SparePartBrand != null ? x.SparePartBrand.BrandName : null,
                         LastPurchasePrice = x.LastPurchasePrice,
-                        ModelCompatible = x.ModelCompatible,
-                        VehicleBrand = x.VehicleBrand,
+                        //ModelCompatible = x.ModelCompatible,
+                        //VehicleBrand = x.VehicleBrand,
                         SellingPrice = x.SellingPrice,
                         IsActive = x.IsActive
                     })
@@ -112,8 +112,8 @@ namespace Garage_Management.Application.Services.Inventories
                 SparePartBrandId = entity.SparePartBrandId,
                 SparePartBrandName = entity.SparePartBrand?.BrandName,
                 LastPurchasePrice = entity.LastPurchasePrice,
-                ModelCompatible = entity.ModelCompatible,
-                VehicleBrand = entity.VehicleBrand,
+                //ModelCompatible = entity.ModelCompatible,
+                //VehicleBrand = entity.VehicleBrand,
                 SellingPrice = entity.SellingPrice,
                 IsActive = entity.IsActive
             };

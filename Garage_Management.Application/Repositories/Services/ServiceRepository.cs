@@ -54,6 +54,49 @@ namespace Garage_Management.Application.Repositories.Services
                 .AsNoTracking()
                 .OrderBy(x => x.ServiceName)
                 .ToListAsync(ct);
+
+        public async Task<PagedResult<ServiceVehicleType>> GetServiceVehicleTypePairsPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = _context.ServiceVehicleTypes
+                .Include(x => x.Service)
+                .Include(x => x.VehicleType)
+                .Where(x => x.Service.IsActive && x.VehicleType.IsActive)
+                .AsNoTracking();
+
+            var total = await query.CountAsync(ct);
+            var data = await query
+                .OrderByDescending(x => x.VehicleTypeId)
+                .ThenBy(x => x.ServiceId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            return new PagedResult<ServiceVehicleType>
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                PageData = data
+            };
+        }
+
+        public async Task<bool> HasDependenciesAsync(int serviceId, CancellationToken ct = default)
+        {
+            return await _context.AppointmentServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct)
+                || await _context.JobCardServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct)
+                || await _context.RepairEstimateServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct)
+                || await _context.WarrantyServices.AsNoTracking().AnyAsync(x => x.ServiceId == serviceId, ct);
+        }
+
+        public Task<bool> ExistsByNameAsync(string serviceName, CancellationToken ct = default)
+        {
+            var name = serviceName.Trim().ToLower();
+            return _context.Services.AsNoTracking().AnyAsync(x => x.ServiceName.ToLower() == name, ct);
+        }
+
         public async Task SaveAsync(CancellationToken cancellationToken)
             => await _context.SaveChangesAsync(cancellationToken);
     }

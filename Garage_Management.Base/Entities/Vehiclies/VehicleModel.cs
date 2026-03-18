@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Garage_Management.Base.Entities.Inventories;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Garage_Management.Base.Entities.Vehiclies
@@ -39,5 +40,10 @@ namespace Garage_Management.Base.Entities.Vehiclies
         /// Danh sách xe cụ thể thuộc model này
         /// </summary>
         public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+        /// <summary>
+        /// Danh sách các phụ tùng phù hợp 
+        /// </summary>
+        public ICollection<InventoryVehicleModel> CompatibleSpareParts { get; set; } = new List<InventoryVehicleModel>();
+
     }
 }

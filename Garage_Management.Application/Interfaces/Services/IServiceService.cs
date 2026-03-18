@@ -36,17 +36,14 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>
-        /// Cập nhật 1 dịch vụ
-        /// </summary>
-        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>  
-        Task<ServiceResponse?> UpdateAsync(int id, ServiceUpdateRequest request, CancellationToken ct = default);
-
-        /// Author: KhanhDV
-        /// Created Date: 13-2-2026
-        /// <summary>
         /// Xóa 1 dịch vụ
         /// </summary>
         Task<bool> DeleteAsync(int id, CancellationToken ct = default);
+
+        /// <summary>
+        /// Ngừng kích hoạt (deactivate) dịch vụ.
+        /// </summary>
+        Task<ServiceResponse?> DeactivateAsync(int id, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 6-3-2026
@@ -54,5 +51,6 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Lấy danh sách dịch vụ theo loại xe (VehicleType)
         /// </summary>
         Task<List<ServiceResponse>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default);
+        Task<PagedResult<ServiceVehicleTypePairResponse>> GetServiceVehicleTypePairsAsync(int page, int pageSize, CancellationToken ct = default);
     }
 }

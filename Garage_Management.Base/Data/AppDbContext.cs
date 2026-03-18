@@ -43,7 +43,10 @@ namespace Garage_Management.Base.Data
 
         // DbSet - Inventories
         public DbSet<SparePartBrand> SparePartBrands => Set<SparePartBrand>();
+        public DbSet<SparePartCategory> SparePartCategories => Set<SparePartCategory>();
+        public DbSet<Supplier> Suppliers => Set<Supplier>();
         public DbSet<Inventory> Inventories => Set<Inventory>();
+        public DbSet<InventoryVehicleModel> InventoryVehicleModels => Set<InventoryVehicleModel>();
         public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
 
         // DbSet -  Estimates
