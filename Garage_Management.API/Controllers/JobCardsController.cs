@@ -21,7 +21,7 @@ namespace Garage_Management.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create( CreateJobCardDto dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(CreateJobCardDto dto, CancellationToken cancellationToken)
         {
             try
             {
@@ -35,7 +35,10 @@ namespace Garage_Management.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Conflict(new
+                {
+                    message = ex.Message
+                });
             }
         }
 

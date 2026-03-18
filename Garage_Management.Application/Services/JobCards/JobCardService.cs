@@ -56,77 +56,80 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
 
-        public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto ,int currentUserId, CancellationToken cancellationToken)
-        {
-            //  CHECK 1: Appointment đã có JobCard chưa
-            var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
+        public async Task<JobCardDto?> CreateAsync(
+CreateJobCardDto dto,
+int currentUserId,
+CancellationToken cancellationToken)
+       {
+           // ❗ CHECK 1: Appointment đã có JobCard chưa
+           if (dto.AppointmentId.HasValue)
+           {
+               var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
 
-            if (hasJobCard)
-                throw new Exception("Appointment already has a JobCard.");
+               if (hasJobCard)
+                   throw new Exception("Appointment này đã được tạo JobCard.");
+           }
 
-            //  CHECK 2: Xe đã có JobCard active chưa
-            var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
+           // CHECK 2
+           var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
 
-            if (hasActive)
-                throw new Exception("Vehicle already has an active JobCard.");
-
+           if (hasActive)
+               throw new Exception("Xe này đang có JobCard đang hoạt động.");
             var app = await _appointmentRepository.GetByIdAsync((int)dto.AppointmentId);
 
-            if (app == null)
-                throw new Exception("Appointment not found.");
 
             // CHECK 4: status
-            if (app.Status != AppointmentStatus.Confirmed)
-                throw new Exception("Appointment must be confirmed.");
-
+            if (app != null && app.Status != AppointmentStatus.Confirmed)
+            {
+                throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+            }
             var entity = new JobCard
-            {
-                AppointmentId = dto.AppointmentId,
-                CustomerId = dto.CustomerId,
-                VehicleId = dto.VehicleId,
-                Note = dto.Note,
-                SupervisorId = dto.SupervisorId,
-                StartDate = DateTime.UtcNow,
-                Status = JobCardStatus.Created,
-                CreatedBy = currentUserId
-            };
+           {
+               AppointmentId = dto.AppointmentId,
+               CustomerId = dto.CustomerId,
+               VehicleId = dto.VehicleId,
+               Note = dto.Note,
+               SupervisorId = dto.SupervisorId,
+               StartDate = DateTime.UtcNow,
+               Status = JobCardStatus.Created,
+               CreatedBy = currentUserId
+           };
 
-            await _repository.AddAsync(entity, cancellationToken);
-            await _repository.SaveAsync(cancellationToken);
+           await _repository.AddAsync(entity, cancellationToken);
+           await _repository.SaveAsync(cancellationToken);
 
 
-            // 🔹 ADD SERVICES
-            if (dto.Services != null && dto.Services.Any())
-            {
-                foreach (var service in dto.Services)
-                {
-                    await AddServiceAsync(entity.JobCardId, service, cancellationToken);
-                }
-            }
+           // 🔹 ADD SERVICES
+           if (dto.Services != null && dto.Services.Any())
+           {
+               foreach (var service in dto.Services)
+               {
+                   await AddServiceAsync(entity.JobCardId, service, cancellationToken);
+               }
+           }
 
-            // ❗ UPDATE APPOINTMENT STATUS
-            if (dto.AppointmentId.HasValue)
-            {
-                await _appointmentRepository.UpdateStatusAsync(
-                    dto.AppointmentId.Value,
-                    AppointmentStatus.ConvertedToJobCard,
-                    cancellationToken);
-            }
+           // ❗ UPDATE APPOINTMENT STATUS
+           if (dto.AppointmentId.HasValue)
+           {
+               await _appointmentRepository.UpdateStatusAsync(
+                   dto.AppointmentId.Value,
+                   AppointmentStatus.ConvertedToJobCard,
+                   cancellationToken);
+           }
 
-            return new JobCardDto
-            {
-                JobCardId = entity.JobCardId,
-                AppointmentId = entity.AppointmentId,
-                CustomerId = entity.CustomerId,
-                VehicleId = entity.VehicleId,
-                StartDate = entity.StartDate,
-                EndDate = entity.EndDate,
-                Status = entity.Status,
-                Service = entity.Services,
-                Note = entity.Note,
-                SupervisorId = entity.SupervisorId
-            };
-        }
+           return new JobCardDto
+           {
+               JobCardId = entity.JobCardId,
+               AppointmentId = entity.AppointmentId,
+               CustomerId = entity.CustomerId,
+               VehicleId = entity.VehicleId,
+               StartDate = entity.StartDate,
+               EndDate = entity.EndDate,
+               Status = entity.Status,
+               Note = entity.Note,
+               SupervisorId = entity.SupervisorId
+           };
+       }
 
 
 

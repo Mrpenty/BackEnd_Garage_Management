@@ -184,28 +184,7 @@ namespace Garage_Management.UnitTest.JobCards
 
             Assert.AreEqual("old", jobCard.Note);
         }
-        [TestMethod]
-        public async Task CreateAsync_Throws_WhenAppointmentNotFound()
-        {
-            var dto = new CreateJobCardDto
-            {
-                AppointmentId = 5,
-                CustomerId = 1,
-                VehicleId = 1
-            };
-
-            _jobCardRepo.Setup(x => x.HasJobCardByAppointmentIdAsync(5))
-                .ReturnsAsync(false);
-
-            _jobCardRepo.Setup(x => x.HasActiveJobCardAsync(1))
-                .ReturnsAsync(false);
-
-            _appointmentRepo.Setup(x => x.GetByIdAsync(5))
-                .ReturnsAsync((Appointment)null);
-
-            await Assert.ThrowsExceptionAsync<Exception>(() =>
-                _service.CreateAsync(dto, 1, CancellationToken.None));
-        }
+        
         [TestMethod]
         public async Task CreateAsync_Throws_WhenAppointmentNotConfirmed()
         {
