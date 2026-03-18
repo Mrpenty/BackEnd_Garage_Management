@@ -17,15 +17,26 @@ namespace Garage_Management.API.Controllers
         }
 
         /// <summary>
-        /// Lấy danh sách hãng phụ tùng được phân trang
+        /// Lấy danh sách hãng phụ tùng được phân trang (dành riêng cho quản lý, có thể filter isActive = true và false)
         /// </summary>
-        [HttpGet]
+        [HttpGet("private")]
         public async Task<ActionResult<ApiResponse<PagedResult<SparePartBrandResponse>>>> GetPaged(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
+            [FromQuery] ParamQuery query,
             CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(page, pageSize, ct);
+            var data = await _service.GetPagedAsync(query, false, ct);
+            return Ok(ApiResponse<PagedResult<SparePartBrandResponse>>.SuccessResponse(data, "OK"));
+        }
+
+        /// <summary>
+        /// Lấy danh sách hàng phụ tùng dành riêng cho khách hàng (isActive = true)   
+        /// </summary>
+        [HttpGet("public")]
+        public async Task<ActionResult<ApiResponse<PagedResult<SparePartBrandResponse>>>> GetPagedPublic(
+            [FromQuery] ParamQuery query,
+            CancellationToken ct = default)
+        {
+            var data = await _service.GetPagedAsync(query, true, ct);
             return Ok(ApiResponse<PagedResult<SparePartBrandResponse>>.SuccessResponse(data, "OK"));
         }
 
