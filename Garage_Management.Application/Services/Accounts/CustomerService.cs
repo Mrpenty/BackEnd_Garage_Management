@@ -107,7 +107,7 @@ namespace Garage_Management.Application.Services.Accounts
 
                 return ApiResponse<PagedResult<CustomerDto>>.SuccessResponse(pagedResult, "Lấy danh sách khách hàng thành công");
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return ApiResponse<PagedResult<CustomerDto>>.ErrorResponse("Có lỗi xảy ra khi lấy danh sách khách hàng");
             }

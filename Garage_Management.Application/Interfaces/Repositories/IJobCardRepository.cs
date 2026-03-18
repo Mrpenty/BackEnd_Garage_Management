@@ -14,6 +14,7 @@ namespace Garage_Management.Application.Interfaces.Repositories
        
         Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId);
         Task<JobCard?> GetWithMechanicsAsync(int jobCardId);
-
+        Task<bool> IsMechanicAssignedAsync(int jobCardId, int mechanicId);
+        Task<JobCard?> GetByIdWithTasksAsync(int id);
     }
 }

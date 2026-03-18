@@ -50,6 +50,21 @@ namespace Garage_Management.Base.Entities.JobCards
         public JobCardStatus Status { get; set; } = JobCardStatus.Created;
 
         /// <summary>
+        /// Phần trăm hoàn thành (0-100)
+        /// </summary>
+        public int ProgressPercentage { get; set; } = 0;
+
+        /// <summary>
+        /// Các bước đã hoàn thành
+        /// </summary>
+        public string? CompletedSteps { get; set; }
+
+        /// <summary>
+        /// Ghi chú tiến độ
+        /// </summary>
+        public string? ProgressNotes { get; set; }
+
+        /// <summary>
         /// Ghi chú tổng quát cho phiếu (mô tả tình trạng, yêu cầu khách hàng, lưu ý đặc biệt...)
         /// </summary>
         public string? Note { get; set; }

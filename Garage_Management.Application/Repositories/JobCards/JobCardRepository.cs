@@ -40,7 +40,20 @@ namespace Garage_Management.Application.Repositories.JobCards
             return await _context.JobCards
                 .Include(j => j.Mechanics)   // Danh sách thợ được phân công
                 .Include(j => j.Services)    // Danh sách dịch vụ thực hiện
+                    .ThenInclude(s => s.Service)
+                .Include(j => j.Services)
+                    .ThenInclude(s => s.ServiceTasks)
+                        .ThenInclude(st => st.ServiceTask)
                 .Include(j => j.SpareParts)  // Danh sách phụ tùng sử dụng
+                .Include(j => j.Customer)   // Thông tin khách hàng
+                      .ThenInclude(S => S.User)
+                .Include(j => j.Vehicle)     // Thông tin xe
+                    .ThenInclude(a=> a.Brand) // Thông tin hãng xe
+                    .ThenInclude(m => m.Models) // Thông tin model xe
+                    .ThenInclude(m => m.VehicleType)
+                 .Include(j => j.Supervisor)   // Thông tin supervisor
+                 .Include(j => j.Mechanics)    // Thông tin thợ máy
+                    .ThenInclude(m => m.Employee)
                 .Include(j => j.Logs)        // Lịch sử thao tác / trạng thái
                 .FirstOrDefaultAsync(j => j.JobCardId == id);
         }
@@ -52,16 +65,16 @@ namespace Garage_Management.Application.Repositories.JobCards
         public async Task<(List<JobCard>Items, int TotalCount)> GetActiveAsync(string? search, string? sortBy,string? sortDirection, int page,
     int pageSize)
         {
-           var query = _context.JobCards
-    .Include(x => x.Customer)
-    .Include(x => x.Vehicle)
-        .ThenInclude(v => v.Brand)
-    .Include(x => x.Vehicle)
-        .ThenInclude(v => v.Model)
-    .Include(x => x.Services)
-        .ThenInclude(s => s.Service)
-    .Where(j => j.Status != JobCardStatus.Completed)
-    .AsQueryable();
+                   var query = _context.JobCards
+            .Include(x => x.Customer)
+            .Include(x => x.Vehicle)
+                .ThenInclude(v => v.Brand)
+            .Include(x => x.Vehicle)
+                .ThenInclude(v => v.Model)
+            .Include(x => x.Services)
+                .ThenInclude(s => s.Service)
+            .Where(j => j.Status != JobCardStatus.Completed)
+            .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -171,6 +184,29 @@ namespace Garage_Management.Application.Repositories.JobCards
             return await _context.JobCards
                 .Include(x => x.Mechanics)
                 .FirstOrDefaultAsync(x => x.JobCardId == jobCardId);
+        }
+
+        public async Task<bool> IsMechanicAssignedAsync(int jobCardId, int mechanicId)
+        {
+            return await _context.JobCardMechanics
+                .AnyAsync(jcm => jcm.JobCardId == jobCardId && jcm.EmployeeId == mechanicId);
+        }
+
+        public async Task<JobCard?> GetByIdWithTasksAsync(int id)
+        {
+            return await _context.JobCards
+                .Include(j => j.Services)
+                    .ThenInclude(s => s.ServiceTasks)
+                        .ThenInclude(st => st.ServiceTask)
+                .Include(j => j.Mechanics)
+                    .ThenInclude(m => m.Employee)
+                .Include(j => j.Supervisor)
+                .Include(j => j.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(j => j.Vehicle)
+                    .ThenInclude(v => v.Model)
+                .Include(j => j.Logs)
+                .FirstOrDefaultAsync(j => j.JobCardId == id);
         }
     }
 }
