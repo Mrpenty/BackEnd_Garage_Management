@@ -17,8 +17,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
+using JobCardSparepartApp = Garage_Management.Application.Services.JobCards.JobCardSparepartService;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
 using Microsoft.AspNetCore.Http;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 namespace Garage_Management.UnitTest.JobCard
 {
     [TestClass]
@@ -27,7 +29,9 @@ namespace Garage_Management.UnitTest.JobCard
         private Mock<IJobCardRepository> _jobCardRepo;
         private Mock<IInventoryRepository> _inventoryRepo;
         private Mock<IJobCardSparePartRepository> _jobCardSparePartRepo;
+
         private JobCardServiceApp _service;
+        private JobCardSparepartApp _sparepartservice;
         private Mock<IHttpContextAccessor> _httpContextAccessor;
         [TestInitialize]
         public void Setup()
@@ -53,7 +57,7 @@ namespace Garage_Management.UnitTest.JobCard
 
             var dto = new AddSparePartToJobCardDto { SparePartId = 1, Quantity = 1 };
 
-            var result = await _service.AddSparePartAsync(999, dto, CancellationToken.None);
+            var result = await _sparepartservice.AddSparePartAsync(999, dto, CancellationToken.None);
 
             Assert.IsFalse(result);
         }
@@ -71,7 +75,7 @@ namespace Garage_Management.UnitTest.JobCard
 
             var dto = new AddSparePartToJobCardDto { SparePartId = 999, Quantity = 1 };
 
-            var result = await _service.AddSparePartAsync(1, dto, CancellationToken.None);
+            var result = await _sparepartservice.AddSparePartAsync(1, dto, CancellationToken.None);
 
             Assert.IsFalse(result);
         }
@@ -89,7 +93,7 @@ namespace Garage_Management.UnitTest.JobCard
 
             var dto = new AddSparePartToJobCardDto { SparePartId = 5, Quantity = 0 };
 
-            var result = await _service.AddSparePartAsync(1, dto, CancellationToken.None);
+            var result = await _sparepartservice.AddSparePartAsync(1, dto, CancellationToken.None);
 
             Assert.IsFalse(result);
         }
@@ -129,7 +133,7 @@ namespace Garage_Management.UnitTest.JobCard
                 Note = "ok"
             };
 
-            var result = await _service.AddSparePartAsync(7, dto, CancellationToken.None);
+            var result = await _sparepartservice.AddSparePartAsync(7, dto, CancellationToken.None);
 
             Assert.IsTrue(result);
 

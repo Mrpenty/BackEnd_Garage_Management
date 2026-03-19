@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.Interfaces.Repositories;
+﻿using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.JobCards;
 using System;

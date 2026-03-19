@@ -8,7 +8,7 @@ using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Services;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Application.Repositories.JobCards;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Format;
@@ -310,39 +310,7 @@ CancellationToken cancellationToken)
 
             return true;
         }
-        public async Task<bool> AddSparePartAsync(int jobCardId, AddSparePartToJobCardDto dto, CancellationToken cancellationToken)
-        {
-            // 1️⃣ Kiểm tra JobCard
-            var jobCard = await _repository.GetByIdAsync(jobCardId);
-            if (jobCard == null) return false;
-
-            // 2️⃣ Lấy Inventory theo SparePartId
-            var inventory = await _inventoryRepository.GetByIdAsync(dto.SparePartId);
-
-            if (inventory == null) return false;
-
-            if (dto.Quantity <= 0) return false;
-
-            // 3️⃣ Lấy giá bán (nullable → decimal)
-            var unitPrice = inventory.SellingPrice ?? 0m;
-
-            var entity = new JobCardSparePart
-            {
-                JobCardId = jobCardId,
-                SparePartId = dto.SparePartId,
-                Quantity = dto.Quantity,
-                UnitPrice = unitPrice,
-                TotalAmount = unitPrice * dto.Quantity,
-                IsUnderWarranty = dto.IsUnderWarranty,
-                Note = dto.Note,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _jobCardSparePartRepository.AddAsync(entity, cancellationToken);
-            await _jobCardSparePartRepository.SaveAsync(cancellationToken);
-
-            return true;
-        }
+      
 
         public async Task<bool> AssignWorkBayAsync(AssignWorkBayRequestDto dto, CancellationToken cancellationToken)
         {
