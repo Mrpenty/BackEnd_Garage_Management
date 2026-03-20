@@ -10,6 +10,6 @@
         ConvertedToJobCard = 3, // Đã chuyển thành phiếu sửa chữa
         NoShow = 4,// Không đến (no-show)
         Cancelled = 5,// Khách hủy
-        Completed = 7,// Hoàn thành
+        Completed = 6,// Hoàn thành
     }
 }
