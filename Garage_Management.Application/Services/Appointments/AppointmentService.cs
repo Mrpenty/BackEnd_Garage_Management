@@ -451,13 +451,9 @@ namespace Garage_Management.Application.Services.Appointments
                     next == AppointmentStatus.Cancelled,
 
                 AppointmentStatus.Confirmed =>
-                    next == AppointmentStatus.InProgress ||
+                    next == AppointmentStatus.ConvertedToJobCard ||
                     next == AppointmentStatus.Cancelled ||
                     next == AppointmentStatus.NoShow,
-
-                AppointmentStatus.InProgress =>
-                    next == AppointmentStatus.Completed ||
-                    next == AppointmentStatus.ConvertedToJobCard,
 
                 AppointmentStatus.ConvertedToJobCard =>
                     next == AppointmentStatus.Completed,

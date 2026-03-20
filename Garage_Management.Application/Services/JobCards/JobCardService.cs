@@ -104,12 +104,13 @@ namespace Garage_Management.Application.Services.JobCards
                 }
             }
 
-            // ❗ UPDATE APPOINTMENT STATUS
             if (dto.AppointmentId.HasValue)
             {
+                // Khi tạo JobCard thành công, chuyển Appointment sang trạng thái "Đã chuyển thành phiếu sửa chữa" (=3).
+                var convertedStatus = AppointmentStatus.ConvertedToJobCard;
                 await _appointmentRepository.UpdateStatusAsync(
                     dto.AppointmentId.Value,
-                    AppointmentStatus.ConvertedToJobCard,
+                    convertedStatus,
                     cancellationToken);
             }
 
