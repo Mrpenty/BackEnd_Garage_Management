@@ -8,15 +8,17 @@ using Garage_Management.Application.Services.JobCards;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.Inventories;
 using Garage_Management.Base.Entities.JobCards;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
-using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
+using Microsoft.AspNetCore.Http;
 namespace Garage_Management.UnitTest.JobCard
 {
     [TestClass]
@@ -26,22 +28,19 @@ namespace Garage_Management.UnitTest.JobCard
         private Mock<IInventoryRepository> _inventoryRepo;
         private Mock<IJobCardSparePartRepository> _jobCardSparePartRepo;
         private JobCardServiceApp _service;
-
+        private Mock<IHttpContextAccessor> _httpContextAccessor;
         [TestInitialize]
         public void Setup()
         {
             _jobCardRepo = new Mock<IJobCardRepository>();
             _inventoryRepo = new Mock<IInventoryRepository>();
             _jobCardSparePartRepo = new Mock<IJobCardSparePartRepository>();
-
+            _httpContextAccessor = new Mock<IHttpContextAccessor>();
             _service = new JobCardServiceApp(
-                _jobCardRepo.Object,
-                null,
-                _inventoryRepo.Object,
-                null,
-                _jobCardSparePartRepo.Object,
-                null,
-                null
+                _jobCardRepo.Object, null,
+                _inventoryRepo.Object, null,
+                _jobCardSparePartRepo.Object, null, null,
+                  _httpContextAccessor.Object
             );
         }
 

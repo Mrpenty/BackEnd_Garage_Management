@@ -10,7 +10,7 @@ using Moq;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Microsoft.AspNetCore.Http;
 // fix trùng namespace JobCard
 using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
@@ -27,7 +27,7 @@ namespace Garage_Management.UnitTest.JobCard
         private Mock<IJobCardSparePartRepository> _jobCardSparePartRepo;
         private Mock<IWorkBayRepository> _workBayRepo;
         private Mock<IAppointmentRepository> _appointmentRepo;
-
+        private Mock<IHttpContextAccessor> _httpContextAccessor;
         private JobCardServiceApp _service;
 
         [TestInitialize]
@@ -40,7 +40,7 @@ namespace Garage_Management.UnitTest.JobCard
             _jobCardSparePartRepo = new Mock<IJobCardSparePartRepository>();
             _workBayRepo = new Mock<IWorkBayRepository>();
             _appointmentRepo = new Mock<IAppointmentRepository>();
-
+            _httpContextAccessor = new Mock<IHttpContextAccessor>();
             _service = new JobCardServiceApp(
                 _jobCardRepo.Object,
                 _serviceRepo.Object,
@@ -48,7 +48,8 @@ namespace Garage_Management.UnitTest.JobCard
                 _jobCardServiceRepo.Object,
                 _jobCardSparePartRepo.Object,
                 _workBayRepo.Object,
-                _appointmentRepo.Object
+                _appointmentRepo.Object,
+                 _httpContextAccessor.Object
             );
         }
 

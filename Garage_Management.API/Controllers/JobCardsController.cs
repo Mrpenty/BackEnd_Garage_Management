@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ namespace Garage_Management.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create( CreateJobCardDto dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(CreateJobCardDto dto, CancellationToken cancellationToken)
         {
             try
             {
@@ -35,7 +36,10 @@ namespace Garage_Management.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Conflict(new
+                {
+                    message = ex.Message
+                });
             }
         }
 
@@ -149,6 +153,42 @@ namespace Garage_Management.API.Controllers
             return Ok(jobCards);
         }
 
+        [HttpPatch("{id}/progress-update")]
+        [Authorize(Roles = "Mechanic,Supervisor")]
+        public async Task<IActionResult> UpdateRepairProgress(int id, UpdateJobCardProgressDto dto, CancellationToken cancellationToken)
+        {
+            try
+            {
+
+                var result = await _service.UpdateRepairProgressAsync(id, dto, cancellationToken);
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("{id}/progress-viewdetail")]
+        [Authorize]
+        public async Task<IActionResult> ViewRepairProgress(int id, CancellationToken cancellationToken)
+        {
+            try
+            { 
+                var result = await _service.ViewRepairProgressAsync(id,  cancellationToken);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 
 }

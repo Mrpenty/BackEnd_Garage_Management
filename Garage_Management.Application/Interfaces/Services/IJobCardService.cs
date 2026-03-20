@@ -53,11 +53,21 @@ namespace Garage_Management.Application.Interfaces.Services
         Task<bool> AssignWorkBayAsync(AssignWorkBayRequestDto dto, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Giải phóng khoang sửa chữa
+        /// Cập nhật tiến độ sửa chữa bởi Mechanic
         /// </summary>
         Task<bool> ReleaseWorkBayAsync(ReleaseWorkBayDto dto, CancellationToken cancellationToken);
 
         Task<List<JobcardListBySupervisor>> GetJobCardsBySupervisorIdAsync(int supervisorId);
+
+        /// <summary>
+        /// Cập nhật tiến độ sửa chữa bởi Mechanic
+        /// </summary>
+        Task<ApiResponse<UpdateProgressResponse>> UpdateRepairProgressAsync(int jobCardId, UpdateJobCardProgressDto dto, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Xem tiến độ sửa chữa
+        /// </summary>
+        Task<ApiResponse<ViewRepairProgressResponse>> ViewRepairProgressAsync(int jobCardId, CancellationToken cancellationToken);
     }
 
 }
