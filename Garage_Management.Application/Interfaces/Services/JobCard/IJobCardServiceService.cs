@@ -1,7 +1,7 @@
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Base.Common.Models;
 
-namespace Garage_Management.Application.Interfaces.Services
+namespace Garage_Management.Application.Interfaces.Services.JobCard
 {
     public interface IJobCardServiceService
     {

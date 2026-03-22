@@ -1,6 +1,6 @@
 using Garage_Management.Application.DTOs.JobCardServiceTasks;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.JobCards;
 using System.Linq;

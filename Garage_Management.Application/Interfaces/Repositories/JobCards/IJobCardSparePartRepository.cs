@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Garage_Management.Base.Entities.JobCards;
-namespace Garage_Management.Application.Interfaces.Repositories
+namespace Garage_Management.Application.Interfaces.Repositories.JobCards
 {
     
 
@@ -15,6 +15,8 @@ namespace Garage_Management.Application.Interfaces.Repositories
         IQueryable<JobCardSparePart> Query();
 
         Task SaveAsync(CancellationToken cancellationToken);
+        Task<JobCardSparePart?> GetByIdAsync(int id);
+        void Delete(JobCardSparePart entity);
     }
 
 }

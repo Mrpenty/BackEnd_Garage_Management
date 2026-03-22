@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace Garage_Management.Application.Interfaces.Services
+namespace Garage_Management.Application.Interfaces.Services.JobCard
 {   
     public interface IJobCardService
     {
@@ -42,10 +42,7 @@ namespace Garage_Management.Application.Interfaces.Services
         Task<PagedResult<JobCardListDto>> GetActiveAsync(string? search,string? sortBy,string? sortDirection,int page, int pageSize);
         Task<bool> AddServiceAsync(int jobCardId, AddServiceToJobCardDto dto,CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Thêm phụ tùng vào phiếu sửa chữa
-        /// </summary>
-        Task<bool> AddSparePartAsync(int jobCardId, AddSparePartToJobCardDto dto, CancellationToken cancellationToken);
+       
         
         /// <summary>
         /// Phân công khoang sửa chữa
