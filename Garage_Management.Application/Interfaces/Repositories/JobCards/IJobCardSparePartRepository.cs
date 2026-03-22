@@ -15,6 +15,8 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
         IQueryable<JobCardSparePart> Query();
 
         Task SaveAsync(CancellationToken cancellationToken);
+        Task<JobCardSparePart?> GetByIdAsync(int id);
+        void Delete(JobCardSparePart entity);
     }
 
 }

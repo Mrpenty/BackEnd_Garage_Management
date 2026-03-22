@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.JobCards;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,5 +29,11 @@ namespace Garage_Management.Application.Repositories.JobCards
 
         public async Task SaveAsync(CancellationToken cancellationToken)
             => await _context.SaveChangesAsync(cancellationToken);
+        public void Delete(JobCardSparePart entity)
+       => _context.JobCardSpareParts.Remove(entity);
+        public async Task<JobCardSparePart?> GetByIdAsync(int id)
+      => await _context.JobCardSpareParts
+          .FirstOrDefaultAsync(x => x.JobCardId == id);
+
     }
 }

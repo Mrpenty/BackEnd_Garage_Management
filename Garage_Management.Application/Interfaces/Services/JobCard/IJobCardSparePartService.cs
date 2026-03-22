@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Base.Entities.JobCards;
 
 namespace Garage_Management.Application.Interfaces.Services.JobCard
 {
@@ -7,7 +8,7 @@ namespace Garage_Management.Application.Interfaces.Services.JobCard
         /// <summary>
         /// Thêm phụ tùng vào phiếu sửa chữa
         /// </summary>
-        Task<bool> AddSparePartAsync(int jobCardId, AddSparePartToJobCardDto dto, CancellationToken cancellationToken);
-
+        Task<JobCardSparePart?> AddSparePartAsync(int jobCardId, AddSparePartToJobCardDto dto, CancellationToken cancellationToken);
+        Task<bool> RemoveSparePartAsync(int jobCardSparePartId,CancellationToken ct);
     }
 }
