@@ -1,6 +1,6 @@
 ﻿using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Accounts;
 using Microsoft.AspNetCore.Authorization;
@@ -110,15 +110,7 @@ namespace Garage_Management.API.Controllers
             return NoContent();
         }
 
-        [HttpPost("{id}/spare-parts")]
-        public async Task<IActionResult> AddSparePart(int id, AddSparePartToJobCardDto dto, CancellationToken cancellationToken)
-        {
-            var result = await _service.AddSparePartAsync(id, dto, cancellationToken);
-
-            if (!result) return BadRequest();
-
-            return NoContent();
-        }
+        
         [HttpPost("assign-workbay")]
         public async Task<IActionResult> AssignWorkBay(
             [FromBody] AssignWorkBayRequestDto dto,
