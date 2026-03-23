@@ -23,7 +23,7 @@ namespace Garage_Management.Base.Entities.Services
         /// <summary>
         /// Giá niêm yết cơ bản của dịch vụ
         /// </summary>
-        public decimal BasePrice { get; set; }
+        public decimal? BasePrice { get; set; }
 
         /// <summary>
         /// Mô tả chi tiết cho dịch vụ

@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
@@ -281,6 +281,8 @@ namespace Garage_Management.Application.Services.JobCards
                 .FirstOrDefaultAsync(x => x.ServiceId == dto.ServiceId, cancellationToken);
 
             if (service == null) return false;
+            if (!service.BasePrice.HasValue || service.BasePrice.Value <= 0)
+                throw new InvalidOperationException("Service chua c� gi�, kh�ng th? th�m v�o JobCard");
 
             // 3️⃣ Tạo JobCardService (entity)
             var jobCardService = new JobCardServiceEntity
@@ -288,7 +290,7 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = jobCardId,
                 ServiceId = service.ServiceId,
                 Description = dto.Description,
-                Price = service.BasePrice,
+                Price = service.BasePrice.Value,
                 Status = ServiceStatus.Pending
             };
 
@@ -451,7 +453,7 @@ namespace Garage_Management.Application.Services.JobCards
             // Kiểm tra JobCard tồn tại
             var jobCard = await _repository.GetByIdAsync(jobCardId);
             if (jobCard == null)
-                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Không tìm thấy phiếu sửa chữa");
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Kh�ng t�m th?y phi?u s?a ch?a");
 
             // Kiểm tra Mechanic được assign cho JobCard này
             var isAssigned = await _repository.IsMechanicAssignedAsync(jobCardId, mechanicId);
@@ -571,7 +573,7 @@ namespace Garage_Management.Application.Services.JobCards
             }
 
             // Tính tổng thời gian ước tính còn lại
-            int totalRemainingMinutes = 0;
+            long totalRemainingMinutes = 0;
             var services = new List<ServiceProgressDto>();
 
             foreach (var service in jobCard.Services)
@@ -587,7 +589,7 @@ namespace Garage_Management.Application.Services.JobCards
                     CompletedAt = t.CompletedAt
                 }).ToList();
 
-                var remainingMinutes = tasks.Where(t => t.Status != ServiceStatus.Completed).Sum(t => t.EstimateMinute);
+                var remainingMinutes = tasks.Where(t => t.Status != ServiceStatus.Completed).Sum(t => (long)t.EstimateMinute);
                 totalRemainingMinutes += remainingMinutes;
 
                 services.Add(new ServiceProgressDto
@@ -644,7 +646,7 @@ namespace Garage_Management.Application.Services.JobCards
         /// <param name="remainingMinutes">Tổng số phút ước tính còn lại</param>
         /// <param name="bufferMinutes">Khoảng buffer ± (mặc định 5 phút)</param>
         /// <returns>Chuỗi dạng "HH:mm - HH:mm" hoặc thông báo trạng thái</returns>
-        private string? CalculateEstimatedCompletionDisplay(DateTime? startTime, int remainingMinutes,int bufferMinutes = 5)
+        private string? CalculateEstimatedCompletionDisplay(DateTime? startTime, long remainingMinutes, int bufferMinutes = 5)
         {
             if (!startTime.HasValue)
             {

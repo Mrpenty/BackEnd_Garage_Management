@@ -28,9 +28,7 @@ namespace Garage_Management.UnitTest.Services
             var request = new ServiceCreateRequest
             {
                 ServiceName = "Bao duong",
-                BasePrice = 200000m,
-                Description = "DV test",
-                IsActive = true
+                Description = "DV test"
             };
 
             _repo.Setup(x => x.ExistsByNameAsync("Bao duong", It.IsAny<CancellationToken>())).ReturnsAsync(false);
@@ -43,8 +41,8 @@ namespace Garage_Management.UnitTest.Services
 
             Assert.AreEqual(5, result.ServiceId);
             Assert.AreEqual("Bao duong", result.ServiceName);
-            Assert.AreEqual(200000m, result.BasePrice);
-            Assert.IsTrue(result.IsActive);
+            Assert.IsNull(result.BasePrice);
+            Assert.IsFalse(result.IsActive);
         }
 
         [TestMethod]
@@ -52,23 +50,7 @@ namespace Garage_Management.UnitTest.Services
         {
             var request = new ServiceCreateRequest
             {
-                ServiceName = "   ",
-                BasePrice = 100000m,
-                IsActive = true
-            };
-
-            await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(
-                () => _service.CreateAsync(request, CancellationToken.None));
-        }
-
-        [TestMethod]
-        public async Task CreateAsync_InvalidBasePrice_Throws()
-        {
-            var request = new ServiceCreateRequest
-            {
-                ServiceName = "Rua xe",
-                BasePrice = 0,
-                IsActive = true
+                ServiceName = "   "
             };
 
             await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(
@@ -80,9 +62,7 @@ namespace Garage_Management.UnitTest.Services
         {
             var request = new ServiceCreateRequest
             {
-                ServiceName = "Rua xe",
-                BasePrice = 100000m,
-                IsActive = true
+                ServiceName = "Rua xe"
             };
 
             _repo.Setup(x => x.ExistsByNameAsync("Rua xe", It.IsAny<CancellationToken>())).ReturnsAsync(true);
