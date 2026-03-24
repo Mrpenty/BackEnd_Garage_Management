@@ -27,6 +27,8 @@ namespace Garage_Management.Base.Data.Configurations.Inventories
 
             builder.Property(st => st.Note)
                 .HasMaxLength(500);
+            builder.Property(st => st.Reason)
+                .HasMaxLength(500);
 
             // Quan hệ N-1: Giao dịch kho gắn với một Inventory (phụ tùng)
             builder.HasOne(st => st.Inventory)
