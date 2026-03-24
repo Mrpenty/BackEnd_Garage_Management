@@ -42,10 +42,6 @@ namespace Garage_Management.Application.Services.Services
         {
             if (string.IsNullOrWhiteSpace(request.ServiceName))
                 throw new InvalidOperationException("ServiceName không hợp lệ");
-
-            if (request.BasePrice <= 0)
-                throw new InvalidOperationException("BasePrice phải lớn hơn 0");
-
             var normalizedName = request.ServiceName.Trim();
             if (await _repo.ExistsByNameAsync(normalizedName, ct))
                 throw new InvalidOperationException("ServiceName đã tồn tại");
@@ -53,13 +49,45 @@ namespace Garage_Management.Application.Services.Services
             var entity = new Service
             {
                 ServiceName = normalizedName,
-                BasePrice = request.BasePrice,
+                BasePrice = null,
                 Description = request.Description,
-                IsActive = request.IsActive,
+                IsActive = false,
                 CreatedAt = DateTime.UtcNow
             };
 
             await _repo.AddAsync(entity, ct);
+            await _repo.SaveAsync(ct);
+            return Map(entity);
+        }
+
+        public async Task<ServiceResponse?> UpdatePriceAsync(int id, ServicePriceUpdateRequest request, CancellationToken ct = default)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            if (request.BasePrice <= 0)
+                throw new InvalidOperationException("BasePrice phải lớn hơn 0");
+
+            entity.BasePrice = request.BasePrice;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return Map(entity);
+        }
+
+        public async Task<ServiceResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            if (entity.IsActive == isActive)
+                return Map(entity);
+
+            entity.IsActive = isActive;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            _repo.Update(entity);
             await _repo.SaveAsync(ct);
             return Map(entity);
         }
@@ -79,18 +107,7 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceResponse?> DeactivateAsync(int id, CancellationToken ct = default)
         {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return null;
-
-            if (!entity.IsActive)
-                return Map(entity);
-
-            entity.IsActive = false;
-            entity.UpdatedAt = DateTime.UtcNow;
-
-            _repo.Update(entity);
-            await _repo.SaveAsync(ct);
-            return Map(entity);
+            return await UpdateStatusAsync(id, false, ct);
         }
 
         public async Task<List<ServiceResponse>> GetByVehicleTypeAsync(int vehicleTypeId, CancellationToken ct = default)

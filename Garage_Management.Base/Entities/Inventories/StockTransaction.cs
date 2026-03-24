@@ -69,6 +69,7 @@ namespace Garage_Management.Base.Entities.Inventories
         /// Giá trên mỗi đơn vị trong giao dịch (giá nhập hoặc giá xuất kho)
         /// </summary>
         public decimal UnitPrice { get; set; }
+        public string? Reason { get; set; }
 
 
         /// <summary>
