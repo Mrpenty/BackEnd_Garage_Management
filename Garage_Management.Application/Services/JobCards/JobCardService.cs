@@ -396,9 +396,9 @@ CancellationToken cancellationToken)
                     .Select(s => new
                         {
                          s.ServiceId,
-                         ServiceName = s.Service.ServiceName,
-        
-    })
+                         ServiceName = s.Service.ServiceName
+
+                    })
     .Cast<object>()
     .ToList()
             }).ToList();
