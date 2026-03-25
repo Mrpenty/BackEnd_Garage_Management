@@ -169,13 +169,13 @@ namespace Garage_Management.Application.Repositories.Accounts
             {
                 var roleNames = query.Filter.Trim()
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                    .Select(r => r.Trim().ToLower())  
+                    .Select(r => r.Trim().ToLower())
                     .ToList();
 
                 if (roleNames.Any())
                 {
                     var roleIds = await _roleManager.Roles
-                        .Where(r => roleNames.Contains(r.Name.ToLower()))  
+                        .Where(r => roleNames.Contains(r.Name.ToLower()))
                         .Select(r => r.Id)
                         .ToListAsync(ct);
 
@@ -211,6 +211,29 @@ namespace Garage_Management.Application.Repositories.Accounts
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             return (List<string>)(user != null ? await _userManager.GetRolesAsync(user) : new List<string>());
+        }
+
+        public async Task<List<User>> GetCustomersAsync(CancellationToken ct = default)
+        {
+            var customerUserIds = await _customerRepository.GetAll()
+                .Include(x=> x.User)
+                .Select(c => c.UserId)
+                .ToListAsync(ct);
+            var customers = await dbSet
+                .Where(u => customerUserIds.Contains(u.Id))
+                .ToListAsync(ct);
+            return customers;
+        }
+
+        public async Task<List<User>> GetEmployeesAsync(CancellationToken ct = default)
+        {
+            var EmployeeUserIds = await _employeeRepository.GetAll()
+                .Select(e => e.UserId)
+                .ToListAsync(ct);
+            var employees = await dbSet
+                .Where(u => EmployeeUserIds.Contains(u.Id))
+                .ToListAsync(ct);
+            return employees;
         }
     }
 }
