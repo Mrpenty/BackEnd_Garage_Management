@@ -30,9 +30,6 @@ namespace Garage_Management.Application.DTOs.Iventories.StockTransactions
         public string? SerialNumber { get; set; }
 
         [MaxLength(500)]
-        public string? Reason { get; set; }
-
-        [MaxLength(500)]
         public string? Note { get; set; }
     }
 }

@@ -17,7 +17,6 @@ namespace Garage_Management.Application.DTOs.Iventories.StockTransactions
         public string? ReceiptCode { get; set; }
         public string? LotNumber { get; set; }
         public string? SerialNumber { get; set; }
-        public string? Reason { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
     }
