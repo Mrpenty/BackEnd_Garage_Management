@@ -79,28 +79,39 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<StockTransactionResponse> CreateAsync(StockTransactionCreateRequest request, CancellationToken ct = default)
         {
-            if (request.QuantityChange > 0)
-                throw new InvalidOperationException("QuantityChange phải lớn hơn 0");
-
-            // Normalize sign by transaction type:
-            // - Import / Return: stored as positive
-            // - Export: stored as negative
-            // - Adjustment: keep user input (+/-)
-            var effectiveQuantityChange = request.TransactionType switch
-            {
-                TransactionType.Import => Math.Abs(request.QuantityChange),
-                TransactionType.ReturnFromJobCard => Math.Abs(request.QuantityChange),
-                TransactionType.ExportToJobCard => -Math.Abs(request.QuantityChange),
-                _ => request.QuantityChange
-            };
-
             var inventory = await _inventoryRepo.GetByIdAsync(request.SparePartId);
             if (inventory == null)
-                throw new InvalidOperationException("SparePartId khong ton tai");
+                throw new InvalidOperationException("SparePartId không tồn tại");
+
+            if (request.TransactionType != TransactionType.Adjustment && request.QuantityChange <= 0)
+                throw new InvalidOperationException("QuantityChange phải lớn hơn 0");
+
+            if (request.TransactionType == TransactionType.Adjustment)
+            {
+                if (!request.ActualQuantity.HasValue)
+                    throw new InvalidOperationException("Adjustment bắt buộc nhập ActualQuantity");
+                if (request.ActualQuantity.Value < 0)
+                    throw new InvalidOperationException("ActualQuantity không hợp lệ");
+            }
+
+            // Normalize quantity by transaction type:
+            // - Import/Return: positive
+            // - Export: negative
+            // - Adjustment: convert actual quantity to delta
+            var effectiveQuantityChange = request.TransactionType switch
+            {
+                TransactionType.Import => request.QuantityChange,
+                TransactionType.ReturnFromJobCard => request.QuantityChange,
+                TransactionType.ExportToJobCard => -request.QuantityChange,
+                _ => request.ActualQuantity!.Value - inventory.Quantity
+            };
+
+            if (effectiveQuantityChange == 0)
+                throw new InvalidOperationException("Không có thay đổi tồn kho");
 
             var nextQuantity = inventory.Quantity + effectiveQuantityChange;
             if (nextQuantity < 0)
-                throw new InvalidOperationException("So luong ton kho khong du");
+                throw new InvalidOperationException("Số lượng tồn kho không đủ");
 
             var entity = new StockTransaction
             {
