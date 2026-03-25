@@ -9,13 +9,14 @@ namespace Garage_Management.Base.Common.Enums
     public enum JobCardStatus
     {
         Created = 1,
-        WaitingMechanic = 2,
-        Inspection = 3,
-        WaitingApproval = 4,
-        WaitingParts = 5,
-        InProgress = 6,
-        WaitingPickup = 7,
-        Completed = 8,
-        Rejected = 9
+        OnwaitingList= 2,
+        WaitingMechanic = 3,
+        Inspection = 4,
+        WaitingApproval = 5,
+        WaitingParts = 6,
+        InProgress = 7,
+        WaitingPickup = 8,
+        Completed = 9,
+        Rejected = 10
     }
 }

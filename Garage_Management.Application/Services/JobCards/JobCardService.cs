@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Appointments;
+﻿using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
@@ -312,7 +312,7 @@ namespace Garage_Management.Application.Services.JobCards
 
             return true;
         }
-      
+
 
         public async Task<bool> AssignWorkBayAsync(AssignWorkBayRequestDto dto, CancellationToken cancellationToken)
         {
@@ -324,15 +324,29 @@ namespace Garage_Management.Application.Services.JobCards
             if (workBay == null)
                 return false;
 
-            if (workBay.JobcardId != null)
-                return false; // bay already occupied
+            // cho phép gán dù bay đang bận
+            jobCard.WorkBayId = workBay.Id;
 
-            workBay.JobcardId = dto.JobCardId;
-            workBay.StartAt = DateTime.UtcNow;
-            workBay.Status  = WorkBayStatus.Occupied;
+            // nếu bay đang trống → bắt đầu luôn
+            if (workBay.JobcardId == null)
+            {
+                workBay.JobcardId = jobCard.JobCardId;
+                workBay.StartAt = DateTime.UtcNow;
+                workBay.Status = WorkBayStatus.Occupied;
+
+                jobCard.Status = JobCardStatus.InProgress;
+            }
+            else
+            {
+                // nếu bay bận → đưa vào hàng chờ
+                jobCard.Status = JobCardStatus.WaitingMechanic;
+            }
+
+            jobCard.UpdatedAt = DateTime.UtcNow;
             workBay.UpdateAt = DateTime.UtcNow;
 
             await _workBayRepository.SaveAsync(cancellationToken);
+            await _repository.SaveAsync(cancellationToken);
 
             return true;
         }
@@ -398,11 +412,15 @@ namespace Garage_Management.Application.Services.JobCards
                     .Select(s => new
                         {
                          s.ServiceId,
-                         ServiceName = s.Service.ServiceName
+                         ServiceName = s.Service.ServiceName,
+                         EstimateMinute = s.ServiceTasks.Sum(st => st.ServiceTask.EstimateMinute)
 
                     })
     .Cast<object>()
-    .ToList()
+    .ToList(),
+                
+                TotalEstimateMinute = x.Services.SelectMany(s => s.ServiceTasks)
+                    .Sum(st => st.ServiceTask.EstimateMinute)
             }).ToList();
         }
 
