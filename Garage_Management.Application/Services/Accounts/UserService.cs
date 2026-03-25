@@ -175,7 +175,7 @@ namespace Garage_Management.Application.Services.Accounts
 
                 return ApiResponse<PagedResult<UserRequest>>.SuccessResponse(result, "Lấy danh sách người dùng thành công");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return ApiResponse<PagedResult<UserRequest>>.ErrorResponse("Có lỗi xảy ra khi lấy danh sách người dùng");
             }

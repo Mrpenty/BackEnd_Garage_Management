@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Appointments;
+﻿using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
@@ -22,13 +22,19 @@ namespace Garage_Management.Application.Services.Vehicles
     {
         private readonly IVehicleRepository _repo;
         private readonly ICustomerRepository _customerRepo;
+        private readonly IVehicleModelRepository _vehicleModelRepo;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
 
-        public VehicleService(IVehicleRepository repo, ICustomerRepository customerRepo, IHttpContextAccessor httpContextAccessor)
+        public VehicleService(
+            IVehicleRepository repo,
+            ICustomerRepository customerRepo,
+            IVehicleModelRepository vehicleModelRepo,
+            IHttpContextAccessor httpContextAccessor)
         {
             _repo = repo;
             _customerRepo = customerRepo;
+            _vehicleModelRepo = vehicleModelRepo;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -43,7 +49,7 @@ namespace Garage_Management.Application.Services.Vehicles
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null || !httpContext.User.Identity?.IsAuthenticated == true)
             {
-                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("Vui lòng đăng nhập để xem lịch hẹn");
+                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("Vui lòng đăng nhập để xem danh sách xe máy");
             }
 
             // Lấy UserId từ claims (NameIdentifier thường là ID của User)
@@ -57,7 +63,7 @@ namespace Garage_Management.Application.Services.Vehicles
 
             if (!userRoles.Contains("Customer"))
             {
-                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("khách hàng chỉ có thể xem lịch hẹn cá nhân");
+                return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("khách hàng chỉ có thể xem danh sách xe máy cá nhân");
             }
             var customer = await _customerRepo.GetAll().FirstAsync(c => c.UserId == currentUserId, ct);
 
@@ -141,14 +147,29 @@ namespace Garage_Management.Application.Services.Vehicles
             if (customer == null)
                 throw new InvalidOperationException("CustomerId không tồn tại");
 
+            if (request.ModelId <= 0)
+                throw new InvalidOperationException("ModelId không hợp lệ");
+
+            var model = await _vehicleModelRepo.GetByIdAsync(request.ModelId);
+            if (model == null)
+                throw new InvalidOperationException("ModelId không tồn tại");
+
+            int? createdBy = null;
+            var userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrWhiteSpace(userIdStr) && int.TryParse(userIdStr, out var userId))
+            {
+                createdBy = userId;
+            }
+
             var entity = new Vehicle
             {
                 CustomerId = request.CustomerId,
+                BrandId = model.BrandId,
                 ModelId = request.ModelId,
                 LicensePlate = request.LicensePlate,
                 Year = request.Year,
                 Vin = request.Vin,
-                CreatedBy = request.CreatedBy,
+                CreatedBy = createdBy,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -167,7 +188,18 @@ namespace Garage_Management.Application.Services.Vehicles
             //{
             //    throw new InvalidOperationException("Không thể cập nhật vì đang có xe liên kết");
             //}
-            if (request.ModelId.HasValue) entity.ModelId = request.ModelId.Value;
+            if (request.ModelId.HasValue)
+            {
+                if (request.ModelId.Value <= 0)
+                    throw new InvalidOperationException("ModelId không hợp lệ");
+
+                var model = await _vehicleModelRepo.GetByIdAsync(request.ModelId.Value);
+                if (model == null)
+                    throw new InvalidOperationException("ModelId không tồn tại");
+
+                entity.ModelId = request.ModelId.Value;
+                entity.BrandId = model.BrandId;
+            }
             if (request.LicensePlate != null) entity.LicensePlate = request.LicensePlate;
             if (request.Year.HasValue) entity.Year = request.Year.Value;
             if (request.Vin != null) entity.Vin = request.Vin;

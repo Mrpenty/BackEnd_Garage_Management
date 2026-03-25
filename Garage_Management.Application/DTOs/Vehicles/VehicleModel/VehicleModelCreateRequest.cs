@@ -10,11 +10,13 @@ namespace Garage_Management.Application.DTOs.Vehicles.VehicleModel
     public class VehicleModelCreateRequest
     {
         [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "TypeId phải lớn hơn 0")]
         public int TypeId { get; set; }
         [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "BrandId phải lớn hơn 0")]
         public int BrandId { get; set; }
         [Required]
-        public string ModelName { get; set; }
+        public string ModelName { get; set; } = string.Empty;
         [Required]
         public bool isActive { get; set; }
 

@@ -1,5 +1,5 @@
-﻿using Garage_Management.Application.DTOs.JobCard;
-using Garage_Management.Application.Interfaces.Repositories;
+﻿using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.JobCards;
@@ -40,7 +40,20 @@ namespace Garage_Management.Application.Repositories.JobCards
             return await _context.JobCards
                 .Include(j => j.Mechanics)   // Danh sách thợ được phân công
                 .Include(j => j.Services)    // Danh sách dịch vụ thực hiện
+                    .ThenInclude(s => s.Service)
+                .Include(j => j.Services)
+                    .ThenInclude(s => s.ServiceTasks)
+                        .ThenInclude(st => st.ServiceTask)
                 .Include(j => j.SpareParts)  // Danh sách phụ tùng sử dụng
+                .Include(j => j.Customer)   // Thông tin khách hàng
+                      .ThenInclude(S => S.User)
+                .Include(j => j.Vehicle)     // Thông tin xe
+                    .ThenInclude(a=> a.Brand) // Thông tin hãng xe
+                    .ThenInclude(m => m.Models) // Thông tin model xe
+                    .ThenInclude(m => m.VehicleType)
+                 .Include(j => j.Supervisor)   // Thông tin supervisor
+                 .Include(j => j.Mechanics)    // Thông tin thợ máy
+                    .ThenInclude(m => m.Employee)
                 .Include(j => j.Logs)        // Lịch sử thao tác / trạng thái
                 .FirstOrDefaultAsync(j => j.JobCardId == id);
         }
@@ -49,16 +62,19 @@ namespace Garage_Management.Application.Repositories.JobCards
         /// Lấy danh sách JobCard chưa hoàn thành.
         /// Dùng cho màn hình đang xử lý.
         /// </summary>
-        public async Task<List<JobCard>> GetActiveAsync(
-    string? search,
-    string? sortBy,
-    string? sortDirection)
+        public async Task<(List<JobCard>Items, int TotalCount)> GetActiveAsync(string? search, string? sortBy,string? sortDirection, int page,
+    int pageSize)
         {
-            var query = _context.JobCards
-                .Include(x => x.Customer)
-                .Include(x => x.Vehicle)
-                .Where(j => j.Status != JobCardStatus.Completed)
-                .AsQueryable();
+                   var query = _context.JobCards
+            .Include(x => x.Customer)
+            .Include(x => x.Vehicle)
+                .ThenInclude(v => v.Brand)
+            .Include(x => x.Vehicle)
+                .ThenInclude(v => v.Model)
+            .Include(x => x.Services)
+                .ThenInclude(s => s.Service)
+            .Where(j => j.Status != JobCardStatus.Completed)
+            .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -85,7 +101,14 @@ namespace Garage_Management.Application.Repositories.JobCards
                 _ => query.OrderByDescending(x => x.StartDate)
             };
 
-            return await query.ToListAsync();
+            var total = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
 
         /// <summary>
@@ -137,82 +160,53 @@ namespace Garage_Management.Application.Repositories.JobCards
             throw new NotImplementedException(); // TODO: implement hoặc xoá
         }
 
-        public async Task<List<JobcardListBySupervisor>> GetBySupervisorIdAsync(int supervisorId)
+        public async Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId)
         {
-            var jobCards = await _context.JobCards
+            return await _context.JobCards
+                .Include(x => x.Appointment)
                 .Include(x => x.Customer)
                 .Include(x => x.Vehicle)
                 .Include(x => x.Supervisor)
-                .Include(x => x.Appointment)
                 .Include(x => x.Mechanics)
                 .Include(x => x.Services)
+                 .ThenInclude(s => s.Service)
                 .Include(x => x.SpareParts)
                 .Where(x => x.SupervisorId == supervisorId)
                 .ToListAsync();
-
-            return jobCards.Select(j => new JobcardListBySupervisor
-            {
-                JobCardId = j.JobCardId,
-
-                AppointmentId = j.AppointmentId,
-                Appointment = j.Appointment == null ? null : new
-                {
-                    j.Appointment.AppointmentDateTime
-                },
-
-                CustomerId = j.CustomerId,
-                Customer = j.Customer == null ? null : new
-                {
-                    j.Customer.CustomerId,
-                    j.Customer.FirstName,
-                    j.Customer.LastName,
-                },
-
-                VehicleId = j.VehicleId,
-                Vehicle = j.Vehicle == null ? null : new
-                {
-                    j.Vehicle.VehicleId,
-                    j.Vehicle.LicensePlate,
-                    j.Vehicle.Brand
-                },
-
-                StartDate = j.StartDate,
-                EndDate = j.EndDate,
-                Status = (int)j.Status,
-                Note = j.Note,
-
-                SupervisorId = (int)j.SupervisorId,
-                Supervisor = j.Supervisor == null ? null : new
-                {
-                    j.Supervisor.UserId,
-                    j.Supervisor.FirstName,
-                    j.Supervisor.LastName,
-                },
-
-                Mechanics = j.Mechanics.Select(m => new
-                {
-                    m.EmployeeId
-                }).Cast<object>().ToList(),
-
-                Services = j.Services.Select(s => new
-                {
-                    s.ServiceId,
-                    s.Service
-                }).Cast<object>().ToList(),
-
-                SpareParts = j.SpareParts.Select(sp => new
-                {
-                    sp.SparePartId
-                }).Cast<object>().ToList(),
-
-                CreatedAt = j.CreatedAt,
-                CreatedBy = (int)j.CreatedBy
-            }).ToList();
         }
         public async Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId)
         {
             return await _context.JobCards
                 .AnyAsync(j => j.AppointmentId == appointmentId);
+        }
+        public async Task<JobCard?> GetWithMechanicsAsync(int jobCardId)
+        {
+            return await _context.JobCards
+                .Include(x => x.Mechanics)
+                .FirstOrDefaultAsync(x => x.JobCardId == jobCardId);
+        }
+
+        public async Task<bool> IsMechanicAssignedAsync(int jobCardId, int mechanicId)
+        {
+            return await _context.JobCardMechanics
+                .AnyAsync(jcm => jcm.JobCardId == jobCardId && jcm.EmployeeId == mechanicId);
+        }
+
+        public async Task<JobCard?> GetByIdWithTasksAsync(int id)
+        {
+            return await _context.JobCards
+                .Include(j => j.Services)
+                    .ThenInclude(s => s.ServiceTasks)
+                        .ThenInclude(st => st.ServiceTask)
+                .Include(j => j.Mechanics)
+                    .ThenInclude(m => m.Employee)
+                .Include(j => j.Supervisor)
+                .Include(j => j.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(j => j.Vehicle)
+                    .ThenInclude(v => v.Model)
+                .Include(j => j.Logs)
+                .FirstOrDefaultAsync(j => j.JobCardId == id);
         }
     }
 }

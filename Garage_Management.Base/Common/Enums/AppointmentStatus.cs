@@ -7,11 +7,9 @@
     {
         Pending = 1,// Chờ xác nhận / mới đặt
         Confirmed = 2,// Đã xác nhận
-        InProgress = 3,// Khách đã đến / đang thực hiện
+        ConvertedToJobCard = 3, // Đã chuyển thành phiếu sửa chữa
         NoShow = 4,// Không đến (no-show)
         Cancelled = 5,// Khách hủy
-        ConvertedToJobCard = 6, // Đã chuyển thành phiếu sửa chữa
-        Completed = 7,// Hoàn thành
-
+        Completed = 6,// Hoàn thành
     }
 }

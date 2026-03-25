@@ -5,5 +5,6 @@ namespace Garage_Management.Application.DTOs.Inventories.SparePartBrands
         public int SparePartBrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public bool IsActive { get; set; }
     }
 }

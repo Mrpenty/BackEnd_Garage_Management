@@ -1,5 +1,5 @@
 using Garage_Management.Application.DTOs.JobCardServices;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
 

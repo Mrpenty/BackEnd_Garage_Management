@@ -146,7 +146,7 @@ namespace Garage_Management.Application.Services.Accounts
             {
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

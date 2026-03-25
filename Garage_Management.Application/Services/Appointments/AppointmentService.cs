@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Appointments;
+﻿using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.DTOs.Iventories;
 using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.DTOs.ServiceTasks;
@@ -18,6 +18,7 @@ using System;
 using System.Linq;
 using Garage_Management.Base.Common.Models.Appointments;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Common.Format;
 using System.Security.Claims;
 
 namespace Garage_Management.Application.Services.Appointments
@@ -28,6 +29,7 @@ namespace Garage_Management.Application.Services.Appointments
         private readonly IEmployeeRepository _employeeRepo;
         private readonly ICustomerRepository _customerRepo;
         private readonly IVehicleRepository _vehicleRepo;
+        private readonly IVehicleModelRepository _vehicleModelRepo;
         private readonly IServiceRepository _serviceRepo;
         private readonly IInventoryRepository _inventoryRepo;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -37,6 +39,7 @@ namespace Garage_Management.Application.Services.Appointments
             IEmployeeRepository employeeRepo,
             ICustomerRepository customerRepo,
             IVehicleRepository vehicleRepo,
+            IVehicleModelRepository vehicleModelRepo,
             IServiceRepository serviceRepo,
             IInventoryRepository inventoryRepo,
             IHttpContextAccessor httpContextAccessor)
@@ -45,6 +48,7 @@ namespace Garage_Management.Application.Services.Appointments
             _employeeRepo = employeeRepo;
             _customerRepo = customerRepo;
             _vehicleRepo = vehicleRepo;
+            _vehicleModelRepo = vehicleModelRepo;
             _serviceRepo = serviceRepo;
             _inventoryRepo = inventoryRepo;
             _httpContextAccessor = httpContextAccessor;
@@ -157,6 +161,15 @@ namespace Garage_Management.Application.Services.Appointments
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
                 throw new InvalidOperationException("CustomerId không hợp lệ");
 
+            string? normalizedPhone = null;
+            if (!string.IsNullOrWhiteSpace(request.Phone))
+            {
+                var formatted = new FormatPhoneNumber().FormatPhoneNumberHepler(request.Phone);
+                if (string.IsNullOrWhiteSpace(formatted))
+                    throw new InvalidOperationException("Số điện thoại không đúng định dạng");
+                normalizedPhone = formatted;
+            }
+
             //Logic: đã nhập customerId rồi thì không được nhập các thông tin còn lại nữa
 
             //if (effectiveCustomerId.HasValue)
@@ -183,6 +196,59 @@ namespace Garage_Management.Application.Services.Appointments
                 var customer = await _customerRepo.GetByIdAsync(effectiveCustomerId.Value);
                 if (customer == null)
                     throw new InvalidOperationException("CustomerId không tồn tại");
+            }
+
+            var hasVehicleId = request.VehicleId.HasValue;
+            var hasVehicleModelId = request.VehicleModelId.HasValue;
+            var hasCustomBrand = !string.IsNullOrWhiteSpace(request.CustomVehicleBrand);
+            var hasCustomModel = !string.IsNullOrWhiteSpace(request.CustomVehicleModel);
+            var hasLicensePlate = !string.IsNullOrWhiteSpace(request.LicensePlate);
+
+            if (!hasVehicleId &&
+                !(hasVehicleModelId && hasLicensePlate) &&
+                !(hasCustomBrand && hasCustomModel && hasLicensePlate))
+            {
+                throw new InvalidOperationException(
+                    "Bắt buộc phải có VehicleId hoặc (VehicleModelId + LicensePlate) hoặc (CustomVehicleBrand + CustomVehicleModel + LicensePlate)");
+            }
+
+            if (request.VehicleId.HasValue)
+            {
+                if (request.VehicleModelId.HasValue ||
+                    !string.IsNullOrWhiteSpace(request.CustomVehicleBrand) ||
+                    !string.IsNullOrWhiteSpace(request.CustomVehicleModel) ||
+                    !string.IsNullOrWhiteSpace(request.LicensePlate))
+                {
+                    throw new InvalidOperationException("khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống");
+                }
+            }
+
+            if (request.VehicleModelId.HasValue)
+            {
+                var model = await _vehicleModelRepo.GetByIdAsync(request.VehicleModelId.Value);
+                if (model == null)
+                    throw new InvalidOperationException("VehicleModelId không tồn tại");
+
+                if (!string.IsNullOrWhiteSpace(request.CustomVehicleBrand) ||
+                    !string.IsNullOrWhiteSpace(request.CustomVehicleModel))
+                {
+                    throw new InvalidOperationException("Khi có VehicleModelId, CustomVehicleBrand/CustomVehicleModel phải để trống");
+                }
+                if (string.IsNullOrWhiteSpace(request.LicensePlate))
+                {
+                    throw new InvalidOperationException("Khi có VehicleModelId, LicensePlate là bắt buộc");
+                }
+            }
+            else
+            {
+                if (hasCustomBrand ^ hasCustomModel)
+                {
+                    throw new InvalidOperationException("CustomVehicleBrand và CustomVehicleModel phải nhập cùng nhau");
+                }
+                if ((hasCustomBrand || hasCustomModel) && string.IsNullOrWhiteSpace(request.LicensePlate))
+                {
+                    throw new InvalidOperationException("Khi có CustomVehicleBrand/CustomVehicleModel thì LicensePlate là bắt buộc");
+                }
             }
 
             if (request.VehicleId.HasValue)
@@ -233,7 +299,7 @@ namespace Garage_Management.Application.Services.Appointments
                 CustomerId = effectiveCustomerId,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Phone = request.Phone,
+                Phone = normalizedPhone,
                 VehicleId = request.VehicleId,
                 VehicleModelId = request.VehicleModelId,
                 CustomVehicleBrand = request.CustomVehicleBrand,
@@ -358,6 +424,12 @@ namespace Garage_Management.Application.Services.Appointments
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
+            if (entity.Status == AppointmentStatus.Cancelled || entity.Status == AppointmentStatus.Completed)
+                throw new InvalidOperationException("Lịch hẹn đã kết thúc, không thể chuyển trạng thái");
+
+            if (!IsValidStatusTransition(entity.Status, status))
+                throw new InvalidOperationException($"Không thể chuyển trạng thái từ {entity.Status} sang {status}");
+
             entity.Status = status;
             entity.UpdatedAt = DateTime.UtcNow;
 
@@ -366,6 +438,33 @@ namespace Garage_Management.Application.Services.Appointments
 
             var detail = await _repo.GetByIdWithDetailsAsync(id, ct);
             return detail == null ? Map(entity) : Map(detail);
+        }
+
+        private static bool IsValidStatusTransition(AppointmentStatus current, AppointmentStatus next)
+        {
+            if (current == next) return true;
+
+            return current switch
+            {
+                AppointmentStatus.Pending =>
+                    next == AppointmentStatus.Confirmed ||
+                    next == AppointmentStatus.Cancelled,
+
+                AppointmentStatus.Confirmed =>
+                    next == AppointmentStatus.ConvertedToJobCard ||
+                    next == AppointmentStatus.Cancelled ||
+                    next == AppointmentStatus.NoShow,
+
+                AppointmentStatus.ConvertedToJobCard =>
+                    next == AppointmentStatus.Completed,
+
+                AppointmentStatus.NoShow =>
+                    next == AppointmentStatus.Pending,
+
+                AppointmentStatus.Cancelled => false,
+                AppointmentStatus.Completed => false,
+                _ => false
+            };
         }
 
         private static AppointmentResponse Map(Appointment entity)
@@ -448,8 +547,8 @@ namespace Garage_Management.Application.Services.Appointments
                         SparePartBrandId = x.Inventory.SparePartBrandId,
                         SparePartBrandName = x.Inventory.SparePartBrand != null ? x.Inventory.SparePartBrand.BrandName : null,
                         LastPurchasePrice = x.Inventory.LastPurchasePrice,
-                        ModelCompatible = x.Inventory.ModelCompatible,
-                        VehicleBrand = x.Inventory.VehicleBrand,
+                        //ModelCompatible = x.Inventory.ModelCompatible,
+                        //VehicleBrand = x.Inventory.VehicleBrand,
                         SellingPrice = x.Inventory.SellingPrice,
                         IsActive = x.Inventory.IsActive
                     })

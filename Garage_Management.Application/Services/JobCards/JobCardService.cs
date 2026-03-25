@@ -1,20 +1,31 @@
-﻿using Garage_Management.Application.DTOs.JobCard;
-using Garage_Management.Application.Interfaces.Repositories.Services;
+using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.DTOs.JobCardServices;
+using Garage_Management.Application.DTOs.Services;
+using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
-using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.Services;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Application.Repositories.JobCards;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Common.Format;
+using Garage_Management.Base.Common.Models;
+using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Twilio.TwiML.Voice;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
-using Garage_Management.Application.Interfaces.Repositories.Appointments;
 
 
 
@@ -29,6 +40,7 @@ namespace Garage_Management.Application.Services.JobCards
         private readonly IJobCardSparePartRepository _jobCardSparePartRepository;
         private readonly IWorkBayRepository _workBayRepository;
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
 
         public JobCardService(
@@ -38,7 +50,8 @@ namespace Garage_Management.Application.Services.JobCards
             IJobCardServiceRepository jobCardServiceRepository,
             IJobCardSparePartRepository jobCardSparePartRepository,
             IWorkBayRepository workBayRepository,
-            IAppointmentRepository appointmentRepository)
+            IAppointmentRepository appointmentRepository,
+            IHttpContextAccessor httpContext)
         {
             _repository = repository;
             _serviceRepository = serviceRepository;
@@ -47,40 +60,48 @@ namespace Garage_Management.Application.Services.JobCards
             _jobCardSparePartRepository = jobCardSparePartRepository;
             _workBayRepository = workBayRepository;
             _appointmentRepository = appointmentRepository;
+            _httpContextAccessor = httpContext;
         }
 
 
-        public async Task<JobCardDto?> CreateAsync(
- CreateJobCardDto dto,
- int currentUserId,
- CancellationToken cancellationToken)
+        public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken)
         {
-            // ❗ CHECK 1: Appointment đã có JobCard chưa
-            var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
+           // ❗ CHECK 1: Appointment đã có JobCard chưa
+           if (dto.AppointmentId.HasValue)
+           {
+               var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
 
-            if (hasJobCard)
-                return null;
+               if (hasJobCard)
+                   throw new Exception("Appointment này đã được tạo JobCard.");
+           }
 
-            // ❗ CHECK 2: Xe đã có JobCard active chưa
-            var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
+           // CHECK 2
+           var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
 
-            if (hasActive)
-                return null;
+           if (hasActive)
+               throw new Exception("Xe này đang có JobCard đang hoạt động.");
+            var app = await _appointmentRepository.GetByIdAsync((int)dto.AppointmentId);
 
-            var entity = new JobCard
+
+            // CHECK 4: status
+            if (app != null && app.Status != AppointmentStatus.Confirmed)
             {
-                AppointmentId = dto.AppointmentId,
-                CustomerId = dto.CustomerId,
-                VehicleId = dto.VehicleId,
-                Note = dto.Note,
-                SupervisorId = dto.SupervisorId,
-                StartDate = DateTime.UtcNow,
-                Status = JobCardStatus.Created,
-                CreatedBy = currentUserId
-            };
+                throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+            }
+            var entity = new JobCard
+           {
+               AppointmentId = dto.AppointmentId,
+               CustomerId = dto.CustomerId,
+               VehicleId = dto.VehicleId,
+               Note = dto.Note,
+               SupervisorId = dto.SupervisorId,
+               StartDate = DateTime.UtcNow,
+               Status = JobCardStatus.Created,
+               CreatedBy = currentUserId
+           };
 
-            await _repository.AddAsync(entity, cancellationToken);
-            await _repository.SaveAsync(cancellationToken);
+           await _repository.AddAsync(entity, cancellationToken);
+           await _repository.SaveAsync(cancellationToken);
 
 
             // 🔹 ADD SERVICES
@@ -92,12 +113,13 @@ namespace Garage_Management.Application.Services.JobCards
                 }
             }
 
-            // ❗ UPDATE APPOINTMENT STATUS
             if (dto.AppointmentId.HasValue)
             {
+                // Khi tạo JobCard thành công, chuyển Appointment sang trạng thái "Đã chuyển thành phiếu sửa chữa" (=3).
+                var convertedStatus = AppointmentStatus.ConvertedToJobCard;
                 await _appointmentRepository.UpdateStatusAsync(
                     dto.AppointmentId.Value,
-                    AppointmentStatus.ConvertedToJobCard,
+                    convertedStatus,
                     cancellationToken);
             }
 
@@ -110,13 +132,12 @@ namespace Garage_Management.Application.Services.JobCards
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
+                Service = entity.Services,
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId
             };
+        
         }
-
-
-
 
         public async Task<JobCardDto?> GetByIdAsync(int id)
         {
@@ -133,6 +154,10 @@ namespace Garage_Management.Application.Services.JobCards
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
+                ProgressPercentage = entity.ProgressPercentage,
+                CompletedSteps = entity.CompletedSteps,
+                ProgressNotes = entity.ProgressNotes,
+                Service = entity.Services,
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
                 CreatedByEmployeeId = entity.CreatedBy
@@ -155,9 +180,7 @@ namespace Garage_Management.Application.Services.JobCards
         }
         public async Task<bool> AssignMechanicAsync(int jobCardId, AssignMechanicDto dto, CancellationToken cancellationToken)
         {
-            var jobCard = await _repository.GetAll()
-                .Include(x => x.Mechanics)
-                .FirstOrDefaultAsync(x => x.JobCardId == jobCardId);
+            var jobCard = await _repository.GetWithMechanicsAsync(jobCardId);
 
             if (jobCard == null)
                 return false;
@@ -171,34 +194,56 @@ namespace Garage_Management.Application.Services.JobCards
                 EmployeeId = dto.MechanicId,
                 AssignedAt = DateTime.UtcNow,
                 Note = dto.Note,
-                Status = (MechanicAssignmentStatus)1
+                Status = MechanicAssignmentStatus.Assigned
             });
+
             jobCard.Status = JobCardStatus.WaitingMechanic;
+
             _repository.Update(jobCard);
             await _repository.SaveAsync(cancellationToken);
 
             return true;
         }
-        public async Task<IEnumerable<JobCardListDto>> GetActiveAsync(
-        string? search,
-        string? sortBy,
-        string? sortDirection)
+        public async Task<PagedResult<JobCardListDto>> GetActiveAsync(string? search, string? sortBy,string? sortDirection, int page,int pageSize)
         {
-            var data = await _repository.GetActiveAsync(search, sortBy, sortDirection);
+            var (jobCards, totalCount) = await _repository.GetActiveAsync(
+                search, sortBy, sortDirection, page, pageSize);
 
-            return data.Select(x => new JobCardListDto
+            var result = jobCards.Select(x => new JobCardListDto
             {
                 JobCardId = x.JobCardId,
+
                 CustomerId = x.CustomerId,
                 CustomerName = x.Customer.FirstName + " " + x.Customer.LastName,
 
-                VehicleId = x.VehicleId,
-                LicensePlate = x.Vehicle.LicensePlate,
+                Vehicle = new VehicleListDto
+                {
+                    VehicleId = x.VehicleId,
+                    BrandName = x.Vehicle.Brand.BrandName,
+                    ModelName = x.Vehicle.Model.ModelName,
+                    LicensePlate = x.Vehicle.LicensePlate
+                },
 
+                Status = x.Status,
                 StartDate = x.StartDate,
-                Status = x.Status
-            });
+
+                Services = x.Services.Select(s => new ServiceResponse
+                {
+                    ServiceId = s.ServiceId,
+                    ServiceName = s.Service.ServiceName
+                }).ToList()
+
+            }).ToList();
+
+            return new PagedResult<JobCardListDto>
+            {
+                PageData = result,
+                Page = page,
+                PageSize = pageSize,
+                Total = totalCount
+            };
         }
+        
         public async Task<bool> UpdateAsync(
             int id,
             UpdateJobCardDto dto,
@@ -223,10 +268,7 @@ namespace Garage_Management.Application.Services.JobCards
 
             return true;
         }
-        public async Task<bool> AddServiceAsync(
-     int jobCardId,
-     AddServiceToJobCardDto dto,
-     CancellationToken cancellationToken)
+        public async Task<bool> AddServiceAsync(int jobCardId, AddServiceToJobCardDto dto, CancellationToken cancellationToken)
         {
             // 1️⃣ Kiểm tra JobCard tồn tại
             var jobCard = await _repository.GetByIdAsync(jobCardId);
@@ -239,6 +281,8 @@ namespace Garage_Management.Application.Services.JobCards
                 .FirstOrDefaultAsync(x => x.ServiceId == dto.ServiceId, cancellationToken);
 
             if (service == null) return false;
+            if (!service.BasePrice.HasValue || service.BasePrice.Value <= 0)
+                throw new InvalidOperationException("Service chua c� gi�, kh�ng th? th�m v�o JobCard");
 
             // 3️⃣ Tạo JobCardService (entity)
             var jobCardService = new JobCardServiceEntity
@@ -246,7 +290,7 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = jobCardId,
                 ServiceId = service.ServiceId,
                 Description = dto.Description,
-                Price = service.BasePrice,
+                Price = service.BasePrice.Value,
                 Status = ServiceStatus.Pending
             };
 
@@ -268,48 +312,9 @@ namespace Garage_Management.Application.Services.JobCards
 
             return true;
         }
-        public async Task<bool> AddSparePartAsync(
-    int jobCardId,
-    AddSparePartToJobCardDto dto,
-    CancellationToken cancellationToken)
-        {
-            // 1️⃣ Kiểm tra JobCard
-            var jobCard = await _repository.GetByIdAsync(jobCardId);
-            if (jobCard == null) return false;
+      
 
-            // 2️⃣ Lấy Inventory theo SparePartId
-            var inventory = await _inventoryRepository
-                .Query()
-                .FirstOrDefaultAsync(x => x.SparePartId == dto.SparePartId, cancellationToken);
-
-            if (inventory == null) return false;
-
-            if (dto.Quantity <= 0) return false;
-
-            // 3️⃣ Lấy giá bán (nullable → decimal)
-            var unitPrice = inventory.SellingPrice ?? 0m;
-
-            var entity = new JobCardSparePart
-            {
-                JobCardId = jobCardId,
-                SparePartId = dto.SparePartId,
-                Quantity = dto.Quantity,
-                UnitPrice = unitPrice,
-                TotalAmount = unitPrice * dto.Quantity,
-                IsUnderWarranty = dto.IsUnderWarranty,
-                Note = dto.Note,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _jobCardSparePartRepository.AddAsync(entity, cancellationToken);
-            await _jobCardSparePartRepository.SaveAsync(cancellationToken);
-
-            return true;
-        }
-
-        public async Task<bool> AssignWorkBayAsync(
-    AssignWorkBayRequestDto dto,
-    CancellationToken cancellationToken)
+        public async Task<bool> AssignWorkBayAsync(AssignWorkBayRequestDto dto, CancellationToken cancellationToken)
         {
             var jobCard = await _repository.GetByIdAsync(dto.JobCardId);
             if (jobCard == null)
@@ -353,8 +358,291 @@ namespace Garage_Management.Application.Services.JobCards
 
         public async Task<List<JobcardListBySupervisor>> GetJobCardsBySupervisorIdAsync(int supervisorId)
         {
-            return await _repository.GetBySupervisorIdAsync(supervisorId);
+            var jobCards = await _repository.GetBySupervisorIdAsync(supervisorId);
+
+            return jobCards.Select(x => new JobcardListBySupervisor
+            {
+                JobCardId = x.JobCardId,
+                AppointmentId = x.AppointmentId,
+                Appointment = x.Appointment == null ? null : new
+                {
+                    x.Appointment.AppointmentDateTime
+                },
+                CustomerId = x.CustomerId,
+                Customer = x.Customer == null ? null : new
+                {
+                    x.Customer.FirstName,
+                    x.Customer.LastName,
+                },
+
+                VehicleId = x.VehicleId,
+                Vehicle = x.Vehicle == null ? null : new
+                {
+                  
+                    x.Vehicle.LicensePlate
+                },
+
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+
+                Status = (int)x.Status,
+                Note = x.Note,
+
+                SupervisorId = x.SupervisorId ?? 0,
+                Supervisor = x.Supervisor == null ? null : new
+                {
+                    x.Supervisor.FullName
+                },
+
+                Services = x.Services
+                    .Select(s => new
+                        {
+                         s.ServiceId,
+                         ServiceName = s.Service.ServiceName,
+        
+    })
+    .Cast<object>()
+    .ToList()
+            }).ToList();
         }
 
+        public async Task<ApiResponse<UpdateProgressResponse>> UpdateRepairProgressAsync(int jobCardId, UpdateJobCardProgressDto dto, CancellationToken cancellationToken)
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null || !httpContext.User.Identity?.IsAuthenticated == true)
+            {
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Vui lòng đăng nhập để cập nhật tiến độ");
+            }
+
+            var mechanicId = int.Parse(
+                httpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+            );
+
+            // Kiểm tra JobCard tồn tại
+            var jobCard = await _repository.GetByIdAsync(jobCardId);
+            if (jobCard == null)
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Kh�ng t�m th?y phi?u s?a ch?a");
+
+            // Kiểm tra Mechanic được assign cho JobCard này
+            var isAssigned = await _repository.IsMechanicAssignedAsync(jobCardId, mechanicId);
+            if (!isAssigned)
+                throw new UnauthorizedAccessException("Thợ máy không được phân công cho phiểu sửa chữa này");
+
+            // Cập nhật các trường progress
+            if (dto.Status.HasValue)
+                jobCard.Status = dto.Status.Value;
+
+            if (dto.ProgressPercentage.HasValue)
+                jobCard.ProgressPercentage = dto.ProgressPercentage.Value;
+
+            //if (!string.IsNullOrEmpty(dto.CompletedSteps))
+            //    jobCard.CompletedSteps = dto.CompletedSteps;
+
+            if (!string.IsNullOrEmpty(dto.ProgressNotes))
+                jobCard.ProgressNotes = dto.ProgressNotes;
+
+            // Nếu có faults mới, thêm vào ProgressNotes hoặc tạo notification
+            if (!string.IsNullOrEmpty(dto.AdditionalFaults))
+            {
+                // Thêm vào ProgressNotes
+                jobCard.ProgressNotes = string.IsNullOrEmpty(jobCard.ProgressNotes)
+                    ? $"New faults discovered: {dto.AdditionalFaults}"
+                    : $"{jobCard.ProgressNotes}\nNew faults discovered: {dto.AdditionalFaults}";
+
+                // TODO: Tạo notification cho Supervisor
+                // Có thể inject INotificationService và gọi CreateNotificationAsync(jobCard.SupervisorId, "New faults reported", dto.AdditionalFaults);
+            }
+
+            // Cập nhật trạng thái các services nếu có
+            if (dto.ServiceUpdates != null && dto.ServiceUpdates.Any())
+            {
+                foreach (var serviceUpdate in dto.ServiceUpdates)
+                {
+                    var jobCardService = jobCard.Services.FirstOrDefault(s => s.JobCardServiceId == serviceUpdate.JobCardServiceId);
+                    if (jobCardService != null)
+                    {
+                        jobCardService.Status = serviceUpdate.Status;
+                        jobCardService.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+            }
+
+            // Kiểm tra nếu tất cả services đã completed, thì đánh dấu JobCard completed
+            if (jobCard.Services != null && jobCard.Services.Any() && jobCard.Services.All(s => s.Status == ServiceStatus.Completed))
+            {
+                jobCard.Status = JobCardStatus.Completed;
+                jobCard.EndDate = DateTime.UtcNow;
+                jobCard.ProgressPercentage = 100;
+            }
+
+            _repository.Update(jobCard);
+            await _repository.SaveAsync(cancellationToken);
+
+            // Tạo response
+            var response = new UpdateProgressResponse
+            {
+                JobCardId = jobCard.JobCardId,
+                Status = jobCard.Status,
+                StatusJobCardName = jobCard.Status.ToString(),
+                ProgressPercentage = jobCard.ProgressPercentage,
+                ProgressNotes = jobCard.ProgressNotes,
+                EndDate = jobCard.EndDate,
+                Services = jobCard.Services.Select(s => new JobCardServiceProgressDto
+                {
+                    JobCardServiceId = s.JobCardServiceId,
+                    ServiceId = s.ServiceId,
+                    ServiceName = s.Service?.ServiceName ?? "Unknown Service",
+                    Status = s.Status,
+                    StatusName = s.Status.ToString(),
+                    Description = s.Description,
+                    CreatedAt = s.CreatedAt,
+                    UpdatedAt = s.UpdatedAt
+                }).ToList()
+            };
+
+            return ApiResponse<UpdateProgressResponse>.SuccessResponse(response, "Cập nhật tiến độ thành công.");
+        }
+
+        public async Task<ApiResponse<ViewRepairProgressResponse>> ViewRepairProgressAsync(int jobCardId, CancellationToken cancellationToken)
+        {
+            var formatdate = new FormatDateTime();
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null || !httpContext.User.Identity?.IsAuthenticated == true)
+            {
+                return ApiResponse<ViewRepairProgressResponse>.ErrorResponse("Vui lòng đăng nhập để cập nhật tiến độ");
+            }
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var customerIdClaim = httpContext.User.FindFirst("CustomerId")?.Value;
+            var userRoleClaim = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userRoleClaim))
+            {
+                return ApiResponse<ViewRepairProgressResponse>.ErrorResponse("Thông tin người dùng không hợp lệ");
+            }
+            var userId = int.Parse(userIdClaim);
+            string userRole = userRoleClaim;
+
+            // Lấy JobCard với đầy đủ thông tin, bao gồm ServiceTasks
+            var jobCard = await _repository.GetByIdAsync(jobCardId);
+            if (jobCard == null)
+                return ApiResponse<ViewRepairProgressResponse>.ErrorResponse("Không tìm thấy phiếu sửa chữa.");
+
+            // Kiểm tra permissions
+            bool hasPermission = userRole switch
+            {
+                "Customer" => jobCard.Customer?.UserId == userId,
+                "Mechanic" => jobCard.Mechanics?.Any(m => m.EmployeeId == userId) == true,
+                "Supervisor" or "Admin" => true,
+                _ => false
+            };
+
+            if (!hasPermission)
+            {
+                return ApiResponse<ViewRepairProgressResponse>.ErrorResponse("Bạn không có quyền xem phiếu sửa chữa này.");
+            }
+
+            // Tính tổng thời gian ước tính còn lại
+            long totalRemainingMinutes = 0;
+            var services = new List<ServiceProgressDto>();
+
+            foreach (var service in jobCard.Services)
+            {
+                var tasks = service.ServiceTasks.Select(t => new TaskProgressDto
+                {
+                    JobCardServiceTaskId = t.JobCardServiceTaskId,
+                    TaskName = t.ServiceTask?.TaskName ?? "Unknown Task",
+                    Status = t.Status,
+                    ServiceTaskStatusName = t.Status.ToString(),
+                    EstimateMinute = t.ServiceTask?.EstimateMinute ?? 0,
+                    StartedAt = t.StartedAt,
+                    CompletedAt = t.CompletedAt
+                }).ToList();
+
+                var remainingMinutes = tasks.Where(t => t.Status != ServiceStatus.Completed).Sum(t => (long)t.EstimateMinute);
+                totalRemainingMinutes += remainingMinutes;
+
+                services.Add(new ServiceProgressDto
+                {
+                    JobCardServiceId = service.JobCardServiceId,
+                    ServiceId = service.ServiceId,
+                    ServiceName = service.Service?.ServiceName ?? "Unknown Service",
+                    Status = service.Status,
+                    ServiceStatusName = service.Status.ToString(),
+                    Description = service.Description,
+                    EstimatedMinutesRemaining = remainingMinutes,
+                    Tasks = tasks
+                });
+            }
+
+            int bufferMinutes = 5;
+            // Tạo response
+            var response = new ViewRepairProgressResponse
+            {
+                JobCardId = jobCard.JobCardId,
+                CustomerName = jobCard.Customer != null ? $"{jobCard.Customer.FirstName} {jobCard.Customer.LastName}" : "Unknown Customer",
+                CustomerPhoneNumber = jobCard.Customer?.User.PhoneNumber,
+                VehicleBrand = jobCard.Vehicle?.Brand.BrandName ?? "Unknown Brand",
+                VehicleModel = jobCard.Vehicle?.Model.ModelName ?? "Unknown Model",
+                VehicleLicensePlate = jobCard.Vehicle?.LicensePlate ?? "Unknown License Plate",
+                Status = jobCard.Status,
+                StatusJobCardName = jobCard.Status.ToString(),
+                ProgressPercentage = jobCard.ProgressPercentage,
+               // CompletedSteps = jobCard.CompletedSteps,
+                ProgressNotes = jobCard.ProgressNotes,
+                StartDate = jobCard.StartDate,
+                EndDate = jobCard.EndDate,
+                EstimatedCompletionTime = CalculateEstimatedCompletionDisplay(jobCard.StartDate, totalRemainingMinutes, bufferMinutes),
+                EstimatedJobCardMinutesRemaining = totalRemainingMinutes,
+                Services = services,
+                AssignedMechanic = jobCard.Mechanics.Any() ? string.Join(", ", jobCard.Mechanics.Select(m => m.Employee?.FullName ?? "Unknown")) : null,
+                Supervisor = jobCard.Supervisor?.FullName
+            };
+
+            // Nếu là Customer, ẩn internal details
+            if (userRole == "Customer")
+            {
+                response.ProgressNotes = null;
+                // Ẩn tasks details nếu cần
+            }
+
+            return ApiResponse<ViewRepairProgressResponse>.SuccessResponse(response, "Lấy thông tin tiến độ thành công.");
+        }
+
+        /// <summary>
+        /// Tính chuỗi hiển thị khoảng thời gian dự kiến hoàn thành (ví dụ: "13:45 - 13:55").
+        /// </summary>
+        /// <param name="startTime">Thời điểm bắt đầu thực tế (có thể null nếu chưa bắt đầu)</param>
+        /// <param name="remainingMinutes">Tổng số phút ước tính còn lại</param>
+        /// <param name="bufferMinutes">Khoảng buffer ± (mặc định 5 phút)</param>
+        /// <returns>Chuỗi dạng "HH:mm - HH:mm" hoặc thông báo trạng thái</returns>
+        private string? CalculateEstimatedCompletionDisplay(DateTime? startTime, long remainingMinutes, int bufferMinutes = 5)
+        {
+            if (!startTime.HasValue)
+            {
+                return "Chưa bắt đầu";
+            }
+
+            if (remainingMinutes <= 0)
+            {
+                return "Đã hoàn thành";
+            }
+
+            var baseEndTime = startTime.Value.AddMinutes(remainingMinutes);
+
+            // Tạo khoảng ± buffer
+            var minEnd = baseEndTime.AddMinutes(-bufferMinutes);
+            var maxEnd = baseEndTime.AddMinutes(bufferMinutes);
+            string format;
+            if (minEnd.Date == maxEnd.Date)
+            {
+                format = "HH:mm";
+            }
+            else
+            {
+                format = "dd/MM HH:mm";
+            }
+            string minFormatted = minEnd.ToString(format);
+            string maxFormatted = maxEnd.ToString(format);
+            return $"{minFormatted} - {maxFormatted}";
+        }
     }
 }

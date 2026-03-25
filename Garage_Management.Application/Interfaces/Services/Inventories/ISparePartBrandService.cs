@@ -21,7 +21,7 @@ namespace Garage_Management.Application.Interfaces.Services.Inventories
         /// <summary>
         /// Lấy danh sách hãng phụ tùng có phân trang
         /// </summary>
-        Task<PagedResult<SparePartBrandResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<PagedResult<SparePartBrandResponse>> GetPagedAsync(ParamQuery query, bool onlyActive = false, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 26-2-2026
