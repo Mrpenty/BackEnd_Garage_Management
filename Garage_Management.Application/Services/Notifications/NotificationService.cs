@@ -46,26 +46,28 @@ namespace Garage_Management.Application.Services.Notifications
             //Xử lý recipient → tạo nhiều notification nếu cần
            var notificationsToCreate = new List<Notification>();
 
-            //if (request.RecipientType == "SpecificUser" && request.SpecificUserId.HasValue)
-            //{
-            //    notificationsToCreate.Add(CreateNotificationEntity(request, request.SpecificUserId.Value));
-            //}
-            //else if (request.RecipientType == "AllCustomers")
-            //{
-            //    var customers = await _userRepo.GetCustomersAsync(ct);
-            //    notificationsToCreate.AddRange(customers.Select(u => CreateNotificationEntity(request, u.UserId)));
-            //}
-            //else if (request.RecipientType == "AllStaff")
-            //{
-            //    var staff = await _userRepo.GetEmployeesAsync(ct);
-            //    notificationsToCreate.AddRange(staff.Select(u => CreateNotificationEntity(request, u.UserId)));
-            //}
-            //// thêm case Group nếu cần...
+            if (request.RecipientType == "SpecificUser" && request.SpecificUserId.HasValue)
+            {
+                notificationsToCreate.Add(CreateNotificationEntity(request, request.SpecificUserId.Value));
+            }
+            else if (request.RecipientType == "AllCustomers")
+            {
+                var customers = await _userRepo.GetCustomersAsync(ct);
+                notificationsToCreate.AddRange(customers.Select(u => CreateNotificationEntity(request, u.Id)));
+            }
+            else if (request.RecipientType == "AllStaff")
+            {
+                var staff = await _userRepo.GetEmployeesAsync(ct);
+                notificationsToCreate.AddRange(staff.Select(u => CreateNotificationEntity(request, u.Id)));
+            }
+            else
+            {
+                return ApiResponse<NotificationResponse>.ErrorResponse("Loại người nhận không hợp lệ");
+            }
 
             if (!notificationsToCreate.Any())
                 return ApiResponse<NotificationResponse>.ErrorResponse("Không tìm thấy người nhận");
 
-            // Save to DB
             _notificationRepo.AddRange(notificationsToCreate);
             await _notificationRepo.SaveAsync(ct);
 
