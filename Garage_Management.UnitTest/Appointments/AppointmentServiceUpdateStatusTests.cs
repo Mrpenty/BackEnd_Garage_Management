@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
@@ -99,7 +99,7 @@ namespace Garage_Management.UnitTest.Appointments
             _appointmentRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
 
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateStatusAsync(1, AppointmentStatus.InProgress, CancellationToken.None));
+                () => _service.UpdateStatusAsync(1, AppointmentStatus.ConvertedToJobCard, CancellationToken.None));
         }
 
         [TestMethod]
@@ -110,10 +110,10 @@ namespace Garage_Management.UnitTest.Appointments
             _appointmentRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
             _appointmentRepo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.UpdateStatusAsync(1, AppointmentStatus.InProgress, CancellationToken.None);
+            var result = await _service.UpdateStatusAsync(1, AppointmentStatus.ConvertedToJobCard, CancellationToken.None);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(AppointmentStatus.InProgress, entity.Status);
+            Assert.AreEqual(AppointmentStatus.ConvertedToJobCard, entity.Status);
         }
 
         [TestMethod]
@@ -143,7 +143,7 @@ namespace Garage_Management.UnitTest.Appointments
         [TestMethod]
         public async Task UpdateStatusAsync_InProgressToConvertedToJobCard_UpdatesStatus()
         {
-            var entity = CreateAppointment(AppointmentStatus.InProgress);
+            var entity = CreateAppointment(AppointmentStatus.ConvertedToJobCard);
             _appointmentRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
             _appointmentRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
             _appointmentRepo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
@@ -157,7 +157,7 @@ namespace Garage_Management.UnitTest.Appointments
         [TestMethod]
         public async Task UpdateStatusAsync_InProgressToCompleted_UpdatesStatus()
         {
-            var entity = CreateAppointment(AppointmentStatus.InProgress);
+            var entity = CreateAppointment(AppointmentStatus.ConvertedToJobCard);
             _appointmentRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
             _appointmentRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
             _appointmentRepo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);

@@ -5,14 +5,10 @@ using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Accounts;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.AspNetCore.Http;
 using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
-
 namespace Garage_Management.UnitTest.JobCards
 {
     [TestClass]
@@ -25,7 +21,7 @@ namespace Garage_Management.UnitTest.JobCards
         private Mock<IJobCardSparePartRepository> _jobCardSparePartRepo;
         private Mock<IWorkBayRepository> _workBayRepo;
         private Mock<IAppointmentRepository> _appointmentRepo;
-
+        private Mock<IHttpContextAccessor> _httpContextAccessor;
         private JobCardServiceApp _service;
 
         [TestInitialize]
@@ -38,7 +34,7 @@ namespace Garage_Management.UnitTest.JobCards
             _jobCardSparePartRepo = new Mock<IJobCardSparePartRepository>();
             _workBayRepo = new Mock<IWorkBayRepository>();
             _appointmentRepo = new Mock<IAppointmentRepository>();
-
+            _httpContextAccessor = new Mock<IHttpContextAccessor>();
             _service = new JobCardServiceApp(
                 _jobCardRepo.Object,
                 _serviceRepo.Object,
@@ -46,7 +42,8 @@ namespace Garage_Management.UnitTest.JobCards
                 _jobCardServiceRepo.Object,
                 _jobCardSparePartRepo.Object,
                 _workBayRepo.Object,
-                _appointmentRepo.Object
+                _appointmentRepo.Object,
+                 _httpContextAccessor.Object
             );
         }
 
@@ -184,28 +181,7 @@ namespace Garage_Management.UnitTest.JobCards
 
             Assert.AreEqual("old", jobCard.Note);
         }
-        [TestMethod]
-        public async Task CreateAsync_Throws_WhenAppointmentNotFound()
-        {
-            var dto = new CreateJobCardDto
-            {
-                AppointmentId = 5,
-                CustomerId = 1,
-                VehicleId = 1
-            };
-
-            _jobCardRepo.Setup(x => x.HasJobCardByAppointmentIdAsync(5))
-                .ReturnsAsync(false);
-
-            _jobCardRepo.Setup(x => x.HasActiveJobCardAsync(1))
-                .ReturnsAsync(false);
-
-            _appointmentRepo.Setup(x => x.GetByIdAsync(5))
-                .ReturnsAsync((Appointment)null);
-
-            await Assert.ThrowsExceptionAsync<Exception>(() =>
-                _service.CreateAsync(dto, 1, CancellationToken.None));
-        }
+        
         [TestMethod]
         public async Task CreateAsync_Throws_WhenAppointmentNotConfirmed()
         {

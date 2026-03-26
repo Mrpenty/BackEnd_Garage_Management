@@ -18,7 +18,8 @@ namespace Garage_Management.Base.Data.Configurations.Services
             builder.Property(s => s.Description)
                 .HasMaxLength(500);
             builder.Property(s => s.BasePrice)
-                .HasPrecision(18, 2);
+                .HasPrecision(18, 2)
+                .IsRequired(false);
             // Quan hệ 1-n: Một Service có nhiều ServiceTask
             builder.HasMany(s => s.ServiceTasks)
                    .WithOne(t => t.Service)
