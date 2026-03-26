@@ -1,6 +1,5 @@
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
-using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.JobCards;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
@@ -8,6 +7,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 
 namespace Garage_Management.Application.Services.JobCards
 {

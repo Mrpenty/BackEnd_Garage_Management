@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.Interfaces.Services;
+﻿using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Application.Services.JobCards;
 using Garage_Management.Base.Interface;
 using Garage_Management.Base.Services;

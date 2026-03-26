@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
@@ -9,6 +10,9 @@ namespace Garage_Management.API.Controllers
     [Route("api/[controller]")]
     public class ServicesController : ControllerBase
     {
+        private const string ManagerRoles = "Supervisor,Admin";
+        private const string AccountantRoles = "Admin";
+
         private readonly IServiceService _service;
 
         public ServicesController(IServiceService service)
@@ -73,15 +77,50 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Tạo 1 dịch vụ mới
+        /// Tạo 1 dịch vụ mới (chưa có giá, mặc định IsActive=false)
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<ServiceResponse>>> Create(
             [FromBody] ServiceCreateRequest request,
             CancellationToken ct = default)
         {
             var data = await _service.CreateAsync(request, ct);
             return CreatedAtAction(nameof(GetById), new { id = data.ServiceId }, ApiResponse<ServiceResponse>.SuccessResponse(data, "Created"));
+        }
+
+        /// <summary>
+        /// Kế toán cập nhật giá dịch vụ.
+        /// </summary>
+        [HttpPatch("{id:int}/price")]
+        [Authorize(Roles = AccountantRoles)]
+        public async Task<ActionResult<ApiResponse<ServiceResponse>>> UpdatePrice(
+            int id,
+            [FromBody] ServicePriceUpdateRequest request,
+            CancellationToken ct = default)
+        {
+            var data = await _service.UpdatePriceAsync(id, request, ct);
+            if (data == null)
+                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
+
+            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Price updated"));
+        }
+
+        /// <summary>
+        /// Quản lý bật/tắt dịch vụ qua IsActive.
+        /// </summary>
+        [HttpPatch("{id:int}/status")]
+        [Authorize(Roles = ManagerRoles)]
+        public async Task<ActionResult<ApiResponse<ServiceResponse>>> UpdateStatus(
+            int id,
+            [FromBody] ServiceUpdateStatusRequest request,
+            CancellationToken ct = default)
+        {
+            var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
+            if (data == null)
+                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
+
+            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Status updated"));
         }
 
         ///Author: KhanhDV
@@ -103,6 +142,7 @@ namespace Garage_Management.API.Controllers
         /// Deactivate 1 service.
         /// </summary>
         [HttpPatch("{id:int}/deactivate")]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<ServiceResponse>>> Deactivate(int id, CancellationToken ct = default)
         {
             var data = await _service.DeactivateAsync(id, ct);

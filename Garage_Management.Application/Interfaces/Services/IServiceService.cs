@@ -32,6 +32,8 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <param name="pageSize">Tổng số trang</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>    
         Task<ServiceResponse> CreateAsync(ServiceCreateRequest request, CancellationToken ct = default);
+        Task<ServiceResponse?> UpdatePriceAsync(int id, ServicePriceUpdateRequest request, CancellationToken ct = default);
+        Task<ServiceResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 13-2-2026

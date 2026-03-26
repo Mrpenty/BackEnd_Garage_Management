@@ -6,7 +6,7 @@ namespace Garage_Management.Application.Interfaces.Repositories
 {
     public interface ISparePartBrandRepository : IBaseRepository<SparePartBrand>
     {
-        Task<PagedResult<SparePartBrand>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<PagedResult<SparePartBrand>> GetPagedAsync(ParamQuery query, bool onlyActive = false, CancellationToken ct = default);
         Task<bool> HasExistAsync(string brandName, int? excludeId = null, CancellationToken ct = default);
         Task<bool> HasSparePartsAsync(int brandId, CancellationToken ct = default);
     }

@@ -20,7 +20,7 @@ namespace Garage_Management.Application.DTOs.JobCards
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-        public int EstimatedJobCardMinutesRemaining { get; set; }
+        public long EstimatedJobCardMinutesRemaining { get; set; }
         public string? EstimatedCompletionTime { get; set; } // Tổng thời gian ước tính còn lại
         public List<ServiceProgressDto> Services { get; set; } = new();
         public string? AssignedMechanic { get; set; }
@@ -35,7 +35,7 @@ namespace Garage_Management.Application.DTOs.JobCards
         public ServiceStatus Status { get; set; }
         public string ServiceStatusName { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public int EstimatedMinutesRemaining { get; set; } // Thời gian ước tính còn lại cho service này
+        public long EstimatedMinutesRemaining { get; set; } // Thời gian ước tính còn lại cho service này
         public List<TaskProgressDto> Tasks { get; set; } = new();
     }
 

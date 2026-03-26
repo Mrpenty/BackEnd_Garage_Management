@@ -1,4 +1,4 @@
-﻿using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Application.DTOs.Appointments;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
@@ -8,7 +8,7 @@ using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Services;
-using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Application.Repositories.JobCards;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Format;
@@ -64,43 +64,44 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
 
-        public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto ,int currentUserId, CancellationToken cancellationToken)
+        public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken)
         {
-            //  CHECK 1: Appointment đã có JobCard chưa
-            var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
+           // ❗ CHECK 1: Appointment đã có JobCard chưa
+           if (dto.AppointmentId.HasValue)
+           {
+               var hasJobCard = await _repository.HasJobCardByAppointmentIdAsync(dto.AppointmentId);
 
-            if (hasJobCard)
-                throw new Exception("Appointment already has a JobCard.");
+               if (hasJobCard)
+                   throw new Exception("Appointment này đã được tạo JobCard.");
+           }
 
-            //  CHECK 2: Xe đã có JobCard active chưa
-            var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
+           // CHECK 2
+           var hasActive = await _repository.HasActiveJobCardAsync(dto.VehicleId);
 
-            if (hasActive)
-                throw new Exception("Vehicle already has an active JobCard.");
-
+           if (hasActive)
+               throw new Exception("Xe này đang có JobCard đang hoạt động.");
             var app = await _appointmentRepository.GetByIdAsync((int)dto.AppointmentId);
 
-            if (app == null)
-                throw new Exception("Appointment not found.");
 
             // CHECK 4: status
-            if (app.Status != AppointmentStatus.Confirmed)
-                throw new Exception("Appointment must be confirmed.");
-
-            var entity = new JobCard
+            if (app != null && app.Status != AppointmentStatus.Confirmed)
             {
-                AppointmentId = dto.AppointmentId,
-                CustomerId = dto.CustomerId,
-                VehicleId = dto.VehicleId,
-                Note = dto.Note,
-                SupervisorId = dto.SupervisorId,
-                StartDate = DateTime.UtcNow,
-                Status = JobCardStatus.Created,
-                CreatedBy = currentUserId
-            };
+                throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+            }
+            var entity = new JobCard
+           {
+               AppointmentId = dto.AppointmentId,
+               CustomerId = dto.CustomerId,
+               VehicleId = dto.VehicleId,
+               Note = dto.Note,
+               SupervisorId = dto.SupervisorId,
+               StartDate = DateTime.UtcNow,
+               Status = JobCardStatus.Created,
+               CreatedBy = currentUserId
+           };
 
-            await _repository.AddAsync(entity, cancellationToken);
-            await _repository.SaveAsync(cancellationToken);
+           await _repository.AddAsync(entity, cancellationToken);
+           await _repository.SaveAsync(cancellationToken);
 
 
             // 🔹 ADD SERVICES
@@ -112,12 +113,13 @@ namespace Garage_Management.Application.Services.JobCards
                 }
             }
 
-            // ❗ UPDATE APPOINTMENT STATUS
             if (dto.AppointmentId.HasValue)
             {
+                // Khi tạo JobCard thành công, chuyển Appointment sang trạng thái "Đã chuyển thành phiếu sửa chữa" (=3).
+                var convertedStatus = AppointmentStatus.ConvertedToJobCard;
                 await _appointmentRepository.UpdateStatusAsync(
                     dto.AppointmentId.Value,
-                    AppointmentStatus.ConvertedToJobCard,
+                    convertedStatus,
                     cancellationToken);
             }
 
@@ -134,6 +136,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId
             };
+        
         }
 
         public async Task<JobCardDto?> GetByIdAsync(int id)
@@ -278,6 +281,8 @@ namespace Garage_Management.Application.Services.JobCards
                 .FirstOrDefaultAsync(x => x.ServiceId == dto.ServiceId, cancellationToken);
 
             if (service == null) return false;
+            if (!service.BasePrice.HasValue || service.BasePrice.Value <= 0)
+                throw new InvalidOperationException("Service chua c� gi�, kh�ng th? th�m v�o JobCard");
 
             // 3️⃣ Tạo JobCardService (entity)
             var jobCardService = new JobCardServiceEntity
@@ -285,7 +290,7 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = jobCardId,
                 ServiceId = service.ServiceId,
                 Description = dto.Description,
-                Price = service.BasePrice,
+                Price = service.BasePrice.Value,
                 Status = ServiceStatus.Pending
             };
 
@@ -307,39 +312,7 @@ namespace Garage_Management.Application.Services.JobCards
 
             return true;
         }
-        public async Task<bool> AddSparePartAsync(int jobCardId, AddSparePartToJobCardDto dto, CancellationToken cancellationToken)
-        {
-            // 1️⃣ Kiểm tra JobCard
-            var jobCard = await _repository.GetByIdAsync(jobCardId);
-            if (jobCard == null) return false;
-
-            // 2️⃣ Lấy Inventory theo SparePartId
-            var inventory = await _inventoryRepository.GetByIdAsync(dto.SparePartId);
-
-            if (inventory == null) return false;
-
-            if (dto.Quantity <= 0) return false;
-
-            // 3️⃣ Lấy giá bán (nullable → decimal)
-            var unitPrice = inventory.SellingPrice ?? 0m;
-
-            var entity = new JobCardSparePart
-            {
-                JobCardId = jobCardId,
-                SparePartId = dto.SparePartId,
-                Quantity = dto.Quantity,
-                UnitPrice = unitPrice,
-                TotalAmount = unitPrice * dto.Quantity,
-                IsUnderWarranty = dto.IsUnderWarranty,
-                Note = dto.Note,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _jobCardSparePartRepository.AddAsync(entity, cancellationToken);
-            await _jobCardSparePartRepository.SaveAsync(cancellationToken);
-
-            return true;
-        }
+      
 
         public async Task<bool> AssignWorkBayAsync(AssignWorkBayRequestDto dto, CancellationToken cancellationToken)
         {
@@ -448,7 +421,7 @@ namespace Garage_Management.Application.Services.JobCards
             // Kiểm tra JobCard tồn tại
             var jobCard = await _repository.GetByIdAsync(jobCardId);
             if (jobCard == null)
-                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Không tìm thấy phiếu sửa chữa");
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Kh�ng t�m th?y phi?u s?a ch?a");
 
             // Kiểm tra Mechanic được assign cho JobCard này
             var isAssigned = await _repository.IsMechanicAssignedAsync(jobCardId, mechanicId);
@@ -568,7 +541,7 @@ namespace Garage_Management.Application.Services.JobCards
             }
 
             // Tính tổng thời gian ước tính còn lại
-            int totalRemainingMinutes = 0;
+            long totalRemainingMinutes = 0;
             var services = new List<ServiceProgressDto>();
 
             foreach (var service in jobCard.Services)
@@ -584,7 +557,7 @@ namespace Garage_Management.Application.Services.JobCards
                     CompletedAt = t.CompletedAt
                 }).ToList();
 
-                var remainingMinutes = tasks.Where(t => t.Status != ServiceStatus.Completed).Sum(t => t.EstimateMinute);
+                var remainingMinutes = tasks.Where(t => t.Status != ServiceStatus.Completed).Sum(t => (long)t.EstimateMinute);
                 totalRemainingMinutes += remainingMinutes;
 
                 services.Add(new ServiceProgressDto
@@ -641,7 +614,7 @@ namespace Garage_Management.Application.Services.JobCards
         /// <param name="remainingMinutes">Tổng số phút ước tính còn lại</param>
         /// <param name="bufferMinutes">Khoảng buffer ± (mặc định 5 phút)</param>
         /// <returns>Chuỗi dạng "HH:mm - HH:mm" hoặc thông báo trạng thái</returns>
-        private string? CalculateEstimatedCompletionDisplay(DateTime? startTime, int remainingMinutes,int bufferMinutes = 5)
+        private string? CalculateEstimatedCompletionDisplay(DateTime? startTime, long remainingMinutes, int bufferMinutes = 5)
         {
             if (!startTime.HasValue)
             {

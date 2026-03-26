@@ -147,11 +147,10 @@ namespace Garage_Management.Application.Repositories.Appointments
                 q = q.Where(a =>
                     (statuses.Contains("pending") && a.Status == AppointmentStatus.Pending) ||
                     (statuses.Contains("confirmed") && a.Status == AppointmentStatus.Confirmed) ||
-                    (statuses.Contains("inprogress") && a.Status == AppointmentStatus.InProgress) ||
+                    ((statuses.Contains("inprogress") || statuses.Contains("convertedtojobcard")) && a.Status == AppointmentStatus.ConvertedToJobCard) ||
                     (statuses.Contains("completed") && a.Status == AppointmentStatus.Completed) ||
                     ((statuses.Contains("canceled") || statuses.Contains("cancelled")) && a.Status == AppointmentStatus.Cancelled) ||
-                    (statuses.Contains("noshow") && a.Status == AppointmentStatus.NoShow) ||
-                    (statuses.Contains("convertedtojobcard") && a.Status == AppointmentStatus.ConvertedToJobCard)
+                    (statuses.Contains("noshow") && a.Status == AppointmentStatus.NoShow)
                 );
             }
             if (query.CustomerId.HasValue)
@@ -212,11 +211,12 @@ namespace Garage_Management.Application.Repositories.Appointments
         public async Task UpdateStatusAsync(int appointmentId, AppointmentStatus status, CancellationToken cancellationToken)
         {
             var appointment = await _context.Appointments
-                .FirstOrDefaultAsync(x => x.AppointmentId == appointmentId);
+                .FirstOrDefaultAsync(x => x.AppointmentId == appointmentId, cancellationToken);
 
             if (appointment != null)
             {
                 appointment.Status = status;
+                appointment.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
