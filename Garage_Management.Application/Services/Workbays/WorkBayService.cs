@@ -4,6 +4,7 @@ using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Entities.JobCards;
 
 namespace Garage_Management.Application.Services.Workbays
 {
@@ -31,31 +32,16 @@ namespace Garage_Management.Application.Services.Workbays
             var allJobs = await _jobCardRepository
                 .GetByWorkBayIdsAsync(bayIds, cancellationToken);
 
-            var result = bays.Select(bay => new WorkBayDto
-            {
-                Id = bay.Id,
-                Name = bay.Name,
-                Note = bay.Note,
-                Status = bay.Status,
-                JobcardId = bay.JobcardId,
-                CreateAt = bay.CreateAt,
-                StartAt = bay.StartAt,
-                EndAt = bay.EndAt,
-
-                JobCards = allJobs
-                    .Where(j => j.WorkBayId == bay.Id)
-                    .Select(j => new JobCardListDto
-                    {
-                        JobCardId = j.JobCardId,
-                        Status = j.Status,
-                        StartDate = j.StartDate
-                    }).ToList()
-            }).ToList();
+            var result = bays
+                .Select(bay => MapWorkBay(
+                    bay,
+                    allJobs.Where(j => j.WorkBayId == bay.Id)))
+                .ToList();
 
             return result;
         }
 
-        public async Task<List<JobCardListDto>?> GetJobCardsByWorkBayAsync(
+        public async Task<WorkBayDto?> GetByIdAsync(
             int workBayId,
             CancellationToken cancellationToken)
         {
@@ -66,12 +52,57 @@ namespace Garage_Management.Application.Services.Workbays
             var jobs = await _jobCardRepository
                 .GetByWorkBayIdAsync(workBayId, cancellationToken);
 
-            return jobs.Select(j => new JobCardListDto
+            return MapWorkBay(bay, jobs);
+        }
+
+        private static WorkBayDto MapWorkBay(
+            Base.Entities.JobCards.WorkBay bay,
+            IEnumerable<JobCard> jobs)
+        {
+            return new WorkBayDto
             {
-                JobCardId = j.JobCardId,
-                Status = j.Status,
-                StartDate = j.StartDate
-            }).ToList();
+                Id = bay.Id,
+                Name = bay.Name,
+                Note = bay.Note,
+                Status = bay.Status,
+                JobcardId = bay.JobcardId,
+                CreateAt = bay.CreateAt,
+                UpdateAt = bay.UpdateAt,
+                StartAt = bay.StartAt,
+                EndAt = bay.EndAt,
+                JobCards = jobs.Select(MapJobCard).ToList()
+            };
+        }
+
+        private static JobCardListDto MapJobCard(JobCard jobCard)
+        {
+            return new JobCardListDto
+            {
+                JobCardId = jobCard.JobCardId,
+                CustomerId = jobCard.CustomerId,
+                CustomerName = $"{jobCard.Customer?.FirstName} {jobCard.Customer?.LastName}".Trim(),
+                Vehicle = jobCard.Vehicle == null
+                    ? null!
+                    : new DTOs.Vehicles.VehicleListDto
+                    {
+                        VehicleId = jobCard.Vehicle.VehicleId,
+                        BrandName = jobCard.Vehicle.Brand?.BrandName ?? string.Empty,
+                        ModelName = jobCard.Vehicle.Model?.ModelName ?? string.Empty,
+                        LicensePlate = jobCard.Vehicle.LicensePlate
+                    },
+                Status = jobCard.Status,
+                StartDate = jobCard.StartDate,
+                Services = jobCard.Services
+                    .Where(x => x.Service != null)
+                    .Select(x => new DTOs.Services.ServiceResponse
+                    {
+                        ServiceId = x.Service.ServiceId,
+                        ServiceName = x.Service.ServiceName,
+                        BasePrice = x.Service.BasePrice,
+                        Description = x.Service.Description
+                    })
+                    .ToList()
+            };
         }
     }
 }

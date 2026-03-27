@@ -36,29 +36,30 @@ namespace Garage_Management.API.Controllers
         }
 
         /// <summary>
-        /// Lấy danh sách JobCard thuộc một WorkBay (bao gồm queue)
+        /// Lấy chi tiết một WorkBay theo Id
         /// </summary>
-        [HttpGet("{id}/jobcards")]
-        public async Task<ActionResult<ApiResponse<List<JobCardListDto>>>> GetJobCardsByWorkBay(
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> GetById(
             int id,
             CancellationToken cancellationToken)
         {
-            var data = await _service.GetJobCardsByWorkBayAsync(id, cancellationToken);
+            var data = await _service.GetByIdAsync(id, cancellationToken);
 
             if (data == null)
             {
-                return NotFound(new ApiResponse<List<JobCardListDto>>
+                return NotFound(new ApiResponse<WorkBayDto>
                 {
                     Success = false,
                     Message = "WorkBay not found"
                 });
             }
 
-            return Ok(new ApiResponse<List<JobCardListDto>>
+            return Ok(new ApiResponse<WorkBayDto>
             {
                 Success = true,
                 Data = data
             });
         }
+
     }
 }

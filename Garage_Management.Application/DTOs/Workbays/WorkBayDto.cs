@@ -24,6 +24,8 @@ namespace Garage_Management.Application.DTOs.Workbays
 
         public DateTime CreateAt { get; set; }
 
+        public DateTime? UpdateAt { get; set; }
+
         public DateTime? StartAt { get; set; }
 
         public DateTime? EndAt { get; set; }
