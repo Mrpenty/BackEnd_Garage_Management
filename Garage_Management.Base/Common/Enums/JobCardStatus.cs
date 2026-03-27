@@ -10,10 +10,10 @@ namespace Garage_Management.Base.Common.Enums
     {
         Created = 1,
         OnwaitingList= 2,
-        WaitingMechanic = 3,
+        WaitingInspection = 3,
         Inspection = 4,
-        WaitingApproval = 5,
-        WaitingParts = 6,
+        WaitingSupervisorApproval = 5,
+        WaitingCustomerApproval = 6,
         InProgress = 7,
         WaitingPickup = 8,
         Completed = 9,

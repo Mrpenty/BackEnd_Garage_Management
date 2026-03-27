@@ -197,7 +197,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Status = MechanicAssignmentStatus.Assigned
             });
 
-            jobCard.Status = JobCardStatus.WaitingMechanic;
+            jobCard.Status = JobCardStatus.WaitingInspection;
 
             _repository.Update(jobCard);
             await _repository.SaveAsync(cancellationToken);
@@ -339,7 +339,7 @@ namespace Garage_Management.Application.Services.JobCards
             else
             {
                 // nếu bay bận → đưa vào hàng chờ
-                jobCard.Status = JobCardStatus.WaitingMechanic;
+                jobCard.Status = JobCardStatus.WaitingInspection;
             }
 
             jobCard.UpdatedAt = DateTime.UtcNow;
