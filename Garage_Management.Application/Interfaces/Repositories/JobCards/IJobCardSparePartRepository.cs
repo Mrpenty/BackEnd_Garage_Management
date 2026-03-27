@@ -11,11 +11,11 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
     public interface IJobCardSparePartRepository
     {
         Task AddAsync(JobCardSparePart entity, CancellationToken cancellationToken);
-        //Task AddAsync(Base.Entities.JobCards.JobCardSparePart entity, CancellationToken cancellationToken);
         IQueryable<JobCardSparePart> Query();
-
         Task SaveAsync(CancellationToken cancellationToken);
-        Task<JobCardSparePart?> GetByIdAsync(int id);
+        Task<JobCardSparePart?> GetByIdAsync(int jobCardId, int sparePartId, CancellationToken cancellationToken = default);
+        Task<List<JobCardSparePart>> GetAllWithDetailsAsync(CancellationToken cancellationToken = default);
+        Task<List<JobCardSparePart>> GetByJobCardIdAsync(int jobCardId, CancellationToken cancellationToken = default);
         void Delete(JobCardSparePart entity);
     }
 

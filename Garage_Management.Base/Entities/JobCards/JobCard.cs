@@ -108,5 +108,6 @@ namespace Garage_Management.Base.Entities.JobCards
         /// Lịch sử thay đổi / nhật ký xử lý phiếu
         /// </summary>
         public ICollection<JobCardLog> Logs { get; set; } = new List<JobCardLog>();
+        public int? WorkBayId { get; set; }
     }
 }

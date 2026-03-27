@@ -37,7 +37,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateServiceResponse> CreateAsync(RepairEstimateServiceCreateRequest request, CancellationToken ct = default)
         {
-            var entity = new RepairEstimateService
+            var entity = new Garage_Management.Base.Entities.RepairEstimaties.RepairEstimateService
             {
                 RepairEstimateId = request.RepairEstimateId,
                 ServiceId = request.ServiceId,
@@ -72,7 +72,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             return true;
         }
 
-        private static RepairEstimateServiceResponse Map(RepairEstimateService entity)
+        private static RepairEstimateServiceResponse Map(Garage_Management.Base.Entities.RepairEstimaties.RepairEstimateService entity)
         {
             return new RepairEstimateServiceResponse
             {
