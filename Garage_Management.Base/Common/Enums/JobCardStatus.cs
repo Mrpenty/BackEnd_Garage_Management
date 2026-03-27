@@ -17,6 +17,7 @@ namespace Garage_Management.Base.Common.Enums
         InProgress = 7,
         WaitingPickup = 8,
         Completed = 9,
-        Rejected = 10
+        Rejected = 10,
+        NoIssue = 11,
     }
 }

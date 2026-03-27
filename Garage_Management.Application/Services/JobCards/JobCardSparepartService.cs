@@ -2,6 +2,7 @@ using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Services.JobCard;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.JobCards;
 
 namespace Garage_Management.Application.Services.JobCards
@@ -42,6 +43,8 @@ namespace Garage_Management.Application.Services.JobCards
             var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
             if (jobCard == null)
                 return null;
+
+            EnsureJobCardApprovedForSparePartCreation(jobCard);
 
             if (dto.SpareParts == null || dto.SpareParts.Count == 0)
                 throw new InvalidOperationException("Danh sach phu tung khong duoc rong");
@@ -121,6 +124,17 @@ namespace Garage_Management.Application.Services.JobCards
             await _jobCardSparePartRepository.SaveAsync(ct);
 
             return true;
+        }
+
+        private static void EnsureJobCardApprovedForSparePartCreation(JobCard jobCard)
+        {
+            if (jobCard.Status == JobCardStatus.WaitingSupervisorApproval)
+                throw new InvalidOperationException(
+                    "JobCard dang cho supervisor phe duyet. Hay phe duyet supervisor truoc, sau do chuyen sang WaitingCustomerApproval.");
+
+            if (jobCard.Status != JobCardStatus.WaitingCustomerApproval)
+                throw new InvalidOperationException(
+                    $"Chi duoc tao phu tung khi JobCard o trang thai WaitingCustomerApproval. Trang thai hien tai: {jobCard.Status}.");
         }
 
         private static JobCardSparePartResponse Map(JobCardSparePart entity)

@@ -334,12 +334,12 @@ namespace Garage_Management.Application.Services.JobCards
                 workBay.StartAt = DateTime.UtcNow;
                 workBay.Status = WorkBayStatus.Occupied;
 
-                jobCard.Status = JobCardStatus.InProgress;
+                jobCard.Status = JobCardStatus.Inspection;
             }
             else
             {
                 // nếu bay bận → đưa vào hàng chờ
-                jobCard.Status = JobCardStatus.WaitingInspection;
+                jobCard.Status = JobCardStatus.OnwaitingList;
             }
 
             jobCard.UpdatedAt = DateTime.UtcNow;
