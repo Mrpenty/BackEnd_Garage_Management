@@ -170,6 +170,9 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(x => x.Mechanics)
                 .Include(x => x.Services)
                  .ThenInclude(s => s.Service)
+                .Include(x => x.Services)
+                 .ThenInclude(s => s.ServiceTasks)
+                 .ThenInclude(st => st.ServiceTask)
                 .Include(x => x.SpareParts)
                 .Where(x => x.SupervisorId == supervisorId)
                 .ToListAsync();
@@ -207,6 +210,23 @@ namespace Garage_Management.Application.Repositories.JobCards
                     .ThenInclude(v => v.Model)
                 .Include(j => j.Logs)
                 .FirstOrDefaultAsync(j => j.JobCardId == id);
+        }
+        public async Task<List<JobCard>> GetByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken)
+        {
+            return await _context.JobCards
+                .Where(x => x.WorkBayId == workBayId)
+                .OrderBy(x => x.Status == JobCardStatus.InProgress ? 0 : 1)
+                .ThenBy(x => x.StartDate)
+                .ToListAsync(cancellationToken);
+        }
+        public async Task<List<JobCard>> GetByWorkBayIdsAsync(
+    List<int> workBayIds,
+    CancellationToken cancellationToken)
+        {
+            return await _context.JobCards
+                .Where(x => x.WorkBayId.HasValue &&
+                            workBayIds.Contains(x.WorkBayId.Value))
+                .ToListAsync(cancellationToken);
         }
     }
 }
