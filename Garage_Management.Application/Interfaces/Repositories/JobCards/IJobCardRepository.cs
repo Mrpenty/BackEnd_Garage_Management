@@ -11,6 +11,7 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
         Task SaveChangesAsync();
         Task<bool> HasActiveJobCardAsync(int vehicleId);
         Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId);
+        Task<List<JobCard>> GetByCustomerIdAsync(int customerId);
        
         Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId);
         Task<JobCard?> GetWithMechanicsAsync(int jobCardId);

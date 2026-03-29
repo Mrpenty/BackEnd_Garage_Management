@@ -1,3 +1,4 @@
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Inventories;
 using System;
 
@@ -13,6 +14,7 @@ namespace Garage_Management.Base.Entities.RepairEstimaties
         public int RepairEstimateId { get; set; }
 
         public int SparePartId { get; set; }
+        public RepairEstimateApprovalStatus Status { get; set; } = RepairEstimateApprovalStatus.WaitingApproval;
 
         /// <summary>
         /// Báo giá liên quan

@@ -1,3 +1,4 @@
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Services;
 using System;
 
@@ -29,6 +30,7 @@ namespace Garage_Management.Base.Entities.RepairEstimaties
         /// Đơn giá dự kiến cho dịch vụ
         /// </summary>
         public decimal UnitPrice { get; set; }
+        public RepairEstimateApprovalStatus Status { get; set; } = RepairEstimateApprovalStatus.WaitingApproval;
 
         /// <summary>
         /// Số lượng (thường là 1)
