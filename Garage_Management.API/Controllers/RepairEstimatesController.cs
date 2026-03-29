@@ -33,6 +33,18 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<RepairEstimateDetailResponse>.SuccessResponse(data, "OK"));
         }
 
+        [HttpGet("job-cards/{jobCardId:int}")]
+        public async Task<ActionResult<ApiResponse<List<RepairEstimateDetailResponse>>>> GetByJobCardId(
+            int jobCardId,
+            CancellationToken ct = default)
+        {
+            var data = await _service.GetByJobCardIdAsync(jobCardId, ct);
+            if (data == null)
+                return NotFound(ApiResponse<List<RepairEstimateDetailResponse>>.ErrorResponse("JobCard not found"));
+
+            return Ok(ApiResponse<List<RepairEstimateDetailResponse>>.SuccessResponse(data, "OK"));
+        }
+
         [HttpPost]
         public async Task<ActionResult<ApiResponse<RepairEstimateDetailResponse>>> Create(
             [FromBody] RepairEstimateCreateRequest request,

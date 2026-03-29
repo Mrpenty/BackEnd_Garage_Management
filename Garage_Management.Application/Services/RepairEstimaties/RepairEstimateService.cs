@@ -39,6 +39,16 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             return entity == null ? null : MapDetail(entity);
         }
 
+        public async Task<List<RepairEstimateDetailResponse>?> GetByJobCardIdAsync(int jobCardId, CancellationToken ct = default)
+        {
+            var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
+            if (jobCard == null)
+                return null;
+
+            var entities = await _repo.GetByJobCardIdAsync(jobCardId, ct);
+            return entities.Select(MapDetail).ToList();
+        }
+
         public async Task<RepairEstimateDetailResponse> CreateAsync(RepairEstimateCreateRequest request, CancellationToken ct = default)
         {
             var jobCard = await _jobCardRepository.GetByIdAsync(request.JobCardId);
