@@ -4,6 +4,7 @@ using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities;
 using Garage_Management.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 
 namespace Garage_Management.Application.Repositories.Notifications
@@ -31,13 +32,22 @@ namespace Garage_Management.Application.Repositories.Notifications
                 .Take(pageSize)
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
-           return new PagedResult<Notification>
+            return new PagedResult<Notification>
             {
                 Page = page,
                 PageSize = pageSize,
                 Total = totalItems,
                 PageData = notifications
             };
+        }
+
+        public async Task<List<Notification>> GetUserNotificationsAsync(int userId, CancellationToken ct = default)
+        {
+            return await this.dbSet
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
         }
     }
 }

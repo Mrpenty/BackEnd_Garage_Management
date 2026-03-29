@@ -11,19 +11,22 @@ namespace Garage_Management.API.Controllers
     {
         private readonly INotificationService _notificationService;
 
-            public NotificationController(INotificationService notificationService)
-            {
-                _notificationService = notificationService;
-            }
-
-            [HttpPost("create")]
-           
-            public async Task<IActionResult> CreateNotification(
-                [FromBody] CreateNotificationRequest request,
-                CancellationToken ct = default)
-            {
-                var result = await _notificationService.CreateAndSendNotificationAsync(request, ct);
-                return Ok(result);
-            }
+        public NotificationController(INotificationService notificationService)
+        {
+            _notificationService = notificationService;
         }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationRequest request, CancellationToken ct = default)
+        {
+            var result = await _notificationService.CreateAndSendNotificationAsync(request, ct);
+            return Ok(result);
+        }
+        [HttpGet("GetUserNotification")]
+        public async Task<IActionResult> GetUserNotifications(CancellationToken ct = default)
+        {
+            var result = await _notificationService.GetUserNotificationsAsync(ct);
+            return Ok(result);
+        }
+    }
 }

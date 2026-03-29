@@ -1,7 +1,9 @@
 ﻿using Garage_Management.Application.DTOs.Notifications;
+using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Application.Interfaces.Services.Accounts;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities;
 using Garage_Management.Base.Interface;
@@ -71,18 +73,52 @@ namespace Garage_Management.Application.Services.Notifications
             _notificationRepo.AddRange(notificationsToCreate);
             await _notificationRepo.SaveAsync(ct);
 
+            // Cập nhật trạng thái sau khi "gửi" (hiện tại tạm đánh dấu Sent)
+            foreach (var notif in notificationsToCreate)
+            {
+                notif.Status = NotificationStatus.Sent;
+            }
+            await _notificationRepo.SaveAsync(ct);
 
+            var firstNotif = notificationsToCreate.First();
 
             var response = new NotificationResponse
             {
-                //NotificationId = notificationsToCreate.First().NotificationId,
-                Type = request.Type,
+                NotificationId = firstNotif.NotificationId,
+                NotificationTypeName = firstNotif.Type.ToString(),
+                NotificationStatusName = firstNotif.Status.ToString(),
                 Message = request.Message,
                 Channel = request.Channel,
-                Status = "Sent"
+                Status = NotificationStatus.Sent
             };
 
-            return ApiResponse<NotificationResponse>.SuccessResponse(response, "Notification created and sent successfully (MSG-07)");
+            return ApiResponse<NotificationResponse>.SuccessResponse(response, "Thông báo đã tạo thành công");
+        }
+        public async Task<ApiResponse<List<NotificationResponse>>> GetUserNotificationsAsync(CancellationToken ct = default)
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext?.User?.Identity?.IsAuthenticated != true)
+            {
+                return ApiResponse<List<NotificationResponse>>.ErrorResponse("Vui lòng đăng nhập");
+            }
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+            {
+                return ApiResponse<List<NotificationResponse>>.ErrorResponse("Không thể xác định thông tin người dùng");
+            }
+
+            var notifications = await _notificationRepo.GetUserNotificationsAsync(currentUserId, ct);
+            var response = notifications.Select(n => new NotificationResponse
+            {
+                NotificationId = n.NotificationId,
+                NotificationTypeName = n.Type.ToString(),
+                Message = n.Message,
+                Channel = n.Channel,
+                Status = n.Status,
+                NotificationStatusName = n.Status.ToString()
+            }).ToList();
+
+            return ApiResponse<List<NotificationResponse>>.SuccessResponse(response, "Thông báo đã được lấy thành công");
         }
         private Notification CreateNotificationEntity(CreateNotificationRequest req, int userId)
         {
@@ -90,9 +126,8 @@ namespace Garage_Management.Application.Services.Notifications
             {
                 UserId = userId,
                // Type = req.Type,
-                Message = req.Message, // bạn có thể replace placeholder ở đây
-                Channel = req.Channel,
-                //Status = "Pending",
+                Message = req.Message,
+                Channel = req.Channel,                //Status = "Pending",
                 //CreatedBy = "System/Admin", // hoặc currentUserId
                 CreatedAt = DateTime.UtcNow
             };
