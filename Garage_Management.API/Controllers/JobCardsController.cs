@@ -145,6 +145,13 @@ namespace Garage_Management.API.Controllers
             return Ok(jobCards);
         }
 
+        [HttpGet("customer/{customerId}")]
+        public async Task<IActionResult> GetByCustomerId(int customerId)
+        {
+            var jobCards = await _service.GetJobCardsByCustomerIdAsync(customerId);
+            return Ok(jobCards);
+        }
+
         [HttpPatch("{id}/progress-update")]
         [Authorize(Roles = "Mechanic,Supervisor")]
         public async Task<IActionResult> UpdateRepairProgress(int id, UpdateJobCardProgressDto dto, CancellationToken cancellationToken)

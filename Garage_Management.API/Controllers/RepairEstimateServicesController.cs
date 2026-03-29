@@ -68,5 +68,26 @@ namespace Garage_Management.API.Controllers
 
             return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
         }
+
+        [HttpPatch("{repairEstimateId:int}/{serviceId:int}/status")]
+        public async Task<ActionResult<ApiResponse<RepairEstimateServiceResponse>>> UpdateStatus(
+            int repairEstimateId,
+            int serviceId,
+            [FromBody] RepairEstimateServiceStatusUpdateRequest request,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var data = await _service.UpdateStatusAsync(repairEstimateId, serviceId, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse("RepairEstimateService not found"));
+
+                return Ok(ApiResponse<RepairEstimateServiceResponse>.SuccessResponse(data, "Updated status"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse(ex.Message));
+            }
+        }
     }
 }

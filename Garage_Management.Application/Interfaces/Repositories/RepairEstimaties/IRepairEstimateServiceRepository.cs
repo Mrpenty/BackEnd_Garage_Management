@@ -15,6 +15,7 @@ namespace Garage_Management.Application.Interfaces.Repositories.RepairEstimaties
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<PagedResult<RepairEstimateService>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
         Task<RepairEstimateService?> GetByIdAsync(int repairEstimateId, int serviceId, CancellationToken ct = default);
+        Task<RepairEstimateService?> GetTrackedByIdAsync(int repairEstimateId, int serviceId, CancellationToken ct = default);
         Task AddAsync(RepairEstimateService entity, CancellationToken ct = default);
         Task UpdateAsync(RepairEstimateService entity, CancellationToken ct = default);
         Task DeleteAsync(RepairEstimateService entity, CancellationToken ct = default);

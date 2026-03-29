@@ -86,5 +86,15 @@ namespace Garage_Management.Application.Interfaces.Repositories
 
         // Nếu cần filter role riêng
         Task<List<string>> GetUserRolesAsync(int userId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Lấy danh cách khách hàng (Customer)
+        /// </summary>
+         Task<List<User>> GetCustomersAsync(CancellationToken ct = default);
+        /// <summary>
+        /// Laa danh sách nhân viên (Employee)
+        /// </summary>
+        Task<List<User>> GetEmployeesAsync(CancellationToken ct = default);
+
     }
 }

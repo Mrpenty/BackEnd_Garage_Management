@@ -1,4 +1,5 @@
-﻿using Garage_Management.Application.DTOs.Workbays;
+﻿using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.DTOs.Workbays;
 using Garage_Management.Base.Common.Enums;
 using System;
 using System.Collections.Generic;
@@ -11,5 +12,6 @@ namespace Garage_Management.Application.Interfaces.Services
     public interface IWorkBayService
     {
         Task<List<WorkBayDto>> GetListAsync(WorkBayStatus? status, CancellationToken cancellationToken);
+        Task<WorkBayDto?> GetByIdAsync(int workBayId, CancellationToken cancellationToken);
     }
 }

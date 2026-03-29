@@ -2,6 +2,7 @@ using Garage_Management.Application.DTOs.RepairEstimateServices;
 using Garage_Management.Application.Interfaces.Repositories.RepairEstimaties;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.RepairEstimaties;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,10 +38,11 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateServiceResponse> CreateAsync(RepairEstimateServiceCreateRequest request, CancellationToken ct = default)
         {
-            var entity = new RepairEstimateService
+            var entity = new Garage_Management.Base.Entities.RepairEstimaties.RepairEstimateService
             {
                 RepairEstimateId = request.RepairEstimateId,
                 ServiceId = request.ServiceId,
+                Status = RepairEstimateApprovalStatus.WaitingApproval,
                 UnitPrice = request.UnitPrice,
                 Quantity = request.Quantity,
                 TotalAmount = request.TotalAmount
@@ -72,16 +74,36 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             return true;
         }
 
-        private static RepairEstimateServiceResponse Map(RepairEstimateService entity)
+        public async Task<RepairEstimateServiceResponse?> UpdateStatusAsync(int repairEstimateId, int serviceId, RepairEstimateServiceStatusUpdateRequest request, CancellationToken ct = default)
+        {
+            ValidateStatus(request.Status);
+
+            var entity = await _repo.GetTrackedByIdAsync(repairEstimateId, serviceId, ct);
+            if (entity == null)
+                return null;
+
+            entity.Status = request.Status;
+            await _repo.UpdateAsync(entity, ct);
+            return Map(entity);
+        }
+
+        private static RepairEstimateServiceResponse Map(Garage_Management.Base.Entities.RepairEstimaties.RepairEstimateService entity)
         {
             return new RepairEstimateServiceResponse
             {
                 RepairEstimateId = entity.RepairEstimateId,
                 ServiceId = entity.ServiceId,
+                Status = entity.Status,
                 UnitPrice = entity.UnitPrice,
                 Quantity = entity.Quantity,
                 TotalAmount = entity.TotalAmount
             };
+        }
+
+        private static void ValidateStatus(RepairEstimateApprovalStatus status)
+        {
+            if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
+                throw new InvalidOperationException("Invalid repair estimate service status");
         }
     }
 }

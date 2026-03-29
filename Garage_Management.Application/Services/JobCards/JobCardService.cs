@@ -1,4 +1,5 @@
-using Garage_Management.Application.DTOs.Appointments;
+﻿using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
@@ -132,7 +133,7 @@ namespace Garage_Management.Application.Services.JobCards
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
-                Service = entity.Services,
+                Services = entity.Services.Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId
             };
@@ -157,10 +158,34 @@ namespace Garage_Management.Application.Services.JobCards
                 ProgressPercentage = entity.ProgressPercentage,
                 CompletedSteps = entity.CompletedSteps,
                 ProgressNotes = entity.ProgressNotes,
-                Service = entity.Services,
+                Services = entity.Services.Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
-                CreatedByEmployeeId = entity.CreatedBy
+                CreatedByEmployeeId = entity.CreatedBy,
+                Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
+            };
+        }
+
+        private static JobCardServiceResponse MapJobCardService(JobCardServiceEntity service)
+        {
+            return new JobCardServiceResponse
+            {
+                JobCardServiceId = service.JobCardServiceId,
+                JobCardId = service.JobCardId,
+                ServiceId = service.ServiceId,
+                Description = service.Description,
+                Price = service.Price,
+                Status = service.Status,
+                SourceInspectionItemId = service.SourceInspectionItemId,
+                CreatedAt = service.CreatedAt,
+                UpdatedAt = service.UpdatedAt
             };
         }
         public async Task<bool> UpdateStatusAsync(int id, JobCardStatus status, CancellationToken cancellationToken)
@@ -197,7 +222,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Status = MechanicAssignmentStatus.Assigned
             });
 
-            jobCard.Status = JobCardStatus.WaitingMechanic;
+            jobCard.Status = JobCardStatus.WaitingInspection;
 
             _repository.Update(jobCard);
             await _repository.SaveAsync(cancellationToken);
@@ -312,7 +337,7 @@ namespace Garage_Management.Application.Services.JobCards
 
             return true;
         }
-      
+
 
         public async Task<bool> AssignWorkBayAsync(AssignWorkBayRequestDto dto, CancellationToken cancellationToken)
         {
@@ -324,15 +349,29 @@ namespace Garage_Management.Application.Services.JobCards
             if (workBay == null)
                 return false;
 
-            if (workBay.JobcardId != null)
-                return false; // bay already occupied
+            // cho phép gán dù bay đang bận
+            jobCard.WorkBayId = workBay.Id;
 
-            workBay.JobcardId = dto.JobCardId;
-            workBay.StartAt = DateTime.UtcNow;
-            workBay.Status  = WorkBayStatus.Occupied;
+            // nếu bay đang trống → bắt đầu luôn
+            if (workBay.JobcardId == null)
+            {
+                workBay.JobcardId = jobCard.JobCardId;
+                workBay.StartAt = DateTime.UtcNow;
+                workBay.Status = WorkBayStatus.Occupied;
+
+                jobCard.Status = JobCardStatus.OnwaitingList;
+            }
+            else
+            {
+                // nếu bay bận → đưa vào hàng chờ
+                jobCard.Status = JobCardStatus.OnwaitingList;
+            }
+
+            jobCard.UpdatedAt = DateTime.UtcNow;
             workBay.UpdateAt = DateTime.UtcNow;
 
             await _workBayRepository.SaveAsync(cancellationToken);
+            await _repository.SaveAsync(cancellationToken);
 
             return true;
         }
@@ -399,10 +438,45 @@ namespace Garage_Management.Application.Services.JobCards
                         {
                          s.ServiceId,
                          ServiceName = s.Service.ServiceName,
-        
-    })
+                         EstimateMinute = s.ServiceTasks.Sum(st => st.ServiceTask.EstimateMinute)
+
+                    })
     .Cast<object>()
-    .ToList()
+    .ToList(),
+                
+                TotalEstimateMinute = x.Services.SelectMany(s => s.ServiceTasks)
+                    .Sum(st => st.ServiceTask.EstimateMinute)
+            }).ToList();
+        }
+
+        public async Task<List<JobCardDto>> GetJobCardsByCustomerIdAsync(int customerId)
+        {
+            var jobCards = await _repository.GetByCustomerIdAsync(customerId);
+
+            return jobCards.Select(x => new JobCardDto
+            {
+                JobCardId = x.JobCardId,
+                AppointmentId = x.AppointmentId,
+                CustomerId = x.CustomerId,
+                VehicleId = x.VehicleId,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Status = x.Status,
+                ProgressPercentage = x.ProgressPercentage,
+                CompletedSteps = x.CompletedSteps,
+                ProgressNotes = x.ProgressNotes,
+                Services = x.Services.Select(MapJobCardService).ToList(),
+                Note = x.Note,
+                SupervisorId = x.SupervisorId,
+                CreatedByEmployeeId = x.CreatedBy,
+                Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
             }).ToList();
         }
 
