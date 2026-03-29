@@ -36,6 +36,9 @@ namespace Garage_Management.Application.Repositories.JobCards
                     .ThenInclude(jc => jc.Supervisor)
                 .Include(jm => jm.JobCard)
                     .ThenInclude(jc => jc.Appointment)
+                .Include(jm => jm.JobCard)
+                    .ThenInclude(jc => jc.Services)
+                    .ThenInclude(jc =>jc.ServiceTasks)
                 .AsQueryable();
 
             // Search
@@ -75,7 +78,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                     AssignedAt = jm.AssignedAt,
                     StartedAt = jm.StartedAt,
                     CompletedAt = jm.CompletedAt,
-                    Status = jm.Status,
+                    MechanicAssignmenStatus = jm.Status,
                     Note = jm.Note,
 
                     
@@ -102,8 +105,31 @@ namespace Garage_Management.Application.Repositories.JobCards
                     // Appointment
                     AppointmentId = jm.JobCard.AppointmentId,
                     AppointmentDate = jm.JobCard.Appointment.AppointmentDateTime,
-                    AppointmentNote = jm.JobCard.Appointment.Description
-                })
+                    AppointmentNote = jm.JobCard.Appointment.Description,
+
+                    Services = jm.JobCard.Services
+                     .Where(s => s.Service != null)
+                     .Select(s => new ServiceJobCardMechanicResponse
+                     {
+                           ServiceId = s.ServiceId,
+                           ServiceName = s.Service.ServiceName,
+                           TotalEstimateMinute = s.ServiceTasks.Sum(st => st.ServiceTask.EstimateMinute),
+                         ServiceTasks = s.ServiceTasks.Select(st => new ServiceTaskJobCardMechanicResponse
+                           {
+                               ServiceTaskId = st.ServiceTaskId,
+                               TaskName = st.ServiceTask.TaskName,
+                               TaskOrder = st.ServiceTask.TaskOrder,
+                               EstimateMinute = st.ServiceTask.EstimateMinute,
+                               ServiceTaskStatusName = st.Status.ToString(),
+                               Note = st.Note
+                           }).ToList(),
+                           Description = s.Description,
+                           CreatedAt = s.CreatedAt,
+                           UpdatedAt = s.UpdatedAt,
+                           ServiceStatusName = s.Status.ToString(),
+                     })
+                      .ToList()
+                  })
                 .ToListAsync();
 
             if (data == null || data.Count == 0)

@@ -1,4 +1,6 @@
-﻿using Garage_Management.Base.Common.Enums;
+﻿using Garage_Management.Application.DTOs.Services;
+using Garage_Management.Application.DTOs.ServiceTasks;
+using Garage_Management.Base.Common.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public DateTime AssignedAt { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
-        public MechanicAssignmentStatus Status { get; set; }
+        public MechanicAssignmentStatus MechanicAssignmenStatus { get; set; }
         public string? Note { get; set; }
 
         // Thông tin JobCard
@@ -45,5 +47,33 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public int? AppointmentId { get; set; }
         public DateTime? AppointmentDate { get; set; }
         public string? AppointmentNote { get; set; }
+
+        public List<ServiceJobCardMechanicResponse> Services { get; set; } = new();
     }
+
+    public class ServiceJobCardMechanicResponse
+    {
+        public int ServiceId { get; set; }
+        public string ServiceName { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public long TotalEstimateMinute { get; set; }
+        public List<ServiceTaskJobCardMechanicResponse> ServiceTasks { get; set; } = new();
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public string ServiceStatusName { get; set; } = string.Empty;
+    }
+
+    public class ServiceTaskJobCardMechanicResponse
+    {
+        public int ServiceTaskId { get; set; }
+        public string TaskName { get; set; } = string.Empty;
+        public int TaskOrder { get; set; }
+        public int EstimateMinute { get; set; }
+        public string? Note { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public string ServiceTaskStatusName { get; set; } = string.Empty;
+    }
+
 }
