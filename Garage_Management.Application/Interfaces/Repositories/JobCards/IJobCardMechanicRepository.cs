@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.JobCardMechanics;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Interface;
@@ -13,5 +14,7 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
     public interface IJobCardMechanicRepository : IBaseRepository<JobCardMechanic>
     {
         Task<PagedResult<JobCardMechanicDto>> GetJobCardsByEmployeeIdAsync(int employeeId, ParamQuery param);
+        Task<JobCardMechanic?> GetByIdsAsync(int jobCardId, int employeeId);
+        Task<bool> UpdateStatusAsync(int jobCardId, int employeeId, MechanicAssignmentStatus newStatus);
     }
 }

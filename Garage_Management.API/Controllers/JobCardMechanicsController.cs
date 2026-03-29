@@ -1,6 +1,8 @@
-﻿using Garage_Management.Application.Interfaces.Services.JobCard;
+﻿using Garage_Management.Application.DTOs.JobCardMechanics;
+using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Garage_Management.API.Controllers
 {
@@ -26,6 +28,17 @@ namespace Garage_Management.API.Controllers
                 return Ok(response);
             return BadRequest(response);
 
+        }
+        /// <summary>
+        /// Cập nhật trạng thái công việc của thợ máy trong phiếu sửa chữa
+        /// </summary>
+        [HttpPatch("{jobCardId}/mechanic/status")]
+        public async Task<IActionResult> UpdateMechanicStatus(int jobCardId, [FromBody] UpdateJobCardMechanicStatusDto dto)
+        {
+            var response = await _service.UpdateStatusAsync(jobCardId, dto);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
         }
     }
 }

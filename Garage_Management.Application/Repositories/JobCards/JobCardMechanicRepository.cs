@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.JobCards;
@@ -148,6 +149,54 @@ namespace Garage_Management.Application.Repositories.JobCards
                 PageSize = param.PageSize,
                 Total = total
             };
+        }
+
+        public async Task<JobCardMechanic?> GetByIdsAsync(int jobCardId, int employeeId)
+        {
+            return await _context.JobCardMechanics
+                .Include(jm => jm.JobCard)
+                .Include(jm => jm.Employee)
+                .FirstOrDefaultAsync(jm => jm.JobCardId == jobCardId && jm.EmployeeId == employeeId);
+        }
+
+        public async Task<bool> UpdateStatusAsync(int jobCardId, int employeeId, MechanicAssignmentStatus newStatus)
+        {
+            var jobCardMechanic = await _context.JobCardMechanics
+                .FirstOrDefaultAsync(jm => jm.JobCardId == jobCardId && jm.EmployeeId == employeeId);
+
+            if (jobCardMechanic == null)
+                return false;
+
+            // Logic cho StartedAt và CompletedAt
+            var now = DateTime.UtcNow;
+
+            switch (newStatus)
+            {
+                case MechanicAssignmentStatus.InProgress:
+                    if (jobCardMechanic.StartedAt == null)
+                        jobCardMechanic.StartedAt = now;
+                    break;
+
+                case MechanicAssignmentStatus.Completed:
+                    if (jobCardMechanic.CompletedAt == null)
+                        jobCardMechanic.CompletedAt = now;
+                    break;
+
+                case MechanicAssignmentStatus.Assigned:
+                    // Reset nếu quay lại Assigned
+                    jobCardMechanic.StartedAt = null;
+                    jobCardMechanic.CompletedAt = null;
+                    break;
+
+                case MechanicAssignmentStatus.OnHold:
+                case MechanicAssignmentStatus.Removed:
+                    // Không tự động thay đổi StartedAt/CompletedAt
+                    break;
+            }
+
+            jobCardMechanic.Status = newStatus;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         // Helper để OrderBy động (có thể mở rộng)

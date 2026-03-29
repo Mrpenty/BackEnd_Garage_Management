@@ -16,5 +16,7 @@ namespace Garage_Management.Application.Interfaces.Services.JobCard
         /// Lấy danh sách JobCard của một nhân viên
         /// </summary>
         Task<ApiResponse<PagedResult<JobCardMechanicDto>>> GetJobCardsByEmployeeAsync(ParamQuery param, CancellationToken ct);
+        Task<ApiResponse<JobCardMechanicDto>> UpdateStatusAsync(int jobCardId, UpdateJobCardMechanicStatusDto dto);
+
     }
 }
