@@ -109,5 +109,6 @@ namespace Garage_Management.Base.Entities.JobCards
         /// </summary>
         public ICollection<JobCardLog> Logs { get; set; } = new List<JobCardLog>();
         public int? WorkBayId { get; set; }
+        public WorkBay? WorkBay { get; set; }
     }
 }

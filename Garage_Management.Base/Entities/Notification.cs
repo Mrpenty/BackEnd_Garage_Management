@@ -1,4 +1,5 @@
 using Garage_Management.Base.Common.Base;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Accounts;
 using System;
 
@@ -23,6 +24,11 @@ namespace Garage_Management.Base.Entities
         public User User { get; set; } = null!;
 
         /// <summary>
+        /// Loại thông báo
+        /// </summary>
+        public NotificationType Type { get; set; } = NotificationType.General;
+
+        /// <summary>
         /// Nội dung thông báo
         /// </summary>
         public string Message { get; set; } = string.Empty;
@@ -36,6 +42,12 @@ namespace Garage_Management.Base.Entities
         /// Thời điểm người dùng đọc thông báo (nếu có)
         /// </summary>
         public DateTime? ReadAt { get; set; }
+
+        /// <summary>
+        /// kênh gửi thông báo (InApp, Email, SMS)
+        /// </summary>
+        public string Channel { get; set; } = string.Empty; 
+        public NotificationStatus Status { get; set; } = NotificationStatus.Pending; 
     }
 }
 

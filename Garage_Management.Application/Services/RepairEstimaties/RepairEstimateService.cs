@@ -39,6 +39,16 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             return entity == null ? null : MapDetail(entity);
         }
 
+        public async Task<List<RepairEstimateDetailResponse>?> GetByJobCardIdAsync(int jobCardId, CancellationToken ct = default)
+        {
+            var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
+            if (jobCard == null)
+                return null;
+
+            var entities = await _repo.GetByJobCardIdAsync(jobCardId, ct);
+            return entities.Select(MapDetail).ToList();
+        }
+
         public async Task<RepairEstimateDetailResponse> CreateAsync(RepairEstimateCreateRequest request, CancellationToken ct = default)
         {
             var jobCard = await _jobCardRepository.GetByIdAsync(request.JobCardId);
@@ -68,6 +78,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 entity.Services.Add(new Base.Entities.RepairEstimaties.RepairEstimateService
                 {
                     ServiceId = item.ServiceId,
+                    Service = service,
                     Quantity = item.Quantity,
                     UnitPrice = service.BasePrice.Value,
                     TotalAmount = service.BasePrice.Value * item.Quantity
@@ -89,6 +100,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 entity.SpareParts.Add(new RepairEstimateSparePart
                 {
                     SparePartId = item.SparePartId,
+                    Inventory = inventory,
                     Quantity = item.Quantity,
                     UnitPrice = inventory.SellingPrice.Value,
                     TotalAmount = inventory.SellingPrice.Value * item.Quantity
@@ -134,6 +146,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 Services = entity.Services.Select(x => new RepairEstimateDetailServiceItemResponse
                 {
                     ServiceId = x.ServiceId,
+                    ServiceName = x.Service?.ServiceName ?? string.Empty,
                     UnitPrice = x.UnitPrice,
                     Quantity = x.Quantity,
                     TotalAmount = x.TotalAmount
@@ -141,6 +154,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 SpareParts = entity.SpareParts.Select(x => new RepairEstimateDetailSparePartItemResponse
                 {
                     SparePartId = x.SparePartId,
+                    SparePartName = x.Inventory?.PartName ?? string.Empty,
                     UnitPrice = x.UnitPrice,
                     Quantity = x.Quantity,
                     TotalAmount = x.TotalAmount

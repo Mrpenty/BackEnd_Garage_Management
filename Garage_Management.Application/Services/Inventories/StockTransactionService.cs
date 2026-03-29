@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.Iventories.StockTransactions;
+﻿using Garage_Management.Application.DTOs.Iventories.StockTransactions;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Inventories;
 using Garage_Management.Application.Interfaces.Services.Inventories;
@@ -37,7 +37,6 @@ namespace Garage_Management.Application.Services.Inventories
                 q = q.Where(x =>
                     (x.Inventory.PartName ?? string.Empty).ToLower().Contains(search) ||
                     (x.ReceiptCode ?? string.Empty).ToLower().Contains(search) ||
-                    (x.Reason ?? string.Empty).ToLower().Contains(search) ||
                     (x.Note ?? string.Empty).ToLower().Contains(search));
             }
 
@@ -80,26 +79,26 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<StockTransactionResponse> CreateAsync(StockTransactionCreateRequest request, CancellationToken ct = default)
         {
-            if (request.QuantityChange == 0)
-                throw new InvalidOperationException("QuantityChange phai khac 0");
+            if (request.QuantityChange > 0)
+                throw new InvalidOperationException("QuantityChange phải lớn hơn 0");
 
-            if (request.TransactionType == TransactionType.Import && request.QuantityChange < 0)
-                throw new InvalidOperationException("Import phai co QuantityChange > 0");
-
-            if (request.TransactionType == TransactionType.ExportToJobCard && request.QuantityChange > 0)
-                throw new InvalidOperationException("ExportToJobCard phai co QuantityChange < 0");
-
-            if (request.TransactionType == TransactionType.ReturnFromJobCard && request.QuantityChange < 0)
-                throw new InvalidOperationException("ReturnFromJobCard phai co QuantityChange > 0");
-
-            if (request.TransactionType == TransactionType.Adjustment && string.IsNullOrWhiteSpace(request.Reason))
-                throw new InvalidOperationException("Adjustment bat buoc nhap Reason");
+            // Normalize sign by transaction type:
+            // - Import / Return: stored as positive
+            // - Export: stored as negative
+            // - Adjustment: keep user input (+/-)
+            var effectiveQuantityChange = request.TransactionType switch
+            {
+                TransactionType.Import => Math.Abs(request.QuantityChange),
+                TransactionType.ReturnFromJobCard => Math.Abs(request.QuantityChange),
+                TransactionType.ExportToJobCard => -Math.Abs(request.QuantityChange),
+                _ => request.QuantityChange
+            };
 
             var inventory = await _inventoryRepo.GetByIdAsync(request.SparePartId);
             if (inventory == null)
                 throw new InvalidOperationException("SparePartId khong ton tai");
 
-            var nextQuantity = inventory.Quantity + request.QuantityChange;
+            var nextQuantity = inventory.Quantity + effectiveQuantityChange;
             if (nextQuantity < 0)
                 throw new InvalidOperationException("So luong ton kho khong du");
 
@@ -107,14 +106,13 @@ namespace Garage_Management.Application.Services.Inventories
             {
                 SparePartId = request.SparePartId,
                 TransactionType = request.TransactionType,
-                QuantityChange = request.QuantityChange,
+                QuantityChange = effectiveQuantityChange,
                 UnitPrice = request.UnitPrice,
                 SupplierId = request.SupplierId,
                 JobCardId = request.JobCardId,
                 ReceiptCode = request.ReceiptCode,
                 LotNumber = request.LotNumber,
                 SerialNumber = request.SerialNumber,
-                Reason = request.Reason,
                 Note = request.Note,
                 CreatedAt = DateTime.UtcNow
             };
@@ -149,7 +147,6 @@ namespace Garage_Management.Application.Services.Inventories
                 ReceiptCode = entity.ReceiptCode,
                 LotNumber = entity.LotNumber,
                 SerialNumber = entity.SerialNumber,
-                Reason = entity.Reason,
                 Note = entity.Note,
                 CreatedAt = entity.CreatedAt
             };

@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
@@ -132,7 +133,7 @@ namespace Garage_Management.Application.Services.JobCards
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
-                Service = entity.Services,
+                Services = entity.Services.Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId
             };
@@ -157,10 +158,34 @@ namespace Garage_Management.Application.Services.JobCards
                 ProgressPercentage = entity.ProgressPercentage,
                 CompletedSteps = entity.CompletedSteps,
                 ProgressNotes = entity.ProgressNotes,
-                Service = entity.Services,
+                Services = entity.Services.Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
-                CreatedByEmployeeId = entity.CreatedBy
+                CreatedByEmployeeId = entity.CreatedBy,
+                Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
+            };
+        }
+
+        private static JobCardServiceResponse MapJobCardService(JobCardServiceEntity service)
+        {
+            return new JobCardServiceResponse
+            {
+                JobCardServiceId = service.JobCardServiceId,
+                JobCardId = service.JobCardId,
+                ServiceId = service.ServiceId,
+                Description = service.Description,
+                Price = service.Price,
+                Status = service.Status,
+                SourceInspectionItemId = service.SourceInspectionItemId,
+                CreatedAt = service.CreatedAt,
+                UpdatedAt = service.UpdatedAt
             };
         }
         public async Task<bool> UpdateStatusAsync(int id, JobCardStatus status, CancellationToken cancellationToken)
@@ -334,7 +359,7 @@ namespace Garage_Management.Application.Services.JobCards
                 workBay.StartAt = DateTime.UtcNow;
                 workBay.Status = WorkBayStatus.Occupied;
 
-                jobCard.Status = JobCardStatus.Inspection;
+                jobCard.Status = JobCardStatus.OnwaitingList;
             }
             else
             {

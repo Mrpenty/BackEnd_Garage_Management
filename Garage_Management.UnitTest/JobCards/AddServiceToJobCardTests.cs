@@ -164,7 +164,7 @@ namespace Garage_Management.UnitTest.JobCards
     {
         new Service
         {
-            ServiceId = 1,
+ServiceId = 1,
             BasePrice = 100
         }
     }.AsQueryable();

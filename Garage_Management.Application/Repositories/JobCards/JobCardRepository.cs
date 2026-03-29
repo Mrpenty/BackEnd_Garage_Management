@@ -55,6 +55,8 @@ namespace Garage_Management.Application.Repositories.JobCards
                  .Include(j => j.Mechanics)    // Thông tin thợ máy
                     .ThenInclude(m => m.Employee)
                 .Include(j => j.Logs)        // Lịch sử thao tác / trạng thái
+                .Include(jm => jm.Mechanics)    // Thông tin thợ máy
+                    .ThenInclude(m => m.Employee)
                 .FirstOrDefaultAsync(j => j.JobCardId == id);
         }
 
@@ -214,6 +216,15 @@ namespace Garage_Management.Application.Repositories.JobCards
         public async Task<List<JobCard>> GetByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken)
         {
             return await _context.JobCards
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Model)
+                .Include(j => j.Mechanics)
+                    .ThenInclude(m => m.Employee)
+                .Include(x => x.Services)
+                    .ThenInclude(s => s.Service)
                 .Where(x => x.WorkBayId == workBayId)
                 .OrderBy(x => x.Status == JobCardStatus.InProgress ? 0 : 1)
                 .ThenBy(x => x.StartDate)
@@ -224,6 +235,15 @@ namespace Garage_Management.Application.Repositories.JobCards
     CancellationToken cancellationToken)
         {
             return await _context.JobCards
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Brand)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.Model)
+                 .Include(j => j.Mechanics)
+                    .ThenInclude(m => m.Employee)
+                .Include(x => x.Services)
+                    .ThenInclude(s => s.Service)
                 .Where(x => x.WorkBayId.HasValue &&
                             workBayIds.Contains(x.WorkBayId.Value))
                 .ToListAsync(cancellationToken);

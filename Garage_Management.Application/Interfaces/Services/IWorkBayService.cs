@@ -12,8 +12,6 @@ namespace Garage_Management.Application.Interfaces.Services
     public interface IWorkBayService
     {
         Task<List<WorkBayDto>> GetListAsync(WorkBayStatus? status, CancellationToken cancellationToken);
-        Task<List<JobCardListDto>?> GetJobCardsByWorkBayAsync(
-        int workBayId,
-        CancellationToken cancellationToken);
+        Task<WorkBayDto?> GetByIdAsync(int workBayId, CancellationToken cancellationToken);
     }
 }

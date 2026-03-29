@@ -27,8 +27,23 @@ namespace Garage_Management.Application.Repositories.RepairEstimaties
             return await _context.RepairEstimates
                 .AsNoTracking()
                 .Include(x => x.Services)
+                    .ThenInclude(x => x.Service)
                 .Include(x => x.SpareParts)
+                    .ThenInclude(x => x.Inventory)
                 .FirstOrDefaultAsync(x => x.RepairEstimateId == repairEstimateId, ct);
+        }
+
+        public async Task<List<RepairEstimate>> GetByJobCardIdAsync(int jobCardId, CancellationToken ct = default)
+        {
+            return await _context.RepairEstimates
+                .AsNoTracking()
+                .Include(x => x.Services)
+                    .ThenInclude(x => x.Service)
+                .Include(x => x.SpareParts)
+                    .ThenInclude(x => x.Inventory)
+                .Where(x => x.JobCardId == jobCardId)
+                .OrderByDescending(x => x.RepairEstimateId)
+                .ToListAsync(ct);
         }
 
         public async Task AddAsync(RepairEstimate entity, CancellationToken ct = default)
