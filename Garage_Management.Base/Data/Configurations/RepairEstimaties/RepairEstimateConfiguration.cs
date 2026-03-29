@@ -1,3 +1,4 @@
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.RepairEstimaties;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,9 @@ namespace Garage_Management.Base.Data.Configurations.RepairEstimaties
                 .HasPrecision(18, 2);
             builder.Property(re => re.GrandTotal)
                 .HasPrecision(18, 2);
+            builder.Property(re => re.Status)
+                .HasConversion<int>()
+                .HasDefaultValue(RepairEstimateApprovalStatus.WaitingApproval);
 
             // Quan hệ N-1: RepairEstimate thuộc một JobCard
             builder.HasOne(re => re.JobCard)

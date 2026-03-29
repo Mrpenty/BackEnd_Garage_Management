@@ -6,7 +6,9 @@ namespace Garage_Management.Application.Interfaces.Repositories.RepairEstimaties
     {
         Task<List<RepairEstimate>> GetAllAsync(CancellationToken ct = default);
         Task<RepairEstimate?> GetByIdAsync(int repairEstimateId, CancellationToken ct = default);
+        Task<RepairEstimate?> GetTrackedByIdAsync(int repairEstimateId, CancellationToken ct = default);
         Task<List<RepairEstimate>> GetByJobCardIdAsync(int jobCardId, CancellationToken ct = default);
         Task AddAsync(RepairEstimate entity, CancellationToken ct = default);
+        Task UpdateAsync(RepairEstimate entity, CancellationToken ct = default);
     }
 }

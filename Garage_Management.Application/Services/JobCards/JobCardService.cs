@@ -449,6 +449,37 @@ namespace Garage_Management.Application.Services.JobCards
             }).ToList();
         }
 
+        public async Task<List<JobCardDto>> GetJobCardsByCustomerIdAsync(int customerId)
+        {
+            var jobCards = await _repository.GetByCustomerIdAsync(customerId);
+
+            return jobCards.Select(x => new JobCardDto
+            {
+                JobCardId = x.JobCardId,
+                AppointmentId = x.AppointmentId,
+                CustomerId = x.CustomerId,
+                VehicleId = x.VehicleId,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Status = x.Status,
+                ProgressPercentage = x.ProgressPercentage,
+                CompletedSteps = x.CompletedSteps,
+                ProgressNotes = x.ProgressNotes,
+                Services = x.Services.Select(MapJobCardService).ToList(),
+                Note = x.Note,
+                SupervisorId = x.SupervisorId,
+                CreatedByEmployeeId = x.CreatedBy,
+                Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
+            }).ToList();
+        }
+
         public async Task<ApiResponse<UpdateProgressResponse>> UpdateRepairProgressAsync(int jobCardId, UpdateJobCardProgressDto dto, CancellationToken cancellationToken)
         {
             var httpContext = _httpContextAccessor.HttpContext;
