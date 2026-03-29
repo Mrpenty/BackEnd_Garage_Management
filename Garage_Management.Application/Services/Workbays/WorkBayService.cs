@@ -1,4 +1,5 @@
-﻿using Garage_Management.Application.DTOs.JobCards;
+﻿using Garage_Management.Application.DTOs.JobCardMechanics;
+using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.Workbays;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
@@ -81,6 +82,19 @@ namespace Garage_Management.Application.Services.Workbays
                 JobCardId = jobCard.JobCardId,
                 CustomerId = jobCard.CustomerId,
                 CustomerName = $"{jobCard.Customer?.FirstName} {jobCard.Customer?.LastName}".Trim(),
+                Mechanics = jobCard.Mechanics
+                    .Where(x => x.Employee != null)
+                    .Select(x => new JobCardMechanicView
+                    {
+                        MechanicId = x.EmployeeId,
+                        MechanicName = $"{x.Employee?.FirstName} {x.Employee?.LastName}".Trim(),
+                        AssignedAt = x.AssignedAt,
+                        StartedAt = x.StartedAt,
+                        CompletedAt = x.CompletedAt,
+                    })
+                    .ToList(),
+
+
                 Vehicle = jobCard.Vehicle == null
                     ? null!
                     : new DTOs.Vehicles.VehicleListDto

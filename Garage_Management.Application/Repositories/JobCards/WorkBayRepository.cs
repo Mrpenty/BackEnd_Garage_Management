@@ -11,10 +11,9 @@ using System.Text;
 using System.Threading.Tasks;
 namespace Garage_Management.Application.Repositories.JobCards
 {
-    
-        public class WorkBayRepository : IWorkBayRepository
-        {
-            private readonly AppDbContext _context;
+    public class WorkBayRepository : IWorkBayRepository
+    {
+        private readonly AppDbContext _context;
 
             public WorkBayRepository(AppDbContext context)
             {

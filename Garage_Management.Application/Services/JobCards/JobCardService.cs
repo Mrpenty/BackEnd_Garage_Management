@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.Appointments;
+using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
@@ -160,7 +161,15 @@ namespace Garage_Management.Application.Services.JobCards
                 Services = entity.Services.Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
-                CreatedByEmployeeId = entity.CreatedBy
+                CreatedByEmployeeId = entity.CreatedBy,
+                Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
             };
         }
 

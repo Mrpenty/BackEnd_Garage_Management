@@ -55,6 +55,8 @@ namespace Garage_Management.Application.Repositories.JobCards
                  .Include(j => j.Mechanics)    // Thông tin thợ máy
                     .ThenInclude(m => m.Employee)
                 .Include(j => j.Logs)        // Lịch sử thao tác / trạng thái
+                .Include(jm => jm.Mechanics)    // Thông tin thợ máy
+                    .ThenInclude(m => m.Employee)
                 .FirstOrDefaultAsync(j => j.JobCardId == id);
         }
 
@@ -219,6 +221,8 @@ namespace Garage_Management.Application.Repositories.JobCards
                     .ThenInclude(v => v.Brand)
                 .Include(x => x.Vehicle)
                     .ThenInclude(v => v.Model)
+                .Include(j => j.Mechanics)
+                    .ThenInclude(m => m.Employee)
                 .Include(x => x.Services)
                     .ThenInclude(s => s.Service)
                 .Where(x => x.WorkBayId == workBayId)
@@ -236,6 +240,8 @@ namespace Garage_Management.Application.Repositories.JobCards
                     .ThenInclude(v => v.Brand)
                 .Include(x => x.Vehicle)
                     .ThenInclude(v => v.Model)
+                 .Include(j => j.Mechanics)
+                    .ThenInclude(m => m.Employee)
                 .Include(x => x.Services)
                     .ThenInclude(s => s.Service)
                 .Where(x => x.WorkBayId.HasValue &&

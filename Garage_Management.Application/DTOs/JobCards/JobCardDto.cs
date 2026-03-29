@@ -1,3 +1,4 @@
+using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Base.Common.Enums;
 
@@ -19,5 +20,6 @@ namespace Garage_Management.Application.DTOs.JobCards
         public int? SupervisorId { get; set; }
         public int? CreatedByEmployeeId { get; set; }
         public List<JobCardServiceResponse> Services { get; set; } = new();
+        public List<JobCardMechanicView> Mechanics { get; set; } = new();
     }
 }
