@@ -81,13 +81,17 @@ namespace Garage_Management.Application.Services.JobCards
 
            if (hasActive)
                throw new Exception("Xe này đang có JobCard đang hoạt động.");
-            var app = await _appointmentRepository.GetByIdAsync((int)dto.AppointmentId);
 
-
-            // CHECK 4: status
-            if (app != null && app.Status != AppointmentStatus.Confirmed)
+            Appointment? app = null;
+            if (dto.AppointmentId.HasValue)
             {
-                throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+                app = await _appointmentRepository.GetByIdAsync(dto.AppointmentId.Value);
+
+                // CHECK 4: status
+                if (app != null && app.Status != AppointmentStatus.Confirmed)
+                {
+                    throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+                }
             }
             var entity = new JobCard
            {

@@ -30,6 +30,10 @@ namespace Garage_Management.API.Controllers
             {
                 return BadRequest(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
             }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpPatch("{repairEstimateId:int}/{sparePartId:int}/status")]
@@ -50,6 +54,10 @@ namespace Garage_Management.API.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
             }
         }
     }

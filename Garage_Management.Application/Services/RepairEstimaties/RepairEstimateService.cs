@@ -52,6 +52,12 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateDetailResponse> CreateAsync(RepairEstimateCreateRequest request, CancellationToken ct = default)
         {
+            if (request.JobCardId <= 0)
+                throw new InvalidOperationException("JobCardId không hợp lệ");
+
+            if (request.Services == null || request.Services.Count == 0)
+                throw new InvalidOperationException("Báo giá phải có ít nhất 1 dịch vụ");
+
             var jobCard = await _jobCardRepository.GetByIdAsync(request.JobCardId);
             if (jobCard == null)
                 throw new InvalidOperationException("JobCard not found");
@@ -66,6 +72,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             foreach (var item in request.Services)
             {
+                if (item.ServiceId <= 0)
+                    throw new InvalidOperationException("ServiceId không hợp lệ");
+
                 if (item.Quantity <= 0)
                     throw new InvalidOperationException("Service quantity must be greater than 0");
 
@@ -88,6 +97,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             foreach (var item in request.SpareParts)
             {
+                if (item.SparePartId <= 0)
+                    throw new InvalidOperationException("SparePartId không hợp lệ");
+
                 if (item.Quantity <= 0)
                     throw new InvalidOperationException("SparePart quantity must be greater than 0");
 

@@ -26,17 +26,24 @@ namespace Garage_Management.API.Controllers
         {
             try
             {
-                var userId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!.Value
-                );
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized(new { message = "Không lấy được UserId từ token" });
 
                 var result = await _service.CreateAsync(dto, userId, cancellationToken);
 
                 return Ok(result);
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
             catch (Exception ex)
             {
-                return Conflict(new
+                return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = ex.Message
                 });
@@ -103,11 +110,19 @@ namespace Garage_Management.API.Controllers
         [HttpPost("{id}/services")]
         public async Task<IActionResult> AddService( int id, AddServiceToJobCardDto dto, CancellationToken cancellationToken)
         {
-            var result = await _service.AddServiceAsync(id, dto, cancellationToken);
+            try
+            {
+                var result = await _service.AddServiceAsync(id, dto, cancellationToken);
 
-            if (!result) return BadRequest();
+                if (!result)
+                    return BadRequest(new { message = "Không thể thêm service vào JobCard" });
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         
@@ -116,12 +131,19 @@ namespace Garage_Management.API.Controllers
             [FromBody] AssignWorkBayRequestDto dto,
              CancellationToken cancellationToken)
         {
-            var result = await _service.AssignWorkBayAsync(dto, cancellationToken);
+            try
+            {
+                var result = await _service.AssignWorkBayAsync(dto, cancellationToken);
 
-            if (!result)
-                return BadRequest("Cannot assign work bay");
+                if (!result)
+                    return BadRequest(new { message = "Không thể gán WorkBay" });
 
-            return Ok("Work bay assigned successfully");
+                return Ok(new { message = "Gán WorkBay thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
 
@@ -130,12 +152,19 @@ namespace Garage_Management.API.Controllers
     [FromBody] ReleaseWorkBayDto dto,
     CancellationToken cancellationToken)
         {
-            var result = await _service.ReleaseWorkBayAsync(dto, cancellationToken);
+            try
+            {
+                var result = await _service.ReleaseWorkBayAsync(dto, cancellationToken);
 
-            if (!result)
-                return BadRequest("Cannot release work bay");
+                if (!result)
+                    return BadRequest(new { message = "Không thể trả WorkBay" });
 
-            return Ok("Work bay released successfully");
+                return Ok(new { message = "Trả WorkBay thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("supervisor/{supervisorId}")]
@@ -165,11 +194,11 @@ namespace Garage_Management.API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -185,7 +214,7 @@ namespace Garage_Management.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
     }
