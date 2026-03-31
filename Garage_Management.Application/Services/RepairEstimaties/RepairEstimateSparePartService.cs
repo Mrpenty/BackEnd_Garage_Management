@@ -2,6 +2,7 @@ using Garage_Management.Application.DTOs.RepairEstimateSpareParts;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.RepairEstimaties;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.RepairEstimaties;
 
 namespace Garage_Management.Application.Services.RepairEstimaties
@@ -44,6 +45,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             {
                 RepairEstimateId = request.RepairEstimateId,
                 SparePartId = request.SparePartId,
+                Status = RepairEstimateApprovalStatus.WaitingApproval,
                 Quantity = request.Quantity,
                 UnitPrice = unitPrice,
                 TotalAmount = unitPrice * request.Quantity
@@ -53,16 +55,36 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             return Map(entity);
         }
 
+        public async Task<RepairEstimateSparePartResponse?> UpdateStatusAsync(int repairEstimateId, int sparePartId, RepairEstimateSparePartStatusUpdateRequest request, CancellationToken ct = default)
+        {
+            ValidateStatus(request.Status);
+
+            var entity = await _repo.GetTrackedByIdAsync(repairEstimateId, sparePartId, ct);
+            if (entity == null)
+                return null;
+
+            entity.Status = request.Status;
+            await _repo.UpdateAsync(entity, ct);
+            return Map(entity);
+        }
+
         private static RepairEstimateSparePartResponse Map(RepairEstimateSparePart entity)
         {
             return new RepairEstimateSparePartResponse
             {
                 RepairEstimateId = entity.RepairEstimateId,
                 SparePartId = entity.SparePartId,
+                Status = entity.Status,
                 Quantity = entity.Quantity,
                 UnitPrice = entity.UnitPrice,
                 TotalAmount = entity.TotalAmount
             };
+        }
+
+        private static void ValidateStatus(RepairEstimateApprovalStatus status)
+        {
+            if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
+                throw new InvalidOperationException("Invalid repair estimate spare part status");
         }
     }
 }

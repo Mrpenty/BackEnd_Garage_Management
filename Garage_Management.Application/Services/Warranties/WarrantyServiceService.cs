@@ -1,4 +1,5 @@
 using Garage_Management.Application.DTOs.WarrantyServices;
+using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Repositories.Warranties;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
@@ -12,10 +13,17 @@ namespace Garage_Management.Application.Services.Warranties
     public class WarrantyServiceService : IWarrantyServiceService
     {
         private readonly IWarrantyServiceRepository _repo;
+        private readonly IServiceRepository _serviceRepo;
+        private readonly IServiceWarrantyPolicyRepository _policyRepo;
 
-        public WarrantyServiceService(IWarrantyServiceRepository repo)
+        public WarrantyServiceService(
+            IWarrantyServiceRepository repo,
+            IServiceRepository serviceRepo,
+            IServiceWarrantyPolicyRepository policyRepo)
         {
             _repo = repo;
+            _serviceRepo = serviceRepo;
+            _policyRepo = policyRepo;
         }
 
         public async Task<WarrantyServiceResponse?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -38,6 +46,17 @@ namespace Garage_Management.Application.Services.Warranties
 
         public async Task<WarrantyServiceResponse> CreateAsync(WarrantyServiceCreateRequest request, CancellationToken ct = default)
         {
+            if (request.StartDate > request.EndDate)
+                throw new InvalidOperationException("StartDate phải nhỏ hơn hoặc bằng EndDate");
+
+            var service = await _serviceRepo.GetByIdAsync(request.ServiceId);
+            if (service == null)
+                throw new InvalidOperationException("ServiceId không tồn tại");
+
+            var policy = await _policyRepo.GetByIdAsync(request.ServiceWarrantyPolicyId);
+            if (policy == null)
+                throw new InvalidOperationException("ServiceWarrantyPolicyId không tồn tại");
+
             var entity = new WarrantyService
             {
                 ServiceId = request.ServiceId,
@@ -57,10 +76,30 @@ namespace Garage_Management.Application.Services.Warranties
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
-            if (request.ServiceId.HasValue) entity.ServiceId = request.ServiceId.Value;
-            if (request.ServiceWarrantyPolicyId.HasValue) entity.ServiceWarrantyPolicyId = request.ServiceWarrantyPolicyId.Value;
+            if (request.ServiceId.HasValue)
+            {
+                var service = await _serviceRepo.GetByIdAsync(request.ServiceId.Value);
+                if (service == null)
+                    throw new InvalidOperationException("ServiceId không tồn tại");
+
+                entity.ServiceId = request.ServiceId.Value;
+            }
+
+            if (request.ServiceWarrantyPolicyId.HasValue)
+            {
+                var policy = await _policyRepo.GetByIdAsync(request.ServiceWarrantyPolicyId.Value);
+                if (policy == null)
+                    throw new InvalidOperationException("ServiceWarrantyPolicyId không tồn tại");
+
+                entity.ServiceWarrantyPolicyId = request.ServiceWarrantyPolicyId.Value;
+            }
+
             if (request.StartDate.HasValue) entity.StartDate = request.StartDate.Value;
             if (request.EndDate.HasValue) entity.EndDate = request.EndDate.Value;
+
+            if (entity.StartDate > entity.EndDate)
+                throw new InvalidOperationException("StartDate phải nhỏ hơn hoặc bằng EndDate");
+
             if (request.Description != null) entity.Description = request.Description;
 
             _repo.Update(entity);

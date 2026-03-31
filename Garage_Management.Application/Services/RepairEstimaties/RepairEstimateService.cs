@@ -4,6 +4,7 @@ using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.RepairEstimaties;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.RepairEstimaties;
 
 namespace Garage_Management.Application.Services.RepairEstimaties
@@ -39,8 +40,24 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             return entity == null ? null : MapDetail(entity);
         }
 
+        public async Task<List<RepairEstimateDetailResponse>?> GetByJobCardIdAsync(int jobCardId, CancellationToken ct = default)
+        {
+            var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
+            if (jobCard == null)
+                return null;
+
+            var entities = await _repo.GetByJobCardIdAsync(jobCardId, ct);
+            return entities.Select(MapDetail).ToList();
+        }
+
         public async Task<RepairEstimateDetailResponse> CreateAsync(RepairEstimateCreateRequest request, CancellationToken ct = default)
         {
+            if (request.JobCardId <= 0)
+                throw new InvalidOperationException("JobCardId không hợp lệ");
+
+            if (request.Services == null || request.Services.Count == 0)
+                throw new InvalidOperationException("Báo giá phải có ít nhất 1 dịch vụ");
+
             var jobCard = await _jobCardRepository.GetByIdAsync(request.JobCardId);
             if (jobCard == null)
                 throw new InvalidOperationException("JobCard not found");
@@ -55,6 +72,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             foreach (var item in request.Services)
             {
+                if (item.ServiceId <= 0)
+                    throw new InvalidOperationException("ServiceId không hợp lệ");
+
                 if (item.Quantity <= 0)
                     throw new InvalidOperationException("Service quantity must be greater than 0");
 
@@ -68,6 +88,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 entity.Services.Add(new Base.Entities.RepairEstimaties.RepairEstimateService
                 {
                     ServiceId = item.ServiceId,
+                    Service = service,
                     Quantity = item.Quantity,
                     UnitPrice = service.BasePrice.Value,
                     TotalAmount = service.BasePrice.Value * item.Quantity
@@ -76,6 +97,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             foreach (var item in request.SpareParts)
             {
+                if (item.SparePartId <= 0)
+                    throw new InvalidOperationException("SparePartId không hợp lệ");
+
                 if (item.Quantity <= 0)
                     throw new InvalidOperationException("SparePart quantity must be greater than 0");
 
@@ -89,6 +113,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 entity.SpareParts.Add(new RepairEstimateSparePart
                 {
                     SparePartId = item.SparePartId,
+                    Inventory = inventory,
                     Quantity = item.Quantity,
                     UnitPrice = inventory.SellingPrice.Value,
                     TotalAmount = inventory.SellingPrice.Value * item.Quantity
@@ -104,12 +129,28 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             return MapDetail(entity);
         }
 
+        public async Task<RepairEstimateDetailResponse?> UpdateStatusAsync(int repairEstimateId, RepairEstimateStatusUpdateRequest request, CancellationToken ct = default)
+        {
+            ValidateStatus(request.Status);
+
+            var entity = await _repo.GetTrackedByIdAsync(repairEstimateId, ct);
+            if (entity == null)
+                return null;
+
+            entity.Status = request.Status;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            await _repo.UpdateAsync(entity, ct);
+            return MapDetail(entity);
+        }
+
         private static RepairEstimateResponse Map(RepairEstimate entity)
         {
             return new RepairEstimateResponse
             {
                 RepairEstimateId = entity.RepairEstimateId,
                 JobCardId = entity.JobCardId,
+                Status = entity.Status,
                 ServiceTotal = entity.ServiceTotal,
                 SparePartTotal = entity.SparePartTotal,
                 GrandTotal = entity.GrandTotal,
@@ -125,6 +166,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             {
                 RepairEstimateId = entity.RepairEstimateId,
                 JobCardId = entity.JobCardId,
+                Status = entity.Status,
                 ServiceTotal = entity.ServiceTotal,
                 SparePartTotal = entity.SparePartTotal,
                 GrandTotal = entity.GrandTotal,
@@ -134,6 +176,8 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 Services = entity.Services.Select(x => new RepairEstimateDetailServiceItemResponse
                 {
                     ServiceId = x.ServiceId,
+                    ServiceName = x.Service?.ServiceName ?? string.Empty,
+                    Status = x.Status,
                     UnitPrice = x.UnitPrice,
                     Quantity = x.Quantity,
                     TotalAmount = x.TotalAmount
@@ -141,11 +185,19 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 SpareParts = entity.SpareParts.Select(x => new RepairEstimateDetailSparePartItemResponse
                 {
                     SparePartId = x.SparePartId,
+                    SparePartName = x.Inventory?.PartName ?? string.Empty,
+                    Status = x.Status,
                     UnitPrice = x.UnitPrice,
                     Quantity = x.Quantity,
                     TotalAmount = x.TotalAmount
                 }).ToList()
             };
+        }
+
+        private static void ValidateStatus(RepairEstimateApprovalStatus status)
+        {
+            if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
+                throw new InvalidOperationException("Invalid repair estimate status");
         }
 
         private static void ValidateDuplicates(RepairEstimateCreateRequest request)

@@ -179,6 +179,26 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Where(x => x.SupervisorId == supervisorId)
                 .ToListAsync();
         }
+
+        public async Task<List<JobCard>> GetByCustomerIdAsync(int customerId)
+        {
+            return await _context.JobCards
+                .Include(x => x.Appointment)
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
+                .Include(x => x.Supervisor)
+                .Include(x => x.Mechanics)
+                    .ThenInclude(m => m.Employee)
+                .Include(x => x.Services)
+                    .ThenInclude(s => s.Service)
+                .Include(x => x.Services)
+                    .ThenInclude(s => s.ServiceTasks)
+                    .ThenInclude(st => st.ServiceTask)
+                .Include(x => x.SpareParts)
+                .Where(x => x.CustomerId == customerId)
+                .OrderByDescending(x => x.StartDate)
+                .ToListAsync();
+        }
         public async Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId)
         {
             return await _context.JobCards

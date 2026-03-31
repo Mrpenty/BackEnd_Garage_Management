@@ -33,6 +33,18 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<RepairEstimateDetailResponse>.SuccessResponse(data, "OK"));
         }
 
+        [HttpGet("job-cards/{jobCardId:int}")]
+        public async Task<ActionResult<ApiResponse<List<RepairEstimateDetailResponse>>>> GetByJobCardId(
+            int jobCardId,
+            CancellationToken ct = default)
+        {
+            var data = await _service.GetByJobCardIdAsync(jobCardId, ct);
+            if (data == null)
+                return NotFound(ApiResponse<List<RepairEstimateDetailResponse>>.ErrorResponse("JobCard not found"));
+
+            return Ok(ApiResponse<List<RepairEstimateDetailResponse>>.SuccessResponse(data, "OK"));
+        }
+
         [HttpPost]
         public async Task<ActionResult<ApiResponse<RepairEstimateDetailResponse>>> Create(
             [FromBody] RepairEstimateCreateRequest request,
@@ -49,6 +61,36 @@ namespace Garage_Management.API.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    ApiResponse<RepairEstimateDetailResponse>.ErrorResponse(ex.Message));
+            }
+        }
+
+        [HttpPatch("{id:int}/status")]
+        public async Task<ActionResult<ApiResponse<RepairEstimateDetailResponse>>> UpdateStatus(
+            int id,
+            [FromBody] RepairEstimateStatusUpdateRequest request,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var data = await _service.UpdateStatusAsync(id, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse("RepairEstimate not found"));
+
+                return Ok(ApiResponse<RepairEstimateDetailResponse>.SuccessResponse(data, "Updated status"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    ApiResponse<RepairEstimateDetailResponse>.ErrorResponse(ex.Message));
             }
         }
     }

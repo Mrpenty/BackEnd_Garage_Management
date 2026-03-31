@@ -81,13 +81,17 @@ namespace Garage_Management.Application.Services.JobCards
 
            if (hasActive)
                throw new Exception("Xe này đang có JobCard đang hoạt động.");
-            var app = await _appointmentRepository.GetByIdAsync((int)dto.AppointmentId);
 
-
-            // CHECK 4: status
-            if (app != null && app.Status != AppointmentStatus.Confirmed)
+            Appointment? app = null;
+            if (dto.AppointmentId.HasValue)
             {
-                throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+                app = await _appointmentRepository.GetByIdAsync(dto.AppointmentId.Value);
+
+                // CHECK 4: status
+                if (app != null && app.Status != AppointmentStatus.Confirmed)
+                {
+                    throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+                }
             }
             var entity = new JobCard
            {
@@ -446,6 +450,37 @@ namespace Garage_Management.Application.Services.JobCards
                 
                 TotalEstimateMinute = x.Services.SelectMany(s => s.ServiceTasks)
                     .Sum(st => st.ServiceTask.EstimateMinute)
+            }).ToList();
+        }
+
+        public async Task<List<JobCardDto>> GetJobCardsByCustomerIdAsync(int customerId)
+        {
+            var jobCards = await _repository.GetByCustomerIdAsync(customerId);
+
+            return jobCards.Select(x => new JobCardDto
+            {
+                JobCardId = x.JobCardId,
+                AppointmentId = x.AppointmentId,
+                CustomerId = x.CustomerId,
+                VehicleId = x.VehicleId,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Status = x.Status,
+                ProgressPercentage = x.ProgressPercentage,
+                CompletedSteps = x.CompletedSteps,
+                ProgressNotes = x.ProgressNotes,
+                Services = x.Services.Select(MapJobCardService).ToList(),
+                Note = x.Note,
+                SupervisorId = x.SupervisorId,
+                CreatedByEmployeeId = x.CreatedBy,
+                Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
             }).ToList();
         }
 

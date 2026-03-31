@@ -30,6 +30,35 @@ namespace Garage_Management.API.Controllers
             {
                 return BadRequest(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
             }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
+            }
+        }
+
+        [HttpPatch("{repairEstimateId:int}/{sparePartId:int}/status")]
+        public async Task<ActionResult<ApiResponse<RepairEstimateSparePartResponse>>> UpdateStatus(
+            int repairEstimateId,
+            int sparePartId,
+            [FromBody] RepairEstimateSparePartStatusUpdateRequest request,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var data = await _service.UpdateStatusAsync(repairEstimateId, sparePartId, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse("RepairEstimateSparePart not found"));
+
+                return Ok(ApiResponse<RepairEstimateSparePartResponse>.SuccessResponse(data, "Updated status"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Inventories;
 using Garage_Management.Base.Entities.RepairEstimaties;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,9 @@ namespace Garage_Management.Base.Data.Configurations.RepairEstimaties
                 .HasPrecision(18, 2);
             builder.Property(resp => resp.TotalAmount)
                 .HasPrecision(18, 2);
+            builder.Property(resp => resp.Status)
+                .HasConversion<int>()
+                .HasDefaultValue(RepairEstimateApprovalStatus.WaitingApproval);
 
             // Quan hệ N-1: Dòng phụ tùng thuộc một RepairEstimate
             builder.HasOne(resp => resp.RepairEstimate)
