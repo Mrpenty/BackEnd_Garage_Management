@@ -19,5 +19,7 @@ namespace Garage_Management.Base.Common.Enums
         Completed = 9,
         Rejected = 10,
         NoIssue = 11,
+        FoundNewFault = 12,
+
     }
 }
