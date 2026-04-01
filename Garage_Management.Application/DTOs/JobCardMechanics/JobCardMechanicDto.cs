@@ -49,6 +49,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public string? AppointmentNote { get; set; }
 
         public List<ServiceJobCardMechanicResponse> Services { get; set; } = new();
+        public List<SparePartJobCardMechanicResponse> SpareParts { get; set; } = new();
     }
 
     public class ServiceJobCardMechanicResponse
@@ -56,12 +57,13 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public int ServiceId { get; set; }
         public string ServiceName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public ServiceStatus ServiceStatus { get; set; }
+        public string ServiceStatusName { get; set; } = string.Empty;
         public long TotalEstimateMinute { get; set; }
         public List<ServiceTaskJobCardMechanicResponse> ServiceTasks { get; set; } = new();
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public string ServiceStatusName { get; set; } = string.Empty;
     }
 
     public class ServiceTaskJobCardMechanicResponse
@@ -70,10 +72,23 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public string TaskName { get; set; } = string.Empty;
         public int TaskOrder { get; set; }
         public int EstimateMinute { get; set; }
+        public ServiceStatus ServiceTaskStatus { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string ServiceTaskStatusName { get; set; } = string.Empty;
+    }
+
+    public class SparePartJobCardMechanicResponse
+    {
+        public int SparePartId { get; set; }
+        public string PartName { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalAmount { get; set; }
+        public bool IsUnderWarranty { get; set; }
+        public string? Note { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
 }
