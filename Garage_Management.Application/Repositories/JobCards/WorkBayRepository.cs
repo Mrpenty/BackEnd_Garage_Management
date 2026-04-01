@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 using Garage_Management.Application.Interfaces.Repositories;
     using Garage_Management.Base.Data;
     using Garage_Management.Base.Entities.JobCards;
-    
-    using Microsoft.EntityFrameworkCore;
+using Garage_Management.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 namespace Garage_Management.Application.Repositories.JobCards
 {
     
-        public class WorkBayRepository : IWorkBayRepository
+        public class WorkBayRepository : BaseRepository<WorkBay>, IWorkBayRepository
         {
             private readonly AppDbContext _context;
 
-            public WorkBayRepository(AppDbContext context)
+            public WorkBayRepository(AppDbContext context) : base(context)
             {
                 _context = context;
             }

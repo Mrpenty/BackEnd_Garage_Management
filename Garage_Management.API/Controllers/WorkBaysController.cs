@@ -25,8 +25,27 @@ namespace Garage_Management.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<WorkBayDto>>>> GetList([FromQuery] WorkBayStatus? status,
             CancellationToken ct = default)
         {
-            var result = await _service.GetListAsync(status,ct);
+            var result = await _service.GetListAsync(status, ct);
             return Ok(result);
+        }
+
+        [HttpPost("Create")]
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> Create([FromBody] CreateWorkBayRequest request,
+            CancellationToken ct = default)
+        {
+            var result = await _service.CreateWorkBayAsync(request, ct);
+            return Ok(result);
+        }
+        [HttpPost("{id:int}/change-info")]
+
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> ChangeStatus(int id, [FromBody] UpdateWorkBayRequest request,
+            CancellationToken ct = default)
+        {
+            var result = await _service.UpdateWorkBayAsync(id, request, ct);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
+
         }
     }
 }
