@@ -58,6 +58,27 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<JobCardServiceResponse>.SuccessResponse(data, "Updated"));
         }
 
+        [HttpPatch("service/{serviceId:int}/status")]
+        public async Task<ActionResult<ApiResponse<JobCardServiceResponse>>> UpdateStatusByServiceId(
+            int serviceId,
+            [FromBody] JobCardServiceStatusUpdateRequest request,
+            [FromQuery] int? jobCardId = null,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var data = await _service.UpdateStatusByServiceIdAsync(serviceId, jobCardId, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<JobCardServiceResponse>.ErrorResponse("JobCardService not found"));
+
+                return Ok(ApiResponse<JobCardServiceResponse>.SuccessResponse(data, "Updated status successfully"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<JobCardServiceResponse>.ErrorResponse(ex.Message));
+            }
+        }
+
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {
