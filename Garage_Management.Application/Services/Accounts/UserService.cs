@@ -91,7 +91,7 @@ namespace Garage_Management.Application.Services.Accounts
                         CreatedAt = customer.CreatedAt
                     };
 
-                    profile.FullName = $"{customer.FirstName} {customer.LastName}".Trim();
+                    profile.FullName = $"{customer.LastName} {customer.FirstName}".Trim();
                 }
             }
             // Nếu là Employee/Staff
@@ -108,7 +108,7 @@ namespace Garage_Management.Application.Services.Accounts
                         Position = employee.Position,
                     };
 
-                    profile.FullName = $"{employee.FirstName} {employee.LastName}".Trim();
+                    profile.FullName = $"{employee.LastName} {employee.FirstName}".Trim();
                 }
             }
 
@@ -130,7 +130,7 @@ namespace Garage_Management.Application.Services.Accounts
                     // Lấy FullName từ Customer (ưu tiên)
                     var customerFullName = await _customerRepository.GetAll()
                         .Where(c => c.UserId == u.Id)
-                        .Select(c => $"{c.FirstName} {c.LastName}".Trim())
+                        .Select(c => $"{c.LastName} {c.FirstName}".Trim())
                         .FirstOrDefaultAsync(ct);
 
                     EmployeeInfo? employeeInfo = null;
@@ -151,7 +151,7 @@ namespace Garage_Management.Application.Services.Accounts
                     var fullName = !string.IsNullOrWhiteSpace(customerFullName)
                         ? customerFullName
                         : employee != null
-                            ? $"{employee.FirstName} {employee.LastName}".Trim()
+                            ? $"{employee.LastName} {employee.FirstName}".Trim()
                             : "";
 
                     userDtos.Add(new UserRequest

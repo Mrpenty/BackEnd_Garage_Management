@@ -80,7 +80,7 @@ namespace Garage_Management.Application.Services.Accounts
                     .Select(c => new CustomerDto
                     {
                         CustomerId = c.CustomerId,
-                        FullName = $"{(c.FirstName ?? "").Trim()} {(c.LastName ?? "").Trim()}".Trim(),
+                        FullName = $"{(c.LastName ?? "").Trim()} {(c.FirstName ?? "").Trim()}".Trim(),
                         PhoneNumber = c.User != null ? (c.User.PhoneNumber ?? "") : "",
                         Email = c.User != null ? (c.User.Email ?? "") : "",
                         Address = c.Address ?? "",
@@ -149,7 +149,7 @@ namespace Garage_Management.Application.Services.Accounts
                     Email = request.Email,
                     PhoneNumber = request.PhoneNumber,
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
                     CreatedBy = receptionistUserId
                 };
 
@@ -174,7 +174,7 @@ namespace Garage_Management.Application.Services.Accounts
                 LastName = request.LastName,
                 Address = request.Address,
                 UserId = newUser.Id,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
                 CreatedBy = receptionistUserId
             };
 
@@ -184,7 +184,7 @@ namespace Garage_Management.Application.Services.Accounts
             var dto = new CustomerDto
             {
                 CustomerId = customer.CustomerId,
-                FullName = $"{customer.FirstName} {customer.LastName}".Trim(),
+                FullName = $"{customer.LastName} {customer.FirstName}".Trim(),
                 PhoneNumber = request.PhoneNumber,
                 Email = newUser?.Email,
                 Address = customer.Address,

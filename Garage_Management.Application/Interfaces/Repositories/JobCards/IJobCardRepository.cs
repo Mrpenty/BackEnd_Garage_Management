@@ -19,7 +19,7 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
         /// <summary>
         ///  lấy danh sách phiếu sửa chữa trong khoảng thời gian nhất định 
         /// </summary>
-        Task<List<JobCard>> GetByDateRangeAsync(DateTime from, DateTime to);
+       // Task<List<JobCard>> GetByDateRangeAsync(DateTime from, DateTime to);
 
     }
 }
