@@ -9,7 +9,7 @@ namespace Garage_Management.Application.DTOs.JobCards
     }
     public class ServiceTaskUpdateDto
     {
-        public int ServiceTaskId { get; set; }
+        public int JobCardServiceTaskId { get; set; }
         public ServiceStatus StatusServiceTask { get; set; }
        
     }

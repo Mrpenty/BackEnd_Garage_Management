@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Application.Services.JobCards;
+using Garage_Management.Base.Common.Format;
 using Garage_Management.Base.Interface;
 using Garage_Management.Base.Services;
 
@@ -12,7 +13,7 @@ namespace Garage_Management.API.Extensions
             services.AddScoped<ISmsService, TwilioSmsService>();
             services.AddScoped<IGenerateToken, GenerateToken>();
             services.AddScoped<IJobCardServiceService, JobCardServiceService>();
-
+            services.AddScoped<ProgressCalculator>();
             return services;
         }
     }

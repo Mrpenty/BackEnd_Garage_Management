@@ -26,6 +26,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Twilio.TwiML.Voice;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
 
 
@@ -42,6 +43,8 @@ namespace Garage_Management.Application.Services.JobCards
         private readonly IWorkBayRepository _workBayRepository;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ProgressCalculator _progressCalculator;
+
 
 
         public JobCardService(
@@ -52,7 +55,8 @@ namespace Garage_Management.Application.Services.JobCards
             IJobCardSparePartRepository jobCardSparePartRepository,
             IWorkBayRepository workBayRepository,
             IAppointmentRepository appointmentRepository,
-            IHttpContextAccessor httpContext)
+            IHttpContextAccessor httpContext,
+            ProgressCalculator progressCalculator)
         {
             _repository = repository;
             _serviceRepository = serviceRepository;
@@ -62,6 +66,7 @@ namespace Garage_Management.Application.Services.JobCards
             _workBayRepository = workBayRepository;
             _appointmentRepository = appointmentRepository;
             _httpContextAccessor = httpContext;
+            _progressCalculator = progressCalculator;
         }
 
 
@@ -360,7 +365,7 @@ namespace Garage_Management.Application.Services.JobCards
             if (workBay.JobcardId == null)
             {
                 workBay.JobcardId = jobCard.JobCardId;
-                workBay.StartAt = DateTime.UtcNow;
+                workBay.StartAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
                 workBay.Status = WorkBayStatus.Occupied;
 
                 jobCard.Status = JobCardStatus.OnwaitingList;
@@ -371,8 +376,8 @@ namespace Garage_Management.Application.Services.JobCards
                 jobCard.Status = JobCardStatus.OnwaitingList;
             }
 
-            jobCard.UpdatedAt = DateTime.UtcNow;
-            workBay.UpdateAt = DateTime.UtcNow;
+            jobCard.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+            workBay.UpdateAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             await _workBayRepository.SaveAsync(cancellationToken);
             await _repository.SaveAsync(cancellationToken);
@@ -390,9 +395,9 @@ namespace Garage_Management.Application.Services.JobCards
                 return false;
 
             workBay.JobcardId = null;
-            workBay.EndAt = DateTime.UtcNow;
+            workBay.EndAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
             workBay.Status = WorkBayStatus.Available;
-            workBay.UpdateAt = DateTime.UtcNow;
+            workBay.UpdateAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             await _workBayRepository.SaveAsync(cancellationToken);
 
@@ -492,29 +497,24 @@ namespace Garage_Management.Application.Services.JobCards
                 return ApiResponse<UpdateProgressResponse>.ErrorResponse("Vui lòng đăng nhập để cập nhật tiến độ");
             }
 
-            var mechanicId = int.Parse(
-                httpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value
-            );
-
+            var currentUserId = int.Parse(httpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+         
             // Kiểm tra JobCard tồn tại
             var jobCard = await _repository.GetByIdAsync(jobCardId);
             if (jobCard == null)
                 return ApiResponse<UpdateProgressResponse>.ErrorResponse("Không tìm thấy phiếu sửa chữa");
 
-            // Kiểm tra Mechanic được assign cho JobCard này
-            var isAssigned = await _repository.IsMechanicAssignedAsync(jobCardId, mechanicId);
-            if (!isAssigned)
-                throw new UnauthorizedAccessException("Thợ máy không được phân công cho phiểu sửa chữa này");
+            bool isMechanic = jobCard.Mechanics.Any(m => m.EmployeeId == currentUserId);
+            bool isSupervisor = jobCard.SupervisorId == currentUserId;
+
+            if (!isMechanic && !isSupervisor)
+            {
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Bạn không có quyền cập nhật tiến độ phiếu sửa chữa này");
+            }
 
             // Cập nhật các trường progress
             if (dto.StatusJobCard.HasValue)
                 jobCard.Status = dto.StatusJobCard.Value;
-
-            if (dto.ProgressPercentage.HasValue)
-                jobCard.ProgressPercentage = dto.ProgressPercentage.Value;
-
-            //if (!string.IsNullOrEmpty(dto.CompletedSteps))
-            //    jobCard.CompletedSteps = dto.CompletedSteps;
 
             if (!string.IsNullOrEmpty(dto.ProgressNotes))
                 jobCard.ProgressNotes = dto.ProgressNotes;
@@ -540,8 +540,20 @@ namespace Garage_Management.Application.Services.JobCards
                     if (jobCardService != null)
                     {
                         jobCardService.Status = serviceUpdate.StatusService;
-                        jobCardService.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
-;
+                        jobCardService.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+                        if (jobCardService.Status == ServiceStatus.Completed)
+                        {
+                            foreach (var task in jobCardService.ServiceTasks)
+                            {
+                                if (task.Status != ServiceStatus.Completed)
+                                {
+                                    task.Status = ServiceStatus.Completed;
+                                    task.CompletedAt ??= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));   
+                                    task.PerformedById = currentUserId;
+                                }
+                            }
+                        }
+
                     }
                 }
             }
@@ -553,7 +565,7 @@ namespace Garage_Management.Application.Services.JobCards
                     // Tìm JobCardServiceTask theo ServiceTaskId
                     var jobCardServiceTask = jobCard.Services
                         .SelectMany(s => s.ServiceTasks)
-                        .FirstOrDefault(t => t.ServiceTaskId == taskUpdate.ServiceTaskId);
+                        .FirstOrDefault(t => t.JobCardServiceTaskId == taskUpdate.JobCardServiceTaskId);
 
                     if (jobCardServiceTask != null)
                     {
@@ -567,10 +579,12 @@ namespace Garage_Management.Application.Services.JobCards
                         {
                             jobCardServiceTask.CompletedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
                         }
-                        jobCardServiceTask.PerformedById = mechanicId;
+                        jobCardServiceTask.PerformedById = currentUserId;
                     }
                 }
             }
+            // Tính ProgressPercentage theo logic mới
+            jobCard.ProgressPercentage = _progressCalculator.CalculateJobCardProgress(jobCard);
 
             // Kiểm tra nếu tất cả services đã completed, thì đánh dấu JobCard completed
             bool allServicesCompleted = jobCard.Services.All(s => s.Status == ServiceStatus.Completed);
@@ -710,7 +724,7 @@ namespace Garage_Management.Application.Services.JobCards
                 ProgressNotes = jobCard.ProgressNotes,
                 StartDate = jobCard.StartDate,
                 EndDate = jobCard.EndDate,
-                EstimatedCompletionTime = CalculateEstimatedCompletionDisplay(jobCard.StartDate, totalRemainingMinutes, bufferMinutes),
+                EstimatedCompletionTime = _progressCalculator.CalculateEstimatedCompletionDisplay(jobCard.StartDate, totalRemainingMinutes, bufferMinutes),
                 EstimatedJobCardMinutesRemaining = totalRemainingMinutes,
                 Services = services,
                 AssignedMechanic = jobCard.Mechanics.Any() ? string.Join(", ", jobCard.Mechanics.Select(m => m.Employee?.FullName ?? "Unknown")) : null,
@@ -721,48 +735,9 @@ namespace Garage_Management.Application.Services.JobCards
             if (userRole == "Customer")
             {
                 response.ProgressNotes = null;
-                // Ẩn tasks details nếu cần
             }
 
             return ApiResponse<ViewRepairProgressResponse>.SuccessResponse(response, "Lấy thông tin tiến độ thành công.");
-        }
-
-        /// <summary>
-        /// Tính chuỗi hiển thị khoảng thời gian dự kiến hoàn thành (ví dụ: "13:45 - 13:55").
-        /// </summary>
-        /// <param name="startTime">Thời điểm bắt đầu thực tế (có thể null nếu chưa bắt đầu)</param>
-        /// <param name="remainingMinutes">Tổng số phút ước tính còn lại</param>
-        /// <param name="bufferMinutes">Khoảng buffer ± (mặc định 5 phút)</param>
-        /// <returns>Chuỗi dạng "HH:mm - HH:mm" hoặc thông báo trạng thái</returns>
-        private string? CalculateEstimatedCompletionDisplay(DateTime? startTime, long remainingMinutes, int bufferMinutes = 5)
-        {
-            if (!startTime.HasValue)
-            {
-                return "Chưa bắt đầu";
-            }
-
-            if (remainingMinutes <= 0)
-            {
-                return "Đã hoàn thành";
-            }
-
-            var baseEndTime = startTime.Value.AddMinutes(remainingMinutes);
-
-            // Tạo khoảng ± buffer
-            var minEnd = baseEndTime.AddMinutes(-bufferMinutes);
-            var maxEnd = baseEndTime.AddMinutes(bufferMinutes);
-            string format;
-            if (minEnd.Date == maxEnd.Date)
-            {
-                format = "HH:mm";
-            }
-            else
-            {
-                format = "dd/MM HH:mm";
-            }
-            string minFormatted = minEnd.ToString(format);
-            string maxFormatted = maxEnd.ToString(format);
-            return $"{minFormatted} - {maxFormatted}";
-        }
+        }      
     }
 }

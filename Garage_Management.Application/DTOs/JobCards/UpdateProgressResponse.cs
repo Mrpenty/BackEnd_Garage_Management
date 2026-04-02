@@ -8,7 +8,7 @@ namespace Garage_Management.Application.DTOs.JobCards
         public int JobCardId { get; set; }
         public JobCardStatus StatusJobCard { get; set; }
         public string StatusJobCardName { get; set; } = string.Empty;
-        public int ProgressPercentage { get; set; }
+        //public int ProgressPercentage { get; set; }
         //public string? CompletedSteps { get; set; }
         public string? ProgressNotes { get; set; }
         public DateTime? EndDate { get; set; }
@@ -35,9 +35,7 @@ namespace Garage_Management.Application.DTOs.JobCards
         public int ServiceTaskId { get; set; }
         public string ServiceTaskName { get; set; } = string.Empty;
         public ServiceStatus StatusServiceTask { get; set; }
-        public string? Note { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
-        public string StatusName { get; set; } = string.Empty;
     }
 }
