@@ -57,6 +57,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(j => j.Logs)        // Lịch sử thao tác / trạng thái
                 .Include(jm => jm.Mechanics)    // Thông tin thợ máy
                     .ThenInclude(m => m.Employee)
+                .Include(j => j.WorkBay)      // Thông tin bãi sửa chữa
                 .FirstOrDefaultAsync(j => j.JobCardId == id);
         }
 

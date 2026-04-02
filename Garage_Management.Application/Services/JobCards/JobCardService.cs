@@ -161,6 +161,7 @@ namespace Garage_Management.Application.Services.JobCards
                 AppointmentId = entity.AppointmentId,
                 CustomerId = entity.CustomerId,
                 VehicleId = entity.VehicleId,
+                WorkbayId = entity.WorkBay.Id,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,

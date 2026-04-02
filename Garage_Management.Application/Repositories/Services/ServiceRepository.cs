@@ -99,5 +99,11 @@ namespace Garage_Management.Application.Repositories.Services
 
         public async Task SaveAsync(CancellationToken cancellationToken)
             => await _context.SaveChangesAsync(cancellationToken);
+        public async Task<Service?> GetByIdWithTasksAsync(int id, CancellationToken ct)
+        {
+            return await _context.Services
+                .Include(s => s.ServiceTasks) 
+                .FirstOrDefaultAsync(s => s.ServiceId == id, ct);
+        }
     }
 }

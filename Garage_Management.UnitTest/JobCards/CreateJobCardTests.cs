@@ -4,6 +4,7 @@ using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Common.Format;
 using Garage_Management.Base.Entities.Accounts;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -22,6 +23,7 @@ namespace Garage_Management.UnitTest.JobCards
         private Mock<IWorkBayRepository> _workBayRepo;
         private Mock<IAppointmentRepository> _appointmentRepo;
         private Mock<IHttpContextAccessor> _httpContextAccessor;
+        private Mock<ProgressCalculator> _progressCalculator;
         private JobCardServiceApp _service;
 
         [TestInitialize]
@@ -35,6 +37,7 @@ namespace Garage_Management.UnitTest.JobCards
             _workBayRepo = new Mock<IWorkBayRepository>();
             _appointmentRepo = new Mock<IAppointmentRepository>();
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
+            _progressCalculator = new Mock<ProgressCalculator>();
             _service = new JobCardServiceApp(
                 _jobCardRepo.Object,
                 _serviceRepo.Object,
@@ -44,6 +47,7 @@ namespace Garage_Management.UnitTest.JobCards
                 _workBayRepo.Object,
                 _appointmentRepo.Object,
                  _httpContextAccessor.Object
+                 , _progressCalculator.Object
             );
         }
 
