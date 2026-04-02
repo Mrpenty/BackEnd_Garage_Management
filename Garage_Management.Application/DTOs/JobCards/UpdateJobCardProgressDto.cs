@@ -8,7 +8,7 @@ namespace Garage_Management.Application.DTOs.JobCards
         /// <summary>
         /// Trạng thái hiện tại (In Progress, Waiting Parts, Completed Step)
         /// </summary>
-        public JobCardStatus? Status { get; set; }
+        public JobCardStatus? StatusJobCard { get; set; }
 
         /// <summary>
         /// Phần trăm hoàn thành (0-100)
@@ -35,5 +35,6 @@ namespace Garage_Management.Application.DTOs.JobCards
         /// Cập nhật trạng thái các services
         /// </summary>
         public List<UpdateServiceStatusDto>? ServiceUpdates { get; set; }
+        public List<ServiceTaskUpdateDto>? ServiceTaskUpdates { get; set; }
     }
 }

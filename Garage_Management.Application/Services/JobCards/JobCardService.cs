@@ -499,7 +499,7 @@ namespace Garage_Management.Application.Services.JobCards
             // Kiểm tra JobCard tồn tại
             var jobCard = await _repository.GetByIdAsync(jobCardId);
             if (jobCard == null)
-                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Kh�ng t�m th?y phi?u s?a ch?a");
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Không tìm thấy phiếu sửa chữa");
 
             // Kiểm tra Mechanic được assign cho JobCard này
             var isAssigned = await _repository.IsMechanicAssignedAsync(jobCardId, mechanicId);
@@ -507,8 +507,8 @@ namespace Garage_Management.Application.Services.JobCards
                 throw new UnauthorizedAccessException("Thợ máy không được phân công cho phiểu sửa chữa này");
 
             // Cập nhật các trường progress
-            if (dto.Status.HasValue)
-                jobCard.Status = dto.Status.Value;
+            if (dto.StatusJobCard.HasValue)
+                jobCard.Status = dto.StatusJobCard.Value;
 
             if (dto.ProgressPercentage.HasValue)
                 jobCard.ProgressPercentage = dto.ProgressPercentage.Value;
@@ -531,7 +531,7 @@ namespace Garage_Management.Application.Services.JobCards
                 // Có thể inject INotificationService và gọi CreateNotificationAsync(jobCard.SupervisorId, "New faults reported", dto.AdditionalFaults);
             }
 
-            // Cập nhật trạng thái các services nếu có
+            // Cập nhật trạng thái các services 
             if (dto.ServiceUpdates != null && dto.ServiceUpdates.Any())
             {
                 foreach (var serviceUpdate in dto.ServiceUpdates)
@@ -539,17 +539,49 @@ namespace Garage_Management.Application.Services.JobCards
                     var jobCardService = jobCard.Services.FirstOrDefault(s => s.JobCardServiceId == serviceUpdate.JobCardServiceId);
                     if (jobCardService != null)
                     {
-                        jobCardService.Status = serviceUpdate.Status;
-                        jobCardService.UpdatedAt = DateTime.UtcNow;
+                        jobCardService.Status = serviceUpdate.StatusService;
+                        jobCardService.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
+;
+                    }
+                }
+            }
+            // Cập nhật trạng thái các service tasks
+            if (dto.ServiceTaskUpdates != null && dto.ServiceTaskUpdates.Any())
+            {
+                foreach (var taskUpdate in dto.ServiceTaskUpdates)
+                {
+                    // Tìm JobCardServiceTask theo ServiceTaskId
+                    var jobCardServiceTask = jobCard.Services
+                        .SelectMany(s => s.ServiceTasks)
+                        .FirstOrDefault(t => t.ServiceTaskId == taskUpdate.ServiceTaskId);
+
+                    if (jobCardServiceTask != null)
+                    {
+                        jobCardServiceTask.Status = taskUpdate.StatusServiceTask;
+                        // Cập nhật thời gian bắt đầu và hoàn thành dựa trên trạng thái
+                        if (taskUpdate.StatusServiceTask == ServiceStatus.InProgress && !jobCardServiceTask.StartedAt.HasValue)
+                        {
+                            jobCardServiceTask.StartedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+                        }
+                        else if (taskUpdate.StatusServiceTask == ServiceStatus.Completed && !jobCardServiceTask.CompletedAt.HasValue)
+                        {
+                            jobCardServiceTask.CompletedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+                        }
+                        jobCardServiceTask.PerformedById = mechanicId;
                     }
                 }
             }
 
             // Kiểm tra nếu tất cả services đã completed, thì đánh dấu JobCard completed
-            if (jobCard.Services != null && jobCard.Services.Any() && jobCard.Services.All(s => s.Status == ServiceStatus.Completed))
+            bool allServicesCompleted = jobCard.Services.All(s => s.Status == ServiceStatus.Completed);
+            bool allTasksCompleted = jobCard.Services
+                .SelectMany(s => s.ServiceTasks)
+                .All(t => t.Status == ServiceStatus.Completed);
+
+            if (allServicesCompleted && allTasksCompleted)
             {
                 jobCard.Status = JobCardStatus.Completed;
-                jobCard.EndDate = DateTime.UtcNow;
+                jobCard.EndDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
                 jobCard.ProgressPercentage = 100;
             }
 
@@ -560,7 +592,7 @@ namespace Garage_Management.Application.Services.JobCards
             var response = new UpdateProgressResponse
             {
                 JobCardId = jobCard.JobCardId,
-                Status = jobCard.Status,
+                StatusJobCard = jobCard.Status,
                 StatusJobCardName = jobCard.Status.ToString(),
                 ProgressPercentage = jobCard.ProgressPercentage,
                 ProgressNotes = jobCard.ProgressNotes,
@@ -570,12 +602,22 @@ namespace Garage_Management.Application.Services.JobCards
                     JobCardServiceId = s.JobCardServiceId,
                     ServiceId = s.ServiceId,
                     ServiceName = s.Service?.ServiceName ?? "Unknown Service",
-                    Status = s.Status,
+                    StatusService = s.Status,
                     StatusName = s.Status.ToString(),
                     Description = s.Description,
                     CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt
+                    UpdatedAt = s.UpdatedAt,
+                    ServiceTasks = s.ServiceTasks.Select(t => new JobCardServiceTaskProgressDto
+                    {
+                        JobCardServiceTaskId = t.JobCardServiceTaskId,
+                        ServiceTaskId = t.ServiceTaskId,
+                        StatusServiceTask = t.Status,
+                        ServiceTaskName = t.Status.ToString(),
+                        StartedAt = t.StartedAt,
+                        CompletedAt = t.CompletedAt
+                    }).ToList()
                 }).ToList()
+                
             };
 
             return ApiResponse<UpdateProgressResponse>.SuccessResponse(response, "Cập nhật tiến độ thành công.");
