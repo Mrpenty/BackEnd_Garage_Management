@@ -2,6 +2,7 @@
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Services.Accounts;
 using Garage_Management.Base.Entities.Accounts;
+using Garage_Management.UnitTest.Helper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -111,7 +112,7 @@ namespace Garage_Management.UnitTest.UserTests
         {
             var principal = BuildClaimsPrincipal(1, new[] { "Admin" });
             _mockHttpContext.Setup(x => x.User).Returns(principal);
-            _mockUserManager.SetupGet(x => x.Users).Returns(new List<User>().AsQueryable());
+            _mockUserManager.SetupGet(x => x.Users).Returns(new TestAsyncEnumerable<User>(new List<User>()));
 
             var request = new ChangeUserStatusRequest
             {
@@ -140,7 +141,7 @@ namespace Garage_Management.UnitTest.UserTests
 
             var principal = BuildClaimsPrincipal(1, new[] { "Admin" });
             _mockHttpContext.Setup(x => x.User).Returns(principal);
-            _mockUserManager.SetupGet(x => x.Users).Returns(new List<User> { existingUser }.AsQueryable());
+            _mockUserManager.SetupGet(x => x.Users).Returns(new TestAsyncEnumerable<User>(new List<User> { existingUser }));
             _mockEmployeeRepository.Setup(x => x.GetByUserIdAsync(2)).ReturnsAsync((Employee?)null);
             _mockUserManager.Setup(x => x.GetRolesAsync(existingUser)).ReturnsAsync(new List<string>());
 
@@ -173,7 +174,7 @@ namespace Garage_Management.UnitTest.UserTests
 
             var principal = BuildClaimsPrincipal(1, new[] { "Admin" });
             _mockHttpContext.Setup(x => x.User).Returns(principal);
-            _mockUserManager.SetupGet(x => x.Users).Returns(new List<User> { existingUser }.AsQueryable());
+            _mockUserManager.SetupGet(x => x.Users).Returns(new TestAsyncEnumerable<User>(new List<User> { existingUser }));
             _mockEmployeeRepository.Setup(x => x.GetByUserIdAsync(2)).ReturnsAsync((Employee?)null);
             _mockUserManager.Setup(x => x.UpdateAsync(It.Is<User>(u => u.Id == 2 && u.IsActive == false)))
                 .ReturnsAsync(IdentityResult.Success);
