@@ -40,6 +40,9 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(jm => jm.JobCard)
                     .ThenInclude(jc => jc.Services)
                     .ThenInclude(jc =>jc.ServiceTasks)
+                .Include(jm => jm.JobCard)
+                    .ThenInclude(jc => jc.SpareParts)
+                    .ThenInclude(sp => sp.Inventory)
                 .AsQueryable();
 
             // Search
@@ -109,11 +112,13 @@ namespace Garage_Management.Application.Repositories.JobCards
                     AppointmentNote = jm.JobCard.Appointment.Description,
 
                     Services = jm.JobCard.Services
-                     .Where(s => s.Service != null)
+                     .Where(s => s.Service != null && s.Status != ServiceStatus.Cancelled)
                      .Select(s => new ServiceJobCardMechanicResponse
                      {
                            ServiceId = s.ServiceId,
                            ServiceName = s.Service.ServiceName,
+                           ServiceStatus = s.Status,
+                           ServiceStatusName = s.Status.ToString(),
                            TotalEstimateMinute = s.ServiceTasks.Sum(st => st.ServiceTask.EstimateMinute),
                          ServiceTasks = s.ServiceTasks.Select(st => new ServiceTaskJobCardMechanicResponse
                            {
@@ -121,15 +126,29 @@ namespace Garage_Management.Application.Repositories.JobCards
                                TaskName = st.ServiceTask.TaskName,
                                TaskOrder = st.ServiceTask.TaskOrder,
                                EstimateMinute = st.ServiceTask.EstimateMinute,
+                               ServiceTaskStatus = st.Status,
                                ServiceTaskStatusName = st.Status.ToString(),
                                Note = st.Note
                            }).ToList(),
                            Description = s.Description,
                            CreatedAt = s.CreatedAt,
-                           UpdatedAt = s.UpdatedAt,
-                           ServiceStatusName = s.Status.ToString(),
+                           UpdatedAt = s.UpdatedAt
                      })
-                      .ToList()
+                      .ToList(),
+
+                    SpareParts = jm.JobCard.SpareParts
+                        .Select(sp => new SparePartJobCardMechanicResponse
+                        {
+                            SparePartId = sp.SparePartId,
+                            PartName = sp.Inventory.PartName,
+                            Quantity = sp.Quantity,
+                            UnitPrice = sp.UnitPrice,
+                            TotalAmount = sp.TotalAmount,
+                            IsUnderWarranty = sp.IsUnderWarranty,
+                            Note = sp.Note,
+                            CreatedAt = sp.CreatedAt
+                        })
+                        .ToList()
                   })
                 .ToListAsync();
 

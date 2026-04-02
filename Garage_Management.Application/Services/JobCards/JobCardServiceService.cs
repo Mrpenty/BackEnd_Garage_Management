@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Garage_Management.Application.Interfaces.Services.JobCard;
+using Microsoft.EntityFrameworkCore;
 
 namespace Garage_Management.Application.Services.JobCards
 {
@@ -67,6 +68,30 @@ namespace Garage_Management.Application.Services.JobCards
             if (request.Price.HasValue) entity.Price = request.Price.Value;
             if (request.Status.HasValue) entity.Status = request.Status.Value;
             if (request.SourceInspectionItemId.HasValue) entity.SourceInspectionItemId = request.SourceInspectionItemId.Value;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return Map(entity);
+        }
+
+        public async Task<JobCardServiceResponse?> UpdateStatusByServiceIdAsync(int serviceId, int? jobCardId, JobCardServiceStatusUpdateRequest request, CancellationToken ct = default)
+        {
+            if (serviceId <= 0)
+                throw new InvalidOperationException("ServiceId không hợp lệ");
+
+            var query = _repo.GetAll().Where(x => x.ServiceId == serviceId);
+            if (jobCardId.HasValue)
+                query = query.Where(x => x.JobCardId == jobCardId.Value);
+
+            var matches = await query.ToListAsync(ct);
+            if (matches.Count == 0) return null;
+
+            if (!jobCardId.HasValue && matches.Count > 1)
+                throw new InvalidOperationException("Có nhiều JobCardService cùng ServiceId, vui lòng truyền thêm jobCardId");
+
+            var entity = matches[0];
+            entity.Status = request.Status;
             entity.UpdatedAt = DateTime.UtcNow;
 
             _repo.Update(entity);
