@@ -39,9 +39,19 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceWarrantyPolicyResponse> CreateAsync(ServiceWarrantyPolicyCreateRequest request, CancellationToken ct = default)
         {
+            var name = request.PolicyName?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+                throw new InvalidOperationException("PolicyName không được để trống");
+            if (request.DurationMonths.HasValue && request.DurationMonths.Value < 0)
+                throw new InvalidOperationException("DurationMonths không hợp lệ");
+            if (request.MileageLimit.HasValue && request.MileageLimit.Value < 0)
+                throw new InvalidOperationException("MileageLimit không hợp lệ");
+            if (await _repo.ExistsByNameAsync(name, null, ct))
+                throw new InvalidOperationException("PolicyName đã tồn tại");
+
             var entity = new ServiceWarrantyPolicy
             {
-                PolicyName = request.PolicyName,
+                PolicyName = name,
                 DurationMonths = request.DurationMonths,
                 MileageLimit = request.MileageLimit,
                 TermsAndConditions = request.TermsAndConditions,
@@ -58,7 +68,20 @@ namespace Garage_Management.Application.Services.Services
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
-            if (!string.IsNullOrWhiteSpace(request.PolicyName)) entity.PolicyName = request.PolicyName;
+            if (!string.IsNullOrWhiteSpace(request.PolicyName))
+            {
+                var inputName = request.PolicyName.Trim();
+                if (await _repo.ExistsByNameAsync(inputName, id, ct))
+                    throw new InvalidOperationException("PolicyName đã tồn tại");
+
+                entity.PolicyName = inputName;
+            }
+
+            if (request.DurationMonths.HasValue && request.DurationMonths.Value < 0)
+                throw new InvalidOperationException("DurationMonths không hợp lệ");
+            if (request.MileageLimit.HasValue && request.MileageLimit.Value < 0)
+                throw new InvalidOperationException("MileageLimit không hợp lệ");
+
             if (request.DurationMonths.HasValue) entity.DurationMonths = request.DurationMonths.Value;
             if (request.MileageLimit.HasValue) entity.MileageLimit = request.MileageLimit.Value;
             if (request.TermsAndConditions != null) entity.TermsAndConditions = request.TermsAndConditions;
@@ -73,6 +96,8 @@ namespace Garage_Management.Application.Services.Services
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
+            if (await _repo.HasDependenciesAsync(id, ct))
+                throw new InvalidOperationException("Không thể xóa policy vì đã có dữ liệu bảo hành liên quan");
 
             _repo.Delete(entity);
             await _repo.SaveAsync(ct);

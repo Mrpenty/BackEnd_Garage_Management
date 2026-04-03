@@ -3,15 +3,16 @@ using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Services;
+using Garage_Management.Base.Common.Format;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.Services;
 using Garage_Management.UnitTest.Helper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
-using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
-using Microsoft.AspNetCore.Http;
 
 
 namespace Garage_Management.UnitTest.JobCards
@@ -28,6 +29,7 @@ namespace Garage_Management.UnitTest.JobCards
         private Mock<IWorkBayRepository> _workBayRepo;
         private Mock<IAppointmentRepository> _appointmentRepo;
         private Mock<IHttpContextAccessor> _httpContextAccessor;
+        private Mock<ProgressCalculator> _progressCalculator;
         private JobCardServiceApp _service;
 
         [TestInitialize]
@@ -41,6 +43,7 @@ namespace Garage_Management.UnitTest.JobCards
             _workBayRepo = new Mock<IWorkBayRepository>();
             _appointmentRepo = new Mock<IAppointmentRepository>();
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
+            _progressCalculator = new Mock<ProgressCalculator>();
             _service = new JobCardServiceApp(
                 _jobCardRepo.Object,
                 _serviceRepo.Object,
@@ -49,7 +52,8 @@ namespace Garage_Management.UnitTest.JobCards
                 _jobCardSparePartRepo.Object,
                 _workBayRepo.Object,
                 _appointmentRepo.Object,
-                  _httpContextAccessor.Object
+                _httpContextAccessor.Object,
+                _progressCalculator.Object
             );
         }
 
@@ -164,7 +168,7 @@ namespace Garage_Management.UnitTest.JobCards
     {
         new Service
         {
-            ServiceId = 1,
+ServiceId = 1,
             BasePrice = 100
         }
     }.AsQueryable();

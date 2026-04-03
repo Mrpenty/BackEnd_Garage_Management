@@ -5,10 +5,12 @@ namespace Garage_Management.Application.Interfaces.Services.JobCard
 {
     public interface IJobCardSparePartService
     {
+        Task<List<JobCardSparePartResponse>> GetAllAsync(CancellationToken cancellationToken);
+        Task<List<JobCardSparePartResponse>> GetByJobCardIdAsync(int jobCardId, CancellationToken cancellationToken);
         /// <summary>
-        /// Thêm phụ tùng vào phiếu sửa chữa
+        /// Thêm nhiều phụ tùng vào phiếu sửa chữa
         /// </summary>
-        Task<JobCardSparePart?> AddSparePartAsync(int jobCardId, AddSparePartToJobCardDto dto, CancellationToken cancellationToken);
-        Task<bool> RemoveSparePartAsync(int jobCardSparePartId,CancellationToken ct);
+        Task<List<JobCardSparePartResponse>?> AddSparePartsAsync(int jobCardId, AddMultipleSparePartsToJobCardDto dto, CancellationToken cancellationToken);
+        Task<bool> RemoveSparePartAsync(int jobCardId, int sparePartId, CancellationToken ct);
     }
 }

@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.JobCardServices;
+﻿using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -41,8 +41,24 @@ namespace Garage_Management.API.Controllers
             [FromBody] JobCardServiceCreateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = data.JobCardServiceId }, ApiResponse<JobCardServiceResponse>.SuccessResponse(data, "Created"));
+            try
+            {
+                var data = await _service.CreateAsync(request, ct);
+
+                if (!data.Success)
+                {
+                    return BadRequest(data);
+                }
+                return CreatedAtAction(nameof(GetById), new { id = data.Data.JobCardServiceId }, data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<JobCardServiceResponse>
+                {
+                    Success = false,
+                    Message = $"Lỗi Controller: {ex.Message} | Inner: {ex.InnerException?.Message}"
+                });
+            }
         }
 
         [HttpPut("{id:int}")]
@@ -56,6 +72,27 @@ namespace Garage_Management.API.Controllers
                 return NotFound(ApiResponse<JobCardServiceResponse>.ErrorResponse("JobCardService not found"));
 
             return Ok(ApiResponse<JobCardServiceResponse>.SuccessResponse(data, "Updated"));
+        }
+
+        [HttpPatch("service/{serviceId:int}/status")]
+        public async Task<ActionResult<ApiResponse<JobCardServiceResponse>>> UpdateStatusByServiceId(
+            int serviceId,
+            [FromBody] JobCardServiceStatusUpdateRequest request,
+            [FromQuery] int? jobCardId = null,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var data = await _service.UpdateStatusByServiceIdAsync(serviceId, jobCardId, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<JobCardServiceResponse>.ErrorResponse("JobCardService not found"));
+
+                return Ok(ApiResponse<JobCardServiceResponse>.SuccessResponse(data, "Updated status successfully"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<JobCardServiceResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpDelete("{id:int}")]

@@ -1,4 +1,5 @@
-﻿using Garage_Management.Base.Common.Enums;
+﻿using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Base.Common.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,12 +20,31 @@ namespace Garage_Management.Application.DTOs.Workbays
 
         public int? JobcardId { get; set; }
 
-       
+
 
         public DateTime CreateAt { get; set; }
+
+        public DateTime? UpdateAt { get; set; }
 
         public DateTime? StartAt { get; set; }
 
         public DateTime? EndAt { get; set; }
+        public List<JobCardListDto> JobCards { get; set; } = new();
     }
+
+    public class CreateWorkBayRequest
+    {
+        public string Name { get; set; }
+
+        public string? Note { get; set; }
+    }
+
+    public class UpdateWorkBayRequest
+    {
+        public string Name { get; set; }
+
+        public string? Note { get; set; }
+
+        public WorkBayStatus Status { get; set; }
+    } 
 }

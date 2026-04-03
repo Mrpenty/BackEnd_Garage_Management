@@ -26,7 +26,7 @@ namespace Garage_Management.Base.Entities.Accounts
         public string LastName { get; set; } = string.Empty;
 
         // Tên đầy đủ (có thể được tính toán hoặc lưu riêng để search nhanh)
-        public string FullName => $"{FirstName} {LastName}".Trim();
+        public string FullName => $"{LastName} {FirstName}".Trim();
 
 
         public string? EmployeeCode { get; set; } // Mã nhân viên (NV001, THU-001, ...)

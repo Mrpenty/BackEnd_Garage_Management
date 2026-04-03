@@ -19,7 +19,10 @@ namespace Garage_Management.Application.Interfaces.Services
         /// <summary>
         /// Lấy danh sách tất cả người dùng có phân trang
         /// </summary>
-
         Task<ApiResponse<PagedResult<UserRequest>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default);
+        /// <summary>
+        ///  thay đổi trạng thái hoạt động của tài khoản 
+        /// </summary>
+        Task<ApiResponse<UserRequest>> ChangeUserStatusAsync(ChangeUserStatusRequest request, CancellationToken ct = default);
     }
 }
