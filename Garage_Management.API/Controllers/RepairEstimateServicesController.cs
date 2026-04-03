@@ -22,18 +22,32 @@ namespace Garage_Management.API.Controllers
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(page, pageSize, ct);
-            return Ok(ApiResponse<PagedResult<RepairEstimateServiceResponse>>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetPagedAsync(page, pageSize, ct);
+                return Ok(ApiResponse<PagedResult<RepairEstimateServiceResponse>>.SuccessResponse(data, "OK"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<PagedResult<RepairEstimateServiceResponse>>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpGet("{repairEstimateId:int}/{serviceId:int}")]
         public async Task<ActionResult<ApiResponse<RepairEstimateServiceResponse>>> GetById(int repairEstimateId, int serviceId, CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(repairEstimateId, serviceId, ct);
-            if (data == null)
-                return NotFound(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse("RepairEstimateService not found"));
+            try
+            {
+                var data = await _service.GetByIdAsync(repairEstimateId, serviceId, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse("RepairEstimateService not found"));
 
-            return Ok(ApiResponse<RepairEstimateServiceResponse>.SuccessResponse(data, "OK"));
+                return Ok(ApiResponse<RepairEstimateServiceResponse>.SuccessResponse(data, "OK"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpPost]
@@ -45,6 +59,10 @@ namespace Garage_Management.API.Controllers
             {
                 var data = await _service.CreateAsync(request, ct);
                 return CreatedAtAction(nameof(GetById), new { repairEstimateId = data.RepairEstimateId, serviceId = data.ServiceId }, ApiResponse<RepairEstimateServiceResponse>.SuccessResponse(data, "Created"));
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
@@ -71,6 +89,10 @@ namespace Garage_Management.API.Controllers
 
                 return Ok(ApiResponse<RepairEstimateServiceResponse>.SuccessResponse(data, "Updated"));
             }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse(ex.Message));
+            }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse(ex.Message));
@@ -92,6 +114,10 @@ namespace Garage_Management.API.Controllers
 
                 return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
+            }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse<object>.ErrorResponse(ex.Message));
@@ -112,6 +138,10 @@ namespace Garage_Management.API.Controllers
                     return NotFound(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse("RepairEstimateService not found"));
 
                 return Ok(ApiResponse<RepairEstimateServiceResponse>.SuccessResponse(data, "Updated status"));
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateServiceResponse>.ErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
