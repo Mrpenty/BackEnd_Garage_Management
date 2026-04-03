@@ -172,6 +172,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
                 CreatedByEmployeeId = entity.CreatedBy,
+
                 Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
@@ -195,7 +196,15 @@ namespace Garage_Management.Application.Services.JobCards
                 Status = service.Status,
                 SourceInspectionItemId = service.SourceInspectionItemId,
                 CreatedAt = service.CreatedAt,
-                UpdatedAt = service.UpdatedAt
+                UpdatedAt = service.UpdatedAt,
+                ServiceTasks = service.ServiceTasks?
+                   .Select(t => new JobCardServiceTaskDto
+                    {
+                          JobCardServiceTaskId = t.JobCardServiceTaskId,
+                          TaskName = t.ServiceTask?.TaskName ?? "Không có tên công việc",
+                          Status = t.Status
+                    }).OrderBy(t => t.JobCardServiceTaskId)
+                      .ToList() ?? new List<JobCardServiceTaskDto>()
             };
         }
         public async Task<bool> UpdateStatusAsync(int id, JobCardStatus status, CancellationToken cancellationToken)
