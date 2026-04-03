@@ -16,6 +16,11 @@ namespace Garage_Management.Application.Interfaces.Repositories
         /// </summary>
         Task<PagedResult<Notification>> GetNotificationsAsync(int? userId, bool? isRead, int page, int pageSize, CancellationToken ct = default);
 
+        /// <summary>
+        /// Lấy danh sách thông báo của người dùng
+        /// </summary>
+        Task<List<Notification>> GetUserNotificationsAsync(int userId, CancellationToken ct = default);
+
     }
 }
 

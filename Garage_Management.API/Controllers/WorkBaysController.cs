@@ -26,39 +26,27 @@ namespace Garage_Management.API.Controllers
             [FromQuery] WorkBayStatus? status,
             CancellationToken ct = default)
         {
-            var data = await _service.GetListAsync(status, ct);
-
-            return Ok(new ApiResponse<IEnumerable<WorkBayDto>>
-            {
-                Success = true,
-                Data = data
-            });
+            var result = await _service.GetListAsync(status, ct);
+            return Ok(result);
         }
 
-        /// <summary>
-        /// Lấy chi tiết một WorkBay theo Id
-        /// </summary>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResponse<WorkBayDto>>> GetById(
-            int id,
-            CancellationToken cancellationToken)
+        [HttpPost("Create")]
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> Create([FromBody] CreateWorkBayRequest request,
+            CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(id, cancellationToken);
+            var result = await _service.CreateWorkBayAsync(request, ct);
+            return Ok(result);
+        }
+        [HttpPost("{id:int}/change-info")]
 
-            if (data == null)
-            {
-                return NotFound(new ApiResponse<WorkBayDto>
-                {
-                    Success = false,
-                    Message = "WorkBay not found"
-                });
-            }
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> ChangeStatus(int id, [FromBody] UpdateWorkBayRequest request,
+            CancellationToken ct = default)
+        {
+            var result = await _service.UpdateWorkBayAsync(id, request, ct);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
 
-            return Ok(new ApiResponse<WorkBayDto>
-            {
-                Success = true,
-                Data = data
-            });
         }
 
     }

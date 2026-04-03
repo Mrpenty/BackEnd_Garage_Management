@@ -20,7 +20,7 @@ namespace Garage_Management.Application.DTOs.Workbays
 
         public int? JobcardId { get; set; }
 
-       
+
 
         public DateTime CreateAt { get; set; }
 
@@ -31,4 +31,20 @@ namespace Garage_Management.Application.DTOs.Workbays
         public DateTime? EndAt { get; set; }
         public List<JobCardListDto> JobCards { get; set; } = new();
     }
+
+    public class CreateWorkBayRequest
+    {
+        public string Name { get; set; }
+
+        public string? Note { get; set; }
+    }
+
+    public class UpdateWorkBayRequest
+    {
+        public string Name { get; set; }
+
+        public string? Note { get; set; }
+
+        public WorkBayStatus Status { get; set; }
+    } 
 }

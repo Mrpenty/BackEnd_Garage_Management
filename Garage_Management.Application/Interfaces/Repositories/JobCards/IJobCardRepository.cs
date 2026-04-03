@@ -17,6 +17,11 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
         Task<JobCard?> GetWithMechanicsAsync(int jobCardId);
         Task<bool> IsMechanicAssignedAsync(int jobCardId, int mechanicId);
         Task<JobCard?> GetByIdWithTasksAsync(int id);
+        /// <summary>
+        ///  lấy danh sách phiếu sửa chữa trong khoảng thời gian nhất định 
+        /// </summary>
+       // Task<List<JobCard>> GetByDateRangeAsync(DateTime from, DateTime to);
+
         Task<List<JobCard>> GetByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken);
         Task<List<JobCard>> GetByWorkBayIdsAsync(List<int> workBayIds, CancellationToken cancellationToken);
 
