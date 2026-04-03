@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Http;
 using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
 
-namespace Garage_Management.UnitTest.JobCard
+namespace Garage_Management.UnitTest.JobCards
 {
     [TestClass]
     public class JobCardServiceCrudTests
