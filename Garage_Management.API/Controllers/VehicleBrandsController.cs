@@ -27,10 +27,17 @@ namespace Garage_Management.API.Controllers
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(page, pageSize, ct);
-            return Ok(ApiResponse<PagedResult<VehicleBrandResponse>>.SuccessResponse(data, "OK"));
-        }
+            try
+            {
+                var data = await _service.GetPagedAsync(page, pageSize, ct);
+                return Ok(ApiResponse<PagedResult<VehicleBrandResponse>>.SuccessResponse(data, "Lấy danh sách hãng xe máy thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<PagedResult<VehicleBrandResponse>>.ErrorResponse(ex.Message));
 
+            }
+        }
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
@@ -39,11 +46,17 @@ namespace Garage_Management.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<VehicleBrandResponse>>> GetById(int id, CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(id, ct);
-            if (data == null)
-                return NotFound(ApiResponse<VehicleBrandResponse>.ErrorResponse("VehicleBrand not found"));
-
-            return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetByIdAsync(id, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<VehicleBrandResponse>.ErrorResponse("Không tìm thấy hãng xe máy"));
+                return Ok(ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "OK"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<VehicleBrandResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -56,8 +69,16 @@ namespace Garage_Management.API.Controllers
             [FromBody] VehicleBrandCreateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = data.BrandId }, ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Created"));
+            try
+            {
+                var data = await _service.CreateAsync(request, ct);
+                return CreatedAtAction(nameof(GetById), new { id = data.BrandId }, ApiResponse<VehicleBrandResponse>.SuccessResponse(data, "Hãng xe máy đã được tạo thành công "));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<VehicleBrandResponse>.ErrorResponse(ex.Message));
+            }
+          
         }
 
         /// <summary>
@@ -69,13 +90,19 @@ namespace Garage_Management.API.Controllers
             [FromBody] VehicleBrandStatusUpdateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
-            if (!data)
-                return NotFound(ApiResponse<bool>.ErrorResponse("VehicleBrand not found"));
+            try
+            {
+                var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
+                if (!data)
+                    return NotFound(ApiResponse<bool>.ErrorResponse("Không tìm thấy hãng xe máy"));
 
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "Updated status"));
+                return Ok(ApiResponse<bool>.SuccessResponse(true, "Cập nhật trạng thái thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<bool>.ErrorResponse(ex.Message));
+            }
         }
-
         /// <summary>
         /// Xóa cứng brand xe máy.
         /// </summary>

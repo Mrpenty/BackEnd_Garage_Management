@@ -54,6 +54,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 
     public class ServiceJobCardMechanicResponse
     {
+        public int JobCardServiceId { get; set; }
         public int ServiceId { get; set; }
         public string ServiceName { get; set; } = string.Empty;
         public string? Description { get; set; }
@@ -68,6 +69,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 
     public class ServiceTaskJobCardMechanicResponse
     {
+        public int JobCardServicedTaskId { get; set; }
         public int ServiceTaskId { get; set; }
         public string TaskName { get; set; } = string.Empty;
         public int TaskOrder { get; set; }

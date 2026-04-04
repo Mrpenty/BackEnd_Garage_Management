@@ -29,6 +29,31 @@ namespace Garage_Management.API.Controllers
             var result = await _service.GetListAsync(status, ct);
             return Ok(result);
         }
+        /// <summary>
+        /// Lấy chi tiết một WorkBay theo Id
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> GetById(
+            int id,
+            CancellationToken cancellationToken)
+        {
+            var data = await _service.GetByIdAsync(id, cancellationToken);
+
+            if (data == null)
+            {
+                return NotFound(new ApiResponse<WorkBayDto>
+                {
+                    Success = false,
+                    Message = "Khoang sửa chữa không tìm thấy"
+                });
+            }
+
+            return Ok(new ApiResponse<WorkBayDto>
+            {
+                Success = true,
+                Data = data
+            });
+        }
 
         [HttpPost("Create")]
         public async Task<ActionResult<ApiResponse<WorkBayDto>>> Create([FromBody] CreateWorkBayRequest request,

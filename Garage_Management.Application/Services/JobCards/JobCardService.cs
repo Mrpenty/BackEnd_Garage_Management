@@ -595,7 +595,9 @@ namespace Garage_Management.Application.Services.JobCards
             }
             // Tính ProgressPercentage theo logic mới
             jobCard.ProgressPercentage = _progressCalculator.CalculateJobCardProgress(jobCard);
-
+            // Ưu tiên giá trị người dùng truyền vào (nếu có)
+            if (dto.ProgressPercentage.HasValue)
+                jobCard.ProgressPercentage = Math.Clamp(dto.ProgressPercentage.Value, 0, 100);
             // Kiểm tra nếu tất cả services đã completed, thì đánh dấu JobCard completed
             bool allServicesCompleted = jobCard.Services.All(s => s.Status == ServiceStatus.Completed);
             bool allTasksCompleted = jobCard.Services
