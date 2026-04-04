@@ -84,12 +84,71 @@ namespace Garage_Management.UnitTest.Customers
             var result = await _service.GetPagedAsync(new ParamQuery { Page = 1, PageSize = 20 }, CancellationToken.None);
 
             Assert.IsTrue(result.Success);
-            var pageData = result.Data.PageData.ToList();  
+            var pageData = result.Data.PageData.ToList();
 
             Assert.AreEqual(1, pageData.Count);
             //Assert.AreEqual("B A", pageData[0].FullName);
 
 
+        }
+        [TestMethod]
+        public async Task GetPagedAsync_SearchByName_ReturnsFilteredResult()
+        {
+            var customers = new List<Customer>
+            {
+                new Customer { FirstName = "Anh", LastName = "Nguyen", CreatedAt = DateTime.UtcNow },
+                new Customer { FirstName = "Binh", LastName = "Tran", CreatedAt = DateTime.UtcNow }
+            };
+
+            _customerRepository.Setup(x => x.GetAll()).Returns(new TestAsyncEnumerable<Customer>(customers.AsQueryable()));
+            var result = await _service.GetPagedAsync(new ParamQuery { Page = 1, PageSize = 10, Search = "anh" }, CancellationToken.None);
+            Assert.IsTrue(result.Success);
+            var pageData = result.Data.PageData.ToList();
+            Assert.AreEqual(1, pageData.Count);
+        }
+        [TestMethod]
+        public async Task GetPagedAsync_SearchByPhone_ReturnsCorrectCustomer()
+        {
+            var customers = new List<Customer>
+             {
+                 new Customer
+                 {
+                     CreatedAt = DateTime.UtcNow,
+                     User = new User { PhoneNumber = "0123" }
+                 },
+                 new Customer
+                 {
+                     CreatedAt = DateTime.UtcNow,
+                     User = new User { PhoneNumber = "9999" }
+                 }
+             };
+            _customerRepository.Setup(x => x.GetAll()).Returns(new TestAsyncEnumerable<Customer>(customers.AsQueryable()));
+            var result = await _service.GetPagedAsync(new ParamQuery { Page = 1, PageSize = 10, Search = "0123" }, CancellationToken.None);
+            Assert.IsTrue(result.Success);
+            var pageData = result.Data.PageData.ToList();
+            Assert.AreEqual(1, pageData.Count);
+        }
+        [TestMethod]
+        public async Task GetPagedAsync_NoData_ReturnsEmpty()
+        {
+            _customerRepository.Setup(x => x.GetAll()).Returns(new TestAsyncEnumerable<Customer>(Enumerable.Empty<Customer>().AsQueryable()));
+            var result = await _service.GetPagedAsync(new ParamQuery { Page = 1, PageSize = 10 }, CancellationToken.None);
+            Assert.IsTrue(result.Success);
+            var pageData = result.Data.PageData.ToList();
+            Assert.AreEqual(0, pageData.Count);
+        }
+        [TestMethod]
+        public async Task GetPagedAsync_ShouldSortByCreatedAtDesc()
+        {
+            var customers = new List<Customer>
+            {
+                 new Customer { CustomerId = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) },
+                 new Customer { CustomerId = 2, CreatedAt = DateTime.UtcNow }
+            };
+
+            _customerRepository.Setup(x => x.GetAll()).Returns(new TestAsyncEnumerable<Customer>(customers.AsQueryable()));
+            var result = await _service.GetPagedAsync(new ParamQuery { Page = 1, PageSize = 10 }, CancellationToken.None);
+            Assert.AreEqual(2, result.Data.PageData.First().CustomerId);
         }
 
         [TestMethod]
@@ -122,7 +181,7 @@ namespace Garage_Management.UnitTest.Customers
             {
                 new Customer { CustomerId = 2, User = new User { PhoneNumber = "0987654321" } }
             };
-            var mockQueryable = customers.AsQueryable();   
+            var mockQueryable = customers.AsQueryable();
             _customerRepository.Setup(x => x.GetAll()).Returns(new TestAsyncEnumerable<Customer>(mockQueryable));
             var request = new CreateCustomerRequest
             {
@@ -168,6 +227,27 @@ namespace Garage_Management.UnitTest.Customers
             Assert.AreEqual("B A", result.Data.FullName);
         }
 
+        [TestMethod]
+        public async Task CreateCustomerByReceptionistAsync_MissingRequiredFields_ReturnsError()
+        {
+            var context = new DefaultHttpContext();
+            context.User = new ClaimsPrincipal(new ClaimsIdentity(
+                new[] { new Claim(ClaimTypes.NameIdentifier, "1") }, "Test"));
+
+            _httpContextAccessor.Setup(x => x.HttpContext).Returns(context);
+
+            var request = new CreateCustomerRequest
+            {
+                FirstName = "",
+                LastName = "B",
+                PhoneNumber = ""
+            };
+
+            var result = await _service.CreateCustomerByReceptionistAsync(request, CancellationToken.None);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual("Vui lòng nhập đầy đủ họ, tên và số điện thoại.", result.Message);
+        }
         private Mock<UserManager<User>> CreateMockUserManager()
         {
             var userStore = new Mock<IUserStore<User>>();
