@@ -78,7 +78,12 @@ namespace Garage_Management.Application.Services.Workbays
                 UpdateAt = bay.UpdateAt,
                 StartAt = bay.StartAt,
                 EndAt = bay.EndAt,
-                JobCards = jobs.Select(MapJobCard).ToList()
+                JobCards = jobs
+                    .OrderBy(x => x.QueueOrder)
+                    .ThenBy(x => x.StartDate)
+                    .ThenBy(x => x.JobCardId)
+                    .Select(MapJobCard)
+                    .ToList()
             };
         }
 
@@ -89,6 +94,7 @@ namespace Garage_Management.Application.Services.Workbays
                 JobCardId = jobCard.JobCardId,
                 CustomerId = jobCard.CustomerId,
                 CustomerName = $"{jobCard.Customer?.FirstName} {jobCard.Customer?.LastName}".Trim(),
+                QueueOrder = jobCard.QueueOrder,
                 Mechanics = jobCard.Mechanics
                     .Where(x => x.Employee != null)
                     .Select(x => new JobCardMechanicView
@@ -124,6 +130,36 @@ namespace Garage_Management.Application.Services.Workbays
                     })
                     .ToList()
             };
+        }
+
+        public async Task<ApiResponse<RebalanceWorkBayQueueResponse>> RebalanceQueueAsync(
+            int workBayId,
+            CancellationToken cancellationToken)
+        {
+            var workBay = await _workBayRepository.GetByIdAsync(workBayId);
+            if (workBay == null)
+            {
+                return ApiResponse<RebalanceWorkBayQueueResponse>.ErrorResponse("Khoang sửa chữa không tồn tại");
+            }
+
+            var jobs = await _jobCardRepository.GetTrackedByWorkBayIdAsync(workBayId, cancellationToken);
+
+            decimal queueOrder = 1000m;
+            foreach (var job in jobs)
+            {
+                job.QueueOrder = queueOrder;
+                queueOrder += 1000m;
+            }
+
+            await _jobCardRepository.SaveAsync(cancellationToken);
+
+            return ApiResponse<RebalanceWorkBayQueueResponse>.SuccessResponse(
+                new RebalanceWorkBayQueueResponse
+                {
+                    WorkBayId = workBayId,
+                    UpdatedCount = jobs.Count
+                },
+                "Rebalance queue thành công");
         }
 
         public async Task<ApiResponse<WorkBayDto>> CreateWorkBayAsync(CreateWorkBayRequest request, CancellationToken cancellationToken)

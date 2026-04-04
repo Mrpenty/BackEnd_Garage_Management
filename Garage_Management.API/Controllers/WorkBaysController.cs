@@ -74,5 +74,17 @@ namespace Garage_Management.API.Controllers
 
         }
 
+        [HttpPost("{id:int}/rebalance-queue")]
+        public async Task<ActionResult<ApiResponse<RebalanceWorkBayQueueResponse>>> RebalanceQueue(
+            int id,
+            CancellationToken ct = default)
+        {
+            var result = await _service.RebalanceQueueAsync(id, ct);
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
     }
 }

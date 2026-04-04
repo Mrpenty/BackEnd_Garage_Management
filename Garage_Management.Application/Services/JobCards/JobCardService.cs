@@ -139,6 +139,7 @@ namespace Garage_Management.Application.Services.JobCards
                 AppointmentId = entity.AppointmentId,
                 CustomerId = entity.CustomerId,
                 VehicleId = entity.VehicleId,
+                QueueOrder = entity.QueueOrder,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
@@ -162,6 +163,7 @@ namespace Garage_Management.Application.Services.JobCards
                 CustomerId = entity.CustomerId,
                 VehicleId = entity.VehicleId,
                 WorkbayId = entity.WorkBay.Id,
+                QueueOrder = entity.QueueOrder,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
@@ -259,6 +261,7 @@ namespace Garage_Management.Application.Services.JobCards
 
                 CustomerId = x.CustomerId,
                 CustomerName = x.Customer.FirstName + " " + x.Customer.LastName,
+                QueueOrder = x.QueueOrder,
 
                 Vehicle = new VehicleListDto
                 {
@@ -364,12 +367,18 @@ namespace Garage_Management.Application.Services.JobCards
             if (jobCard == null)
                 return false;
 
+            var previousWorkBayId = jobCard.WorkBayId;
+
             var workBay = await _workBayRepository.GetByIdAsync(dto.WorkBayId);
             if (workBay == null)
                 return false;
 
             // cho phép gán dù bay đang bận
             jobCard.WorkBayId = workBay.Id;
+            if (previousWorkBayId != dto.WorkBayId || jobCard.QueueOrder <= 0)
+            {
+                jobCard.QueueOrder = ((await _repository.GetMaxQueueOrderByWorkBayAsync(dto.WorkBayId, cancellationToken)) ?? 0m) + 1000m;
+            }
 
             // nếu bay đang trống → bắt đầu luôn
             if (workBay.JobcardId == null)
@@ -392,6 +401,88 @@ namespace Garage_Management.Application.Services.JobCards
             await _workBayRepository.SaveAsync(cancellationToken);
             await _repository.SaveAsync(cancellationToken);
 
+            return true;
+        }
+
+        public async Task<bool> ReorderWorkBayQueueAsync(
+            ReorderJobCardQueueDto dto,
+            CancellationToken cancellationToken)
+        {
+            if (dto.JobCardId <= 0 || dto.WorkBayId <= 0)
+                return false;
+
+            if (dto.PreviousJobCardId == dto.JobCardId || dto.NextJobCardId == dto.JobCardId)
+                return false;
+
+            if (dto.PreviousJobCardId.HasValue &&
+                dto.NextJobCardId.HasValue &&
+                dto.PreviousJobCardId.Value == dto.NextJobCardId.Value)
+            {
+                return false;
+            }
+
+            var jobCard = await _repository.GetByIdAsync(dto.JobCardId);
+            if (jobCard == null || jobCard.WorkBayId != dto.WorkBayId)
+                return false;
+
+            var jobsInWorkBay = await _repository.GetTrackedByWorkBayIdAsync(dto.WorkBayId, cancellationToken);
+            if (!jobsInWorkBay.Any())
+                return false;
+
+            var otherJobs = jobsInWorkBay
+                .Where(x => x.JobCardId != dto.JobCardId)
+                .ToList();
+
+            decimal newQueueOrder;
+
+            if (dto.PreviousJobCardId.HasValue && dto.NextJobCardId.HasValue)
+            {
+                var previousJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.PreviousJobCardId.Value);
+                var nextJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.NextJobCardId.Value);
+
+                if (previousJob == null || nextJob == null)
+                    return false;
+
+                if (previousJob.QueueOrder >= nextJob.QueueOrder)
+                    return false;
+
+                var gap = nextJob.QueueOrder - previousJob.QueueOrder;
+                if (gap <= 0.000001m)
+                    return false;
+
+                newQueueOrder = (previousJob.QueueOrder + nextJob.QueueOrder) / 2m;
+            }
+            else if (dto.NextJobCardId.HasValue)
+            {
+                var nextJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.NextJobCardId.Value);
+                if (nextJob == null)
+                    return false;
+
+                newQueueOrder = otherJobs.Any()
+                    ? otherJobs.Min(x => x.QueueOrder) - 1000m
+                    : 1000m;
+            }
+            else if (dto.PreviousJobCardId.HasValue)
+            {
+                var previousJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.PreviousJobCardId.Value);
+                if (previousJob == null)
+                    return false;
+
+                newQueueOrder = otherJobs.Any()
+                    ? otherJobs.Max(x => x.QueueOrder) + 1000m
+                    : 1000m;
+            }
+            else
+            {
+                return false;
+            }
+
+            jobCard.QueueOrder = newQueueOrder;
+            jobCard.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+
+            await _repository.SaveAsync(cancellationToken);
             return true;
         }
 
@@ -478,6 +569,7 @@ namespace Garage_Management.Application.Services.JobCards
                 AppointmentId = x.AppointmentId,
                 CustomerId = x.CustomerId,
                 VehicleId = x.VehicleId,
+                QueueOrder = x.QueueOrder,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate,
                 Status = x.Status,

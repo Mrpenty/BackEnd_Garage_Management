@@ -123,14 +123,6 @@ namespace Garage_Management.UnitTest.JobCards
                 .Returns(Task.CompletedTask);
 
             _jobCardRepo
-                .Setup(x => x.AddAsync(It.IsAny<JobCardEntity>(), It.IsAny<CancellationToken>()))
-                .Callback<JobCardEntity, CancellationToken>((entity, _) =>
-                {
-                    entity.JobCardId = 1;
-                })
-                .Returns(Task.FromResult(1));
-
-            _jobCardRepo
       .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
       .ReturnsAsync(1);
             _appointmentRepo
@@ -146,6 +138,8 @@ namespace Garage_Management.UnitTest.JobCards
             Assert.AreEqual(dto.AppointmentId, result.AppointmentId);
             Assert.AreEqual(dto.CustomerId, result.CustomerId);
             Assert.AreEqual(dto.VehicleId, result.VehicleId);
+            Assert.AreEqual(0m, captured?.QueueOrder);
+            Assert.AreEqual(0m, result.QueueOrder);
         }
         [TestMethod]
         public async Task UpdateStatusAsync_ShouldNotSetEndDate_WhenStatusNotCompleted()

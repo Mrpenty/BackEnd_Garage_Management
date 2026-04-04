@@ -46,5 +46,11 @@ namespace Garage_Management.Application.DTOs.Workbays
         public string? Note { get; set; }
 
         public WorkBayStatus Status { get; set; }
-    } 
+    }
+
+    public class RebalanceWorkBayQueueResponse
+    {
+        public int WorkBayId { get; set; }
+        public int UpdatedCount { get; set; }
+    }
 }
