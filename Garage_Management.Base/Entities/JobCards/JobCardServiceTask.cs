@@ -54,6 +54,8 @@ namespace Garage_Management.Base.Entities.JobCards
         /// </summary>
         public int? PerformedById { get; set; }
         public Employee? PerformedBy { get; set; }
+        public int? JobCardServiceId { get; set; }
+        public JobCardService? JobCardService { get; set; }
 
     }
 }

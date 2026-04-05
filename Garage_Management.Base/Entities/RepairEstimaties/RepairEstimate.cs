@@ -1,4 +1,5 @@
 using Garage_Management.Base.Common.Base;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace Garage_Management.Base.Entities.RepairEstimaties
         /// Phiếu sửa chữa liên quan 
         /// </summary>
         public int JobCardId { get; set; }
+        public RepairEstimateApprovalStatus Status { get; set; } = RepairEstimateApprovalStatus.WaitingApproval;
 
         /// <summary>
         /// Thông tin phiếu sửa chữa

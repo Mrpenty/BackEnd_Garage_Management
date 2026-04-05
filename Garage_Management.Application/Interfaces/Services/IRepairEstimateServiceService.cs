@@ -43,5 +43,6 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Xóa dịch vụ trong báo giá
         /// </summary>
         Task<bool> DeleteAsync(int repairEstimateId, int serviceId, CancellationToken ct = default);
+        Task<RepairEstimateServiceResponse?> UpdateStatusAsync(int repairEstimateId, int serviceId, RepairEstimateServiceStatusUpdateRequest request, CancellationToken ct = default);
     }
 }

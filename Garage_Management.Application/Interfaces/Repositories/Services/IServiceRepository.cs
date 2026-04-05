@@ -33,5 +33,6 @@ namespace Garage_Management.Application.Interfaces.Repositories.Services
         /// </summary>
         Task<bool> ExistsByNameAsync(string serviceName, CancellationToken ct = default);
         Task<PagedResult<ServiceVehicleType>> GetServiceVehicleTypePairsPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<Service?> GetByIdWithTasksAsync(int serviceId, CancellationToken ct = default);
     }
 }

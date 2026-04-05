@@ -10,9 +10,9 @@ namespace Garage_Management.Application.DTOs.Iventories.StockTransactions
 
         [Required]
         public TransactionType TransactionType { get; set; }
-
-        [Required]
         public int QuantityChange { get; set; }
+        public int? ActualQuantity { get; set; }
+
 
         [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }

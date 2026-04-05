@@ -473,7 +473,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GARAGE.VN",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIlv2tGQGnRSXMPEvMxd8d9IDrJGLPKXsJxsGp9d/n7UQUCzAikKf0sp++b1noFRTQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAaD9+xf+0qNmdhJE6hhdT6vbKoPX1n4j4wry/ZVtD7jyOOvHdQ8I22oKmsCvxyScw==",
                             PhoneNumber = "0909123456",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "5b6a4224-84dd-4305-b979-15b78c58c314",
@@ -492,7 +492,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER01@GARAGE.VN",
                             NormalizedUserName = "SUPERVISOR01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMv3LiO7QhvQmGijcCnnxc6uwNGOP9+AsX6JyrwD6B091nzVgTAQD7utVkuMlPPfIg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBLb9uzbGBOGMJcXnSUJ50SVGK2NE+YH4+aVcdlpoUUcYzrcd+EEEo/Onks35VdLlA==",
                             PhoneNumber = "0912345678",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "c61a1880-b13b-4590-9482-753068f03897",
@@ -511,7 +511,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MECHANIC01@GARAGE.VN",
                             NormalizedUserName = "MECHANIC01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEWKxqsqvjs8WBRMbflS+ld/jPc7GKp7ndhv3mEm8fjBaQTRNYmLeVklXK+StPZ2qw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOikWEjgUYBjwczdEeuvssNgNdWseK3rTnqOhbIvUYvFQ/tVCdRdhtq63wXmBFld+g==",
                             PhoneNumber = "0987654321",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "cdc21a21-318b-4190-a35c-70e5df9ea56b",
@@ -530,7 +530,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "RECEPTION@GARAGE.VN",
                             NormalizedUserName = "RECEP01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOgLc5nnmhkXlEBP4ofBrYbwPlzCpBtdHLbD7JpsVUvvEn8yzfkA/6GokoFpwhUXAA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEERbPXYcsKAapCufcFWL8A/R+SJnhKQCiBO8zWYCt7hoadCDEdcQvuWTGCRLZP9IhA==",
                             PhoneNumber = "0978123456",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "01f26687-aac8-470a-ade0-17e00fc98446",
@@ -549,7 +549,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STOCKER@GARAGE.VN",
                             NormalizedUserName = "STOCKER01",
-                            PasswordHash = "AQAAAAIAAYagAAAAECq6RvSJCYxhle4dNgG8gIJyQDbO7dkWaoAV3Tn51n60wS9gOkY1w3lnaHEEHk7CBg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEP1IXWUwljom+8olGOl7UCpHw9DK1XAPPlCSILLZdR6wvkLDXJrl7ZUesEPjZyb5wg==",
                             PhoneNumber = "0978123356",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "c346c74b-28bc-47a4-963a-1dfd9d20e698",
@@ -568,7 +568,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "NGUYEN.VAN.A@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG01",
-                            PasswordHash = "AQAAAAIAAYagAAAAECzxIQs1FH4OifGHz+IXNoAhwTuVxA0Y0IrV8O8Dzu86KLyPEYaLmFW90p7pDbZ3kg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDitILFevPcZOOIhDhotaq/bCa+AjVPYUb8muyOsZ7IdHrzU7LFKdXadHLyAVR437g==",
                             PhoneNumber = "0912345670",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "ed3d8b90-55be-46d9-ae4d-f10d46005c0a",
@@ -587,7 +587,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "TRAN.THI.B@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG02",
-                            PasswordHash = "AQAAAAIAAYagAAAAEE8JQ1xlHDACihjFOTQqaJQwkpovzqGhLYPbmauiJ84DK95zrm7Ny95GLBlSpxxBmQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIqM0MkxYztjZ7wIIMwUpwOv0wvhShtn0iGv5XkGCfez+RdR3/byPMyEG/Nw/Sw4dg==",
                             PhoneNumber = "0987654312",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "1250155f-2669-47ad-bb37-162d1ddac80e",
@@ -1003,6 +1003,10 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int>("ProgressPercentage")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("QueueOrder")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -1398,6 +1402,11 @@ namespace Garage_Management.Base.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -1421,6 +1430,11 @@ namespace Garage_Management.Base.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
@@ -1447,6 +1461,11 @@ namespace Garage_Management.Base.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
@@ -2320,7 +2339,7 @@ namespace Garage_Management.Base.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Garage_Management.Base.Entities.JobCards.WorkBay", null)
+                    b.HasOne("Garage_Management.Base.Entities.JobCards.WorkBay", "WorkBay")
                         .WithMany("JobCardHistory")
                         .HasForeignKey("WorkBayId");
 
@@ -2333,6 +2352,8 @@ namespace Garage_Management.Base.Migrations
                     b.Navigation("Supervisor");
 
                     b.Navigation("Vehicle");
+
+                    b.Navigation("WorkBay");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.JobCards.JobCardLog", b =>
@@ -2411,7 +2432,7 @@ namespace Garage_Management.Base.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Garage_Management.Base.Entities.JobCards.JobCardService", null)
+                    b.HasOne("Garage_Management.Base.Entities.JobCards.JobCardService", "JobCardService")
                         .WithMany("ServiceTasks")
                         .HasForeignKey("JobCardServiceId");
 
@@ -2426,6 +2447,8 @@ namespace Garage_Management.Base.Migrations
                         .IsRequired();
 
                     b.Navigation("JobCard");
+
+                    b.Navigation("JobCardService");
 
                     b.Navigation("PerformedBy");
 

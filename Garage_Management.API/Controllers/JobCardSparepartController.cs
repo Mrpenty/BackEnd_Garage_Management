@@ -1,64 +1,83 @@
-﻿using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
-using Garage_Management.Base.Entities.JobCards;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/[controller]")]
-public class JobCardSparepartController : ControllerBase
+namespace Garage_Management.API.Controllers
 {
-    private readonly IJobCardSparePartService _service;
-
-    public JobCardSparepartController(IJobCardSparePartService service)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class JobCardSparepartController : ControllerBase
     {
-        _service = service;
-    }
+        private readonly IJobCardSparePartService _service;
 
-    [HttpPost("{id}/spare-parts")]
-    public async Task<ActionResult<ApiResponse<JobCardSparePart>>> AddSparePart(
-        int id,
-        [FromBody] AddSparePartToJobCardDto dto,
-        CancellationToken ct = default)
-    {
-        try
+        public JobCardSparepartController(IJobCardSparePartService service)
         {
-            var data = await _service.AddSparePartAsync(id, dto, ct);
-
-            if (data == null)
-                return NotFound(ApiResponse<JobCardSparePart>
-                    .ErrorResponse("JobCard không tồn tại"));
-
-            return Ok(ApiResponse<JobCardSparePart>
-                .SuccessResponse(data, "Thêm phụ tùng thành công"));
+            _service = service;
         }
-        catch (InvalidOperationException ex)
+
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<List<JobCardSparePartResponse>>>> GetAll(CancellationToken ct = default)
         {
-            return BadRequest(ApiResponse<JobCardSparePart>
-                .ErrorResponse(ex.Message));
+            var data = await _service.GetAllAsync(ct);
+            return Ok(ApiResponse<List<JobCardSparePartResponse>>.SuccessResponse(data, "OK"));
         }
-    }
 
-    [HttpDelete("spare-parts/{jobCardSparePartId:int}")]
-    public async Task<ActionResult<ApiResponse<bool>>> RemoveSparePart(
-        int jobCardSparePartId,
-        CancellationToken ct = default)
-    {
-        try
+        [HttpGet("job-cards/{jobCardId:int}")]
+        public async Task<ActionResult<ApiResponse<List<JobCardSparePartResponse>>>> GetByJobCardId(
+            int jobCardId,
+            CancellationToken ct = default)
         {
-            var result = await _service.RemoveSparePartAsync(jobCardSparePartId, ct);
-
-            if (!result)
-                return NotFound(ApiResponse<bool>
-                    .ErrorResponse("Không tìm thấy phụ tùng"));
-
-            return Ok(ApiResponse<bool>
-                .SuccessResponse(true, "Đã hủy phụ tùng"));
+            var data = await _service.GetByJobCardIdAsync(jobCardId, ct);
+            return Ok(ApiResponse<List<JobCardSparePartResponse>>.SuccessResponse(data, "OK"));
         }
-        catch (InvalidOperationException ex)
+
+        [HttpPost("{id}/spare-parts")]
+        public async Task<ActionResult<ApiResponse<List<JobCardSparePartResponse>>>> AddSparePart(
+            int id,
+            [FromBody] AddMultipleSparePartsToJobCardDto dto,
+            CancellationToken ct = default)
         {
-            return BadRequest(ApiResponse<bool>
-                .ErrorResponse(ex.Message));
+            try
+            {
+                var data = await _service.AddSparePartsAsync(id, dto, ct);
+
+                if (data == null)
+                    return NotFound(ApiResponse<List<JobCardSparePartResponse>>
+                        .ErrorResponse("JobCard khong ton tai"));
+
+                return Ok(ApiResponse<List<JobCardSparePartResponse>>
+                    .SuccessResponse(data, "Them danh sach phu tung thanh cong"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<List<JobCardSparePartResponse>>
+                    .ErrorResponse(ex.Message));
+            }
+        }
+
+        [HttpDelete("{jobCardId:int}/spare-parts/{sparePartId:int}")]
+        public async Task<ActionResult<ApiResponse<bool>>> RemoveSparePart(
+            int jobCardId,
+            int sparePartId,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var result = await _service.RemoveSparePartAsync(jobCardId, sparePartId, ct);
+
+                if (!result)
+                    return NotFound(ApiResponse<bool>
+                        .ErrorResponse("Khong tim thay phu tung"));
+
+                return Ok(ApiResponse<bool>
+                    .SuccessResponse(true, "Da huy phu tung"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<bool>
+                    .ErrorResponse(ex.Message));
+            }
         }
     }
 }

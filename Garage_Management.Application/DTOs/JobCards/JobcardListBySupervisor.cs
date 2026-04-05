@@ -30,6 +30,6 @@ namespace Garage_Management.Application.DTOs.JobCards
             public object? Supervisor { get; set; }
 
             public List<object> Services { get; set; } = new();
-
-        }
+        public int TotalEstimateMinute { get; internal set; }
+    }
     }

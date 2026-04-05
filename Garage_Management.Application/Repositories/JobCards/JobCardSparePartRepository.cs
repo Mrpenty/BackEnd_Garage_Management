@@ -1,12 +1,7 @@
-﻿using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Base.Data;
 using Garage_Management.Base.Entities.JobCards;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Garage_Management.Application.Repositories.JobCards
 {
@@ -29,11 +24,26 @@ namespace Garage_Management.Application.Repositories.JobCards
 
         public async Task SaveAsync(CancellationToken cancellationToken)
             => await _context.SaveChangesAsync(cancellationToken);
-        public void Delete(JobCardSparePart entity)
-       => _context.JobCardSpareParts.Remove(entity);
-        public async Task<JobCardSparePart?> GetByIdAsync(int id)
-      => await _context.JobCardSpareParts
-          .FirstOrDefaultAsync(x => x.JobCardId == id);
 
+        public void Delete(JobCardSparePart entity)
+            => _context.JobCardSpareParts.Remove(entity);
+
+        public async Task<JobCardSparePart?> GetByIdAsync(int jobCardId, int sparePartId, CancellationToken cancellationToken = default)
+            => await _context.JobCardSpareParts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.JobCardId == jobCardId && x.SparePartId == sparePartId, cancellationToken);
+
+        public async Task<List<JobCardSparePart>> GetAllWithDetailsAsync(CancellationToken cancellationToken = default)
+            => await _context.JobCardSpareParts
+                .AsNoTracking()
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+        public async Task<List<JobCardSparePart>> GetByJobCardIdAsync(int jobCardId, CancellationToken cancellationToken = default)
+            => await _context.JobCardSpareParts
+                .AsNoTracking()
+                .Where(x => x.JobCardId == jobCardId)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync(cancellationToken);
     }
 }

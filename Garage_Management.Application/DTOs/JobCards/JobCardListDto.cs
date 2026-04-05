@@ -1,4 +1,5 @@
-﻿using Garage_Management.Application.DTOs.Services;
+﻿using Garage_Management.Application.DTOs.JobCardMechanics;
+using Garage_Management.Application.DTOs.Services;
 using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.JobCards;
@@ -18,11 +19,14 @@ namespace Garage_Management.Application.DTOs.JobCards
         public string CustomerName { get; set; } = string.Empty;
 
         public VehicleListDto Vehicle { get; set; } = null!;
+        public decimal QueueOrder { get; set; }
 
         public JobCardStatus Status { get; set; }
         public DateTime StartDate { get; set; }
 
         public List<ServiceResponse> Services { get; set; } = new();
+        public List<JobCardMechanicView> Mechanics { get; set; } = new();
+
     }
 
 }

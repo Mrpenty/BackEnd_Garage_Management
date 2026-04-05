@@ -32,5 +32,12 @@ namespace Garage_Management.Application.Repositories.JobCards
                 PageData = data
             };
         }
+
+        public async Task<JobCardService?> GetByIdWithTasksAsync(int jobCardServiceId, CancellationToken ct = default)
+        {
+            return await dbSet
+                .Include(js => js.ServiceTasks)
+                .FirstOrDefaultAsync(js => js.JobCardServiceId == jobCardServiceId, ct);
+        }
     }
 }

@@ -26,8 +26,15 @@ namespace Garage_Management.API.Controllers
             [FromQuery] AppointmentQuery query,
             CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(query, ct);
-            return Ok(ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetPagedAsync(query, ct);
+                return Ok(ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse(data, "Lấy danh sách đặt lịch thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse(ex.Message));
+            }
         }
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
@@ -37,11 +44,17 @@ namespace Garage_Management.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<AppointmentResponse>>> GetById(int id, CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(id, ct);
-            if (data == null)
-                return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Appointment not found"));
-
-            return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetByIdAsync(id, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Không tìm thấy lịch đặt"));
+                return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Lấy chi tiết lịch đặt thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<AppointmentResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -74,8 +87,15 @@ namespace Garage_Management.API.Controllers
             [FromBody] AppointmentCreateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = data.AppointmentId }, ApiResponse<AppointmentResponse>.SuccessResponse(data, "Created"));
+            try
+            {
+                var data = await _service.CreateAsync(request, ct);
+                return CreatedAtAction(nameof(GetById), new { id = data.AppointmentId }, ApiResponse<AppointmentResponse>.SuccessResponse(data, "Tạo lịch đặt thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<AppointmentResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -89,11 +109,17 @@ namespace Garage_Management.API.Controllers
             [FromBody] AppointmentUpdateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateAsync(id, request, ct);
-            if (data == null)
-                return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Appointment not found"));
-
-            return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Updated"));
+            try
+            {
+                var data = await _service.UpdateAsync(id, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Không tìm thấy lịch đặt"));
+                return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Cập nhật lịch đặt thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<AppointmentResponse>.ErrorResponse(ex.Message));
+            }   
         }
 
         /// <summary>
@@ -105,11 +131,18 @@ namespace Garage_Management.API.Controllers
             [FromBody] AppointmentStatusUpdateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateStatusAsync(id, request.Status, ct);
-            if (data == null)
-                return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Appointment not found"));
+            try
+            {
+                var data = await _service.UpdateStatusAsync(id, request.Status, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Không tìm thấy lịch đặt"));
 
-            return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Updated"));
+                return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Cập nhật lịch đặt thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<AppointmentResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -120,11 +153,18 @@ namespace Garage_Management.API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {
-            var ok = await _service.DeleteAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("Appointment not found"));
+            try
+            {
+                var ok = await _service.DeleteAsync(id, ct);
+                if (!ok)
+                    return NotFound(ApiResponse<object>.ErrorResponse("Không tìm thấy lịch đặt"));
 
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
+                return Ok(ApiResponse<object>.SuccessResponse(new { }, "Xóa lịch đặt thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(ex.Message));
+            }
         }
     }
 }

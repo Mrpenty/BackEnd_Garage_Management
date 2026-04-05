@@ -11,6 +11,7 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
         Task SaveChangesAsync();
         Task<bool> HasActiveJobCardAsync(int vehicleId);
         Task<List<JobCard>> GetBySupervisorIdAsync(int supervisorId);
+        Task<List<JobCard>> GetByCustomerIdAsync(int customerId);
        
         Task<bool> HasJobCardByAppointmentIdAsync(int? appointmentId);
         Task<JobCard?> GetWithMechanicsAsync(int jobCardId);
@@ -20,6 +21,11 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
         ///  lấy danh sách phiếu sửa chữa trong khoảng thời gian nhất định 
         /// </summary>
        // Task<List<JobCard>> GetByDateRangeAsync(DateTime from, DateTime to);
+
+        Task<List<JobCard>> GetByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken);
+        Task<List<JobCard>> GetByWorkBayIdsAsync(List<int> workBayIds, CancellationToken cancellationToken);
+        Task<decimal?> GetMaxQueueOrderByWorkBayAsync(int workBayId, CancellationToken cancellationToken);
+        Task<List<JobCard>> GetTrackedByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken);
 
     }
 }

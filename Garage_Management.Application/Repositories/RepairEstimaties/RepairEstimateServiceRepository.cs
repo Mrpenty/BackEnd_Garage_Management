@@ -44,6 +44,12 @@ namespace Garage_Management.Application.Repositories.RepairEstimaties
                 .FirstOrDefaultAsync(x => x.RepairEstimateId == repairEstimateId && x.ServiceId == serviceId, ct);
         }
 
+        public Task<RepairEstimateService?> GetTrackedByIdAsync(int repairEstimateId, int serviceId, CancellationToken ct = default)
+        {
+            return _context.Set<RepairEstimateService>()
+                .FirstOrDefaultAsync(x => x.RepairEstimateId == repairEstimateId && x.ServiceId == serviceId, ct);
+        }
+
         public async Task AddAsync(RepairEstimateService entity, CancellationToken ct = default)
         {
             await _context.Set<RepairEstimateService>().AddAsync(entity, ct);

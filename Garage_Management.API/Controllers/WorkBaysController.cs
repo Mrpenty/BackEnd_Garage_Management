@@ -1,5 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.Workbays;
-
+using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
@@ -22,11 +22,37 @@ namespace Garage_Management.API.Controllers
         /// Lấy danh sách WorkBay
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<WorkBayDto>>>> GetList([FromQuery] WorkBayStatus? status,
+        public async Task<ActionResult<ApiResponse<IEnumerable<WorkBayDto>>>> GetList(
+            [FromQuery] WorkBayStatus? status,
             CancellationToken ct = default)
         {
             var result = await _service.GetListAsync(status, ct);
             return Ok(result);
+        }
+        /// <summary>
+        /// Lấy chi tiết một WorkBay theo Id
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> GetById(
+            int id,
+            CancellationToken cancellationToken)
+        {
+            var data = await _service.GetByIdAsync(id, cancellationToken);
+
+            if (data == null)
+            {
+                return NotFound(new ApiResponse<WorkBayDto>
+                {
+                    Success = false,
+                    Message = "Khoang sửa chữa không tìm thấy"
+                });
+            }
+
+            return Ok(new ApiResponse<WorkBayDto>
+            {
+                Success = true,
+                Data = data
+            });
         }
 
         [HttpPost("Create")]
@@ -47,5 +73,18 @@ namespace Garage_Management.API.Controllers
             return Ok(result);
 
         }
+
+        [HttpPost("{id:int}/rebalance-queue")]
+        public async Task<ActionResult<ApiResponse<RebalanceWorkBayQueueResponse>>> RebalanceQueue(
+            int id,
+            CancellationToken ct = default)
+        {
+            var result = await _service.RebalanceQueueAsync(id, ct);
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
     }
 }

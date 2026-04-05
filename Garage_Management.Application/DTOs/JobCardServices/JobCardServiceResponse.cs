@@ -13,5 +13,15 @@ namespace Garage_Management.Application.DTOs.JobCardServices
         public int? SourceInspectionItemId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public List<JobCardServiceTaskDto> ServiceTasks { get; set; } = new();
+
     }
+    public class JobCardServiceTaskDto
+    {
+        public int JobCardServiceTaskId { get; set; }
+        public string TaskName { get; set; } = string.Empty;
+        public ServiceStatus Status { get; set; }
+        public string StatusName => Status.ToString();
+    }
+
 }

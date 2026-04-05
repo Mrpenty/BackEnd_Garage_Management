@@ -1,4 +1,5 @@
-﻿using Garage_Management.Application.DTOs.Workbays;
+﻿using Garage_Management.Application.DTOs.JobCards;
+using Garage_Management.Application.DTOs.Workbays;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
 using System;
@@ -20,5 +21,7 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Câp nhật thông tin khoang sửa chữa
         /// </summary>
         Task<ApiResponse<WorkBayDto>> UpdateWorkBayAsync(int id,UpdateWorkBayRequest request, CancellationToken cancellationToken);
+        Task<WorkBayDto?> GetByIdAsync(int workBayId, CancellationToken cancellationToken);
+        Task<ApiResponse<RebalanceWorkBayQueueResponse>> RebalanceQueueAsync(int workBayId, CancellationToken cancellationToken);
     }
 }

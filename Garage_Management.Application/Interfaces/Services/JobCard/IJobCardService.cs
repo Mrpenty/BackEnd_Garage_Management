@@ -50,11 +50,17 @@ namespace Garage_Management.Application.Interfaces.Services.JobCard
         Task<bool> AssignWorkBayAsync(AssignWorkBayRequestDto dto, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Sắp xếp lại thứ tự chờ của JobCard trong cùng một WorkBay
+        /// </summary>
+        Task<bool> ReorderWorkBayQueueAsync(ReorderJobCardQueueDto dto, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Cập nhật tiến độ sửa chữa bởi Mechanic
         /// </summary>
         Task<bool> ReleaseWorkBayAsync(ReleaseWorkBayDto dto, CancellationToken cancellationToken);
 
         Task<List<JobcardListBySupervisor>> GetJobCardsBySupervisorIdAsync(int supervisorId);
+        Task<List<JobCardDto>> GetJobCardsByCustomerIdAsync(int customerId);
 
         /// <summary>
         /// Cập nhật tiến độ sửa chữa bởi Mechanic
