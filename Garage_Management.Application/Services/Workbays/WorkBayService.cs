@@ -164,6 +164,10 @@ namespace Garage_Management.Application.Services.Workbays
 
         public async Task<ApiResponse<WorkBayDto>> CreateWorkBayAsync(CreateWorkBayRequest request, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrEmpty(request.Name))
+            {
+                return ApiResponse<WorkBayDto>.ErrorResponse("Tên khoang sửa chữa không được để trống");
+            }
             var workBay = new WorkBay
             {
                 Name = request.Name,

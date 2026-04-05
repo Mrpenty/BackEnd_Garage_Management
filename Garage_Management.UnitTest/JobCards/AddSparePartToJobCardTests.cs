@@ -21,7 +21,7 @@ using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCar
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
 using Microsoft.AspNetCore.Http;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
-namespace Garage_Management.UnitTest.JobCard
+namespace Garage_Management.UnitTest.JobCards
 {
     [TestClass]
     public class AddSparePartToJobCardTests
