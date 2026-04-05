@@ -1,4 +1,5 @@
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Services.Workbays;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Accounts;
@@ -17,13 +18,15 @@ namespace Garage_Management.UnitTest.WorkBays
     public class GetListAsyncTests
     {
         private Mock<IWorkBayRepository> _workBayRepositoryMock;
+        private Mock<IJobCardRepository> _jobCardRepositoryMock;
         private WorkBayService _workBayService;
 
         [TestInitialize]
         public void Setup()
         {
             _workBayRepositoryMock = new Mock<IWorkBayRepository>();
-            _workBayService = new WorkBayService(_workBayRepositoryMock.Object);
+            _jobCardRepositoryMock = new Mock<IJobCardRepository>();
+            _workBayService = new WorkBayService(_workBayRepositoryMock.Object, _jobCardRepositoryMock.Object);
         }
 
         [TestMethod]
@@ -36,10 +39,10 @@ namespace Garage_Management.UnitTest.WorkBays
                 new WorkBay { Id = 2, Name = "Bay2", Status = WorkBayStatus.Occupied },
                 new WorkBay { Id = 3, Name = "Bay3", Status = WorkBayStatus.Maintenance}
             };
-            _workBayRepositoryMock.Setup(x => x.Query()).Returns(workBays.AsQueryable());
+           
+            _workBayRepositoryMock.Setup(x => x.GetByStatusAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync(workBays);
+            _jobCardRepositoryMock.Setup(x => x.GetByWorkBayIdsAsync(It.IsAny<List<int>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<JobCard>());
 
-            var mockQueryable = workBays.AsQueryable();
-            _workBayRepositoryMock.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<WorkBay>(mockQueryable));
             var result = await _workBayService.GetListAsync(null, CancellationToken.None);
 
             // Assert
@@ -59,8 +62,16 @@ namespace Garage_Management.UnitTest.WorkBays
                 new WorkBay { Id = 2, Name = "Bay2", Status = WorkBayStatus.Occupied },
                 new WorkBay { Id = 3, Name = "Bay3", Status = WorkBayStatus.Available }
             };
-            var mockQueryable = workBays.AsQueryable();
-            _workBayRepositoryMock.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<WorkBay>(mockQueryable));
+            _workBayRepositoryMock
+                .Setup(x => x.GetByStatusAsync(It.IsAny<WorkBayStatus?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkBayStatus? status, CancellationToken _) =>
+                {
+                    return status == null
+                        ? workBays
+                        : workBays.Where(x => x.Status == status).ToList();
+                }); 
+            _jobCardRepositoryMock.Setup(x => x.GetByWorkBayIdsAsync(It.IsAny<List<int>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<JobCard>());
+
             var result = await _workBayService.GetListAsync(WorkBayStatus.Available, CancellationToken.None);
 
             // Assert
@@ -79,10 +90,15 @@ namespace Garage_Management.UnitTest.WorkBays
                 new WorkBay { Id = 2, Name = "Bay2", Status = WorkBayStatus.Occupied },
                 new WorkBay { Id = 3, Name = "Bay3", Status = WorkBayStatus.Maintenance }
             };
-            _workBayRepositoryMock.Setup(x => x.Query()).Returns(workBays.AsQueryable());
-
-            var mockQueryable = workBays.AsQueryable();
-            _workBayRepositoryMock.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<WorkBay>(mockQueryable));
+            _workBayRepositoryMock
+                           .Setup(x => x.GetByStatusAsync(It.IsAny<WorkBayStatus?>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync((WorkBayStatus? status, CancellationToken _) =>
+                           {
+                               return status == null
+                                   ? workBays
+                                   : workBays.Where(x => x.Status == status).ToList();
+                           });
+            _jobCardRepositoryMock.Setup(x => x.GetByWorkBayIdsAsync(It.IsAny<List<int>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<JobCard>());
             var result = await _workBayService.GetListAsync(WorkBayStatus.Occupied, CancellationToken.None);
 
             // Assert
@@ -102,8 +118,15 @@ namespace Garage_Management.UnitTest.WorkBays
             };
             _workBayRepositoryMock.Setup(x => x.Query()).Returns(workBays.AsQueryable());
 
-            var mockQueryable = workBays.AsQueryable();
-            _workBayRepositoryMock.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<WorkBay>(mockQueryable));
+            _workBayRepositoryMock
+                .Setup(x => x.GetByStatusAsync(It.IsAny<WorkBayStatus?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((WorkBayStatus? status, CancellationToken _) =>
+                {
+                    return status == null
+                        ? workBays
+                        : workBays.Where(x => x.Status == status).ToList();
+                });
+            _jobCardRepositoryMock.Setup(x => x.GetByWorkBayIdsAsync(It.IsAny<List<int>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<JobCard>());
             var result = await _workBayService.GetListAsync(WorkBayStatus.Maintenance, CancellationToken.None);
 
             // Assert

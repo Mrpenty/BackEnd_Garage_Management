@@ -8,6 +8,7 @@ using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Common.Enums;
 using System.Threading;
 using System.Threading.Tasks;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 
 namespace Garage_Management.UnitTest.WorkBays
 {
@@ -15,13 +16,15 @@ namespace Garage_Management.UnitTest.WorkBays
     public class UpdateWorkBayAsyncTests
     {
         private Mock<IWorkBayRepository> _workBayRepositoryMock;
+        private Mock<IJobCardRepository> _jobCardRepositoryMock;
         private WorkBayService _workBayService;
 
         [TestInitialize]
         public void Setup()
         {
             _workBayRepositoryMock = new Mock<IWorkBayRepository>();
-            _workBayService = new WorkBayService(_workBayRepositoryMock.Object);
+            _jobCardRepositoryMock = new Mock<IJobCardRepository>();
+            _workBayService = new WorkBayService(_workBayRepositoryMock.Object, _jobCardRepositoryMock.Object);
         }
 
         [TestMethod]
