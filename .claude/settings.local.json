@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(grep -E \"\\\\.\\(cs\\)$\")",
+      "Bash(grep -E \"\\\\.cs$\")",
+      "Bash(grep -r AddApplicationServices D:WorkspaceDoAnBEBackEnd_Garage_Management/Garage_Management.Application --include=*.cs)",
+      "Bash(grep -r AddInfrastructureDependency D:WorkspaceDoAnBEBackEnd_Garage_Management --include=*.cs)",
+      "Bash(grep -r AddInfrastructureDependency D:WorkspaceDoAnBEBackEnd_Garage_Management --include=*.cs -A 20)",
+      "WebFetch(domain:vietqr.io)",
+      "WebFetch(domain:qr.sepay.vn)",
+      "WebSearch",
+      "WebFetch(domain:docs.sepay.vn)"
     ]
   }
 }
