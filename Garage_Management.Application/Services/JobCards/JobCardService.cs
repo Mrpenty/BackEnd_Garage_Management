@@ -35,6 +35,11 @@ namespace Garage_Management.Application.Services.JobCards
 {
     public class JobCardService : IJobCardService
     {
+        private const int AppointmentEarlyCreationGraceMinutes = 30;
+        private const int AppointmentLateCreationGraceMinutes = 120;
+        private static readonly TimeZoneInfo GarageTimeZone =
+            TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
         private readonly IJobCardRepository _repository;
         private readonly IServiceRepository _serviceRepository;
         private readonly IInventoryRepository _inventoryRepository;
@@ -92,10 +97,29 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 app = await _appointmentRepository.GetByIdAsync(dto.AppointmentId.Value);
 
+                if (app == null)
+                {
+                    throw new Exception("Không tìm thấy lịch hẹn.");
+                }
+
                 // CHECK 4: status
-                if (app != null && app.Status != AppointmentStatus.Confirmed)
+                if (app.Status != AppointmentStatus.Confirmed)
                 {
                     throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+                }
+
+                var currentGarageTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, GarageTimeZone);
+                var earliestAllowedTime = app.AppointmentDateTime.AddMinutes(-AppointmentEarlyCreationGraceMinutes);
+                var latestAllowedTime = app.AppointmentDateTime.AddMinutes(AppointmentLateCreationGraceMinutes);
+
+                if (currentGarageTime < earliestAllowedTime)
+                {
+                    throw new Exception($"Chỉ được tạo JobCard trong vòng {AppointmentEarlyCreationGraceMinutes} phút trước giờ hẹn.");
+                }
+
+                if (currentGarageTime > latestAllowedTime)
+                {
+                    throw new Exception($"Lịch hẹn đã quá giờ tiếp nhận {AppointmentLateCreationGraceMinutes} phút. Vui lòng tạo lịch hẹn mới hoặc tiếp nhận dưới dạng walk-in.");
                 }
             }
             var entity = new JobCard
