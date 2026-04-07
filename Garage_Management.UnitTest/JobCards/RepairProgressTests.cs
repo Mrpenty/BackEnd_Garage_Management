@@ -14,6 +14,7 @@ using JobCardServiceTaskEntity = Garage_Management.Base.Entities.JobCards.JobCar
 using System.Security.Claims;
 
 using Garage_Management.Base.Entities.JobCards;
+using Garage_Management.Base.Common.Format;
 
 namespace Garage_Management.UnitTest.JobCards
 {
@@ -22,6 +23,8 @@ namespace Garage_Management.UnitTest.JobCards
     {
         private Mock<IJobCardRepository> _jobCardRepo;
         private Mock<IHttpContextAccessor> _httpContextAccessor;
+        private Mock<ProgressCalculator> _progressCalculator;
+
         private Garage_Management.Application.Services.JobCards.JobCardService _service;
 
         [TestInitialize]
@@ -29,6 +32,7 @@ namespace Garage_Management.UnitTest.JobCards
         {
             _jobCardRepo = new Mock<IJobCardRepository>();
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
+            _progressCalculator = new Mock<ProgressCalculator>();
 
             _service = new Application.Services.JobCards.JobCardService(
                 _jobCardRepo.Object,
@@ -38,7 +42,8 @@ namespace Garage_Management.UnitTest.JobCards
                 Mock.Of<IJobCardSparePartRepository>(),
                 Mock.Of<IWorkBayRepository>(),
                 Mock.Of<IAppointmentRepository>(),
-                _httpContextAccessor.Object
+                _httpContextAccessor.Object,
+                _progressCalculator.Object
             );
         }
 
@@ -102,12 +107,12 @@ namespace Garage_Management.UnitTest.JobCards
 
             var dto = new UpdateJobCardProgressDto
             {
-                Status = JobCardStatus.InProgress,
+                StatusJobCard = JobCardStatus.InProgress,
                 ProgressPercentage = 80,
                 ProgressNotes = "Hoàn thành bước 1",
                 ServiceUpdates = new List<UpdateServiceStatusDto>
                 {
-                    new UpdateServiceStatusDto { JobCardServiceId = 100, Status = ServiceStatus.Completed }
+                    new UpdateServiceStatusDto { JobCardServiceId = 100, StatusService = ServiceStatus.Completed }
                 }
             };
 
@@ -115,10 +120,10 @@ namespace Garage_Management.UnitTest.JobCards
 
             Assert.IsTrue(result.Success);
             Assert.AreEqual("Cập nhật tiến độ thành công.", result.Message);
-            Assert.AreEqual(JobCardStatus.Completed, result.Data!.Status); // tất cả service đã complete => JobCardCompleted
+            Assert.AreEqual(JobCardStatus.Completed, result.Data!.StatusJobCard); // tất cả service đã complete => JobCardCompleted
             Assert.AreEqual(100, result.Data.ProgressPercentage);
             Assert.IsNotNull(result.Data.EndDate);
-            Assert.AreEqual(ServiceStatus.Completed, result.Data.Services[0].Status);
+            Assert.AreEqual(ServiceStatus.Completed, result.Data.Services[0].StatusService);
         }
 
         [TestMethod]

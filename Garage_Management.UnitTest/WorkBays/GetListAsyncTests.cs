@@ -1,4 +1,5 @@
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Services.Workbays;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Accounts;
@@ -17,13 +18,15 @@ namespace Garage_Management.UnitTest.WorkBays
     public class GetListAsyncTests
     {
         private Mock<IWorkBayRepository> _workBayRepositoryMock;
+        private Mock<IJobCardRepository> _jobCardRepositoryMock;
         private WorkBayService _workBayService;
 
         [TestInitialize]
         public void Setup()
         {
             _workBayRepositoryMock = new Mock<IWorkBayRepository>();
-            _workBayService = new WorkBayService(_workBayRepositoryMock.Object);
+            _jobCardRepositoryMock = new Mock<IJobCardRepository>();
+            _workBayService = new WorkBayService(_workBayRepositoryMock.Object, _jobCardRepositoryMock.Object);
         }
 
         [TestMethod]
