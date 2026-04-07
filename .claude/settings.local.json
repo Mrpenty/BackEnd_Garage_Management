@@ -11,7 +11,8 @@
       "WebFetch(domain:vietqr.io)",
       "WebFetch(domain:qr.sepay.vn)",
       "WebSearch",
-      "WebFetch(domain:docs.sepay.vn)"
+      "WebFetch(domain:docs.sepay.vn)",
+      "Bash(dotnet test:*)"
     ]
   }
 }
