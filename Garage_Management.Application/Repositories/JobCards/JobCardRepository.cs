@@ -70,12 +70,15 @@ namespace Garage_Management.Application.Repositories.JobCards
         {
                    var query = _context.JobCards
             .Include(x => x.Customer)
+              .ThenInclude(x => x.User)
             .Include(x => x.Vehicle)
                 .ThenInclude(v => v.Brand)
             .Include(x => x.Vehicle)
                 .ThenInclude(v => v.Model)
             .Include(x => x.Services)
                 .ThenInclude(s => s.Service)
+            .Include(j => j.Mechanics)
+                 .ThenInclude(m => m.Employee)
             .Where(j => j.Status != JobCardStatus.Completed)
             .AsQueryable();
 

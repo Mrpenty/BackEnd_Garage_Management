@@ -284,8 +284,9 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = x.JobCardId,
 
                 CustomerId = x.CustomerId,
-                CustomerName = x.Customer.FirstName + " " + x.Customer.LastName,
+                CustomerName = x.Customer.LastName + " " + x.Customer.FirstName,
                 QueueOrder = x.QueueOrder,
+                CustomerPhone = x.Customer.User.PhoneNumber,
 
                 Vehicle = new VehicleListDto
                 {
@@ -297,7 +298,14 @@ namespace Garage_Management.Application.Services.JobCards
 
                 Status = x.Status,
                 StartDate = x.StartDate,
-
+                Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
                 Services = x.Services.Select(s => new ServiceResponse
                 {
                     ServiceId = s.ServiceId,
