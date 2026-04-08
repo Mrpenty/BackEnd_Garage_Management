@@ -115,13 +115,15 @@ namespace Garage_Management.Application.Repositories.JobCards
                      .Where(s => s.Service != null && s.Status != ServiceStatus.Cancelled)
                      .Select(s => new ServiceJobCardMechanicResponse
                      {
+                           JobCardServiceId = s.JobCardServiceId,
                            ServiceId = s.ServiceId,
                            ServiceName = s.Service.ServiceName,
                            ServiceStatus = s.Status,
                            ServiceStatusName = s.Status.ToString(),
                            TotalEstimateMinute = s.ServiceTasks.Sum(st => st.ServiceTask.EstimateMinute),
-                         ServiceTasks = s.ServiceTasks.Select(st => new ServiceTaskJobCardMechanicResponse
+                           ServiceTasks = s.ServiceTasks.Select(st => new ServiceTaskJobCardMechanicResponse
                            {
+                               JobCardServicedTaskId= st.JobCardServiceTaskId,
                                ServiceTaskId = st.ServiceTaskId,
                                TaskName = st.ServiceTask.TaskName,
                                TaskOrder = st.ServiceTask.TaskOrder,

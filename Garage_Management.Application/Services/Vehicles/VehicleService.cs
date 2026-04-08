@@ -232,6 +232,7 @@ namespace Garage_Management.Application.Services.Vehicles
             {
                 VehicleId = entity.VehicleId,
                 CustomerId = entity.CustomerId,
+                BrandId = entity.BrandId,
                 BrandName = entity.Brand != null ? (entity.Brand.BrandName ?? string.Empty) : string.Empty,
                 ModelId = entity.ModelId,
                 ModelName = entity.Model != null ? (entity.Model.ModelName ?? string.Empty) : string.Empty,

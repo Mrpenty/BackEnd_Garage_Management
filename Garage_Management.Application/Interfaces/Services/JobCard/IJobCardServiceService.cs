@@ -7,7 +7,7 @@ namespace Garage_Management.Application.Interfaces.Services.JobCard
     {
         Task<JobCardServiceResponse?> GetByIdAsync(int id, CancellationToken ct = default);
         Task<PagedResult<JobCardServiceResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
-        Task<JobCardServiceResponse> CreateAsync(JobCardServiceCreateRequest request, CancellationToken ct = default);
+        Task<ApiResponse<JobCardServiceResponse>> CreateAsync(JobCardServiceCreateRequest request, CancellationToken ct = default);
         Task<JobCardServiceResponse?> UpdateAsync(int id, JobCardServiceUpdateRequest request, CancellationToken ct = default);
         Task<JobCardServiceResponse?> UpdateStatusByServiceIdAsync(int serviceId, int? jobCardId, JobCardServiceStatusUpdateRequest request, CancellationToken ct = default);
         Task<bool> DeleteAsync(int id, CancellationToken ct = default);

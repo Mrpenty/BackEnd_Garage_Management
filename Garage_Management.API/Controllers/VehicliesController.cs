@@ -40,11 +40,17 @@ namespace Garage_Management.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<VehicleResponse>>> GetById(int id, CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(id, ct);
-            if (data == null)
-                return NotFound(ApiResponse<VehicleResponse>.ErrorResponse("Vehicle not found"));
-
-            return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetByIdAsync(id, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<VehicleResponse>.ErrorResponse("Không tìm thấy phương tiện"));
+                return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "OK"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<VehicleResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -76,8 +82,15 @@ namespace Garage_Management.API.Controllers
             [FromBody] VehicleCreateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = data.VehicleId }, ApiResponse<VehicleResponse>.SuccessResponse(data, "Created"));
+            try
+            {
+                var data = await _service.CreateAsync(request, ct);
+                return CreatedAtAction(nameof(GetById), new { id = data.VehicleId }, ApiResponse<VehicleResponse>.SuccessResponse(data, "Tạo xe thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<VehicleResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -91,11 +104,18 @@ namespace Garage_Management.API.Controllers
             [FromBody] VehicleUpdateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateAsync(id, request, ct);
-            if (data == null)
-                return NotFound(ApiResponse<VehicleResponse>.ErrorResponse("Vehicle not found"));
+            try
+            {
+                var data = await _service.UpdateAsync(id, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<VehicleResponse>.ErrorResponse("Không tìm thấy phương tiện"));
 
-            return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "Updated"));
+                return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "Cập nhật thông tin xe máy thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<VehicleResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV

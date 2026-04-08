@@ -473,7 +473,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GARAGE.VN",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPfQKLMFK69MP+sTURwW1hFrRgHgK2iAhf7YRZKtyBhW9EWsz3lSMO7nkpIq6yvzIA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAaD9+xf+0qNmdhJE6hhdT6vbKoPX1n4j4wry/ZVtD7jyOOvHdQ8I22oKmsCvxyScw==",
                             PhoneNumber = "0909123456",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "5b6a4224-84dd-4305-b979-15b78c58c314",
@@ -492,7 +492,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER01@GARAGE.VN",
                             NormalizedUserName = "SUPERVISOR01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJ4ApK+PRo8vi05Tgmqp01TkTfwVk/WjJpaCUNQJ+plKTNh6CimW0SebeOw2QBVXKA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBLb9uzbGBOGMJcXnSUJ50SVGK2NE+YH4+aVcdlpoUUcYzrcd+EEEo/Onks35VdLlA==",
                             PhoneNumber = "0912345678",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "c61a1880-b13b-4590-9482-753068f03897",
@@ -511,7 +511,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MECHANIC01@GARAGE.VN",
                             NormalizedUserName = "MECHANIC01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEI2sid1I2mbeFqYuuYcGwj3sX7DFfe3RyhsIYWcWp3TgVQ9UdeRFrlWbODv6JSA9uA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOikWEjgUYBjwczdEeuvssNgNdWseK3rTnqOhbIvUYvFQ/tVCdRdhtq63wXmBFld+g==",
                             PhoneNumber = "0987654321",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "cdc21a21-318b-4190-a35c-70e5df9ea56b",
@@ -530,7 +530,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "RECEPTION@GARAGE.VN",
                             NormalizedUserName = "RECEP01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDso2E2J71N2jkp4Cu3kVhiNpgqK8cUEB1d5crSmbGqjQ9lYp9Ljj4UDr3LkPuP/7w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEERbPXYcsKAapCufcFWL8A/R+SJnhKQCiBO8zWYCt7hoadCDEdcQvuWTGCRLZP9IhA==",
                             PhoneNumber = "0978123456",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "01f26687-aac8-470a-ade0-17e00fc98446",
@@ -549,7 +549,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STOCKER@GARAGE.VN",
                             NormalizedUserName = "STOCKER01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIb0kt9MxpFm0z1TkSK9FvPLYJYwYlv2vg992CItwCUQoC+tNCJqMKToRPDn+c9g2Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEP1IXWUwljom+8olGOl7UCpHw9DK1XAPPlCSILLZdR6wvkLDXJrl7ZUesEPjZyb5wg==",
                             PhoneNumber = "0978123356",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "c346c74b-28bc-47a4-963a-1dfd9d20e698",
@@ -568,7 +568,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "NGUYEN.VAN.A@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKxJna+ttvKoaHLRF9f7Iu2WdMt2kAxRWlGSul1HG7HmeJZ9IN5LnT2LyKzkzcMMlA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDitILFevPcZOOIhDhotaq/bCa+AjVPYUb8muyOsZ7IdHrzU7LFKdXadHLyAVR437g==",
                             PhoneNumber = "0912345670",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "ed3d8b90-55be-46d9-ae4d-f10d46005c0a",
@@ -587,7 +587,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "TRAN.THI.B@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG02",
-                            PasswordHash = "AQAAAAIAAYagAAAAEE0henamH55ggpXJVMrdwkSdvyUkl7aCsTIj/+m85IeI0xrWJDflfMZDMVS/BR3oCg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIqM0MkxYztjZ7wIIMwUpwOv0wvhShtn0iGv5XkGCfez+RdR3/byPMyEG/Nw/Sw4dg==",
                             PhoneNumber = "0987654312",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "1250155f-2669-47ad-bb37-162d1ddac80e",
@@ -1003,6 +1003,10 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int>("ProgressPercentage")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("QueueOrder")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -1398,13 +1402,15 @@ namespace Garage_Management.Base.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int>("status")
                         .HasColumnType("int");
 
                     b.HasKey("RepairEstimateId");
@@ -1425,6 +1431,11 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1432,9 +1443,6 @@ namespace Garage_Management.Base.Migrations
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("status")
-                        .HasColumnType("int");
 
                     b.HasKey("RepairEstimateId", "ServiceId");
 
@@ -1454,6 +1462,11 @@ namespace Garage_Management.Base.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1461,9 +1474,6 @@ namespace Garage_Management.Base.Migrations
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("status")
-                        .HasColumnType("int");
 
                     b.HasKey("RepairEstimateId", "SparePartId");
 
@@ -2422,7 +2432,7 @@ namespace Garage_Management.Base.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Garage_Management.Base.Entities.JobCards.JobCardService", null)
+                    b.HasOne("Garage_Management.Base.Entities.JobCards.JobCardService", "JobCardService")
                         .WithMany("ServiceTasks")
                         .HasForeignKey("JobCardServiceId");
 
@@ -2437,6 +2447,8 @@ namespace Garage_Management.Base.Migrations
                         .IsRequired();
 
                     b.Navigation("JobCard");
+
+                    b.Navigation("JobCardService");
 
                     b.Navigation("PerformedBy");
 

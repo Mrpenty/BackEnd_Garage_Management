@@ -7,5 +7,6 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
     public interface IJobCardServiceRepository : IBaseRepository<JobCardService>
     {
         Task<PagedResult<JobCardService>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<JobCardService?> GetByIdWithTasksAsync(int jobCardServiceId, CancellationToken ct = default);
     }
 }

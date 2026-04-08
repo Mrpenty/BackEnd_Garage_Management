@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Garage_Management.Base.Common.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,9 +18,11 @@ namespace Garage_Management.Application.DTOs.Notifications
     public class NotificationResponse
     {
         public int NotificationId { get; set; }
-        public string Type { get; set; } = string.Empty;
+        public NotificationType Type { get; set; } = NotificationType.Reminder;
+        public string NotificationTypeName { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public string Channel { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
+        public NotificationStatus Status { get; set; } = NotificationStatus.Pending;
+        public string NotificationStatusName { get; set; } = string.Empty;  
     }
 }

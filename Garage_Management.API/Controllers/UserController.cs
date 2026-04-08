@@ -1,4 +1,5 @@
-﻿using Garage_Management.Application.Interfaces.Services;
+﻿using Garage_Management.Application.DTOs.User;
+using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -36,6 +37,16 @@ namespace Garage_Management.API.Controllers
         public async Task<IActionResult> GetList([FromQuery] ParamQuery query, CancellationToken ct)
         {
             var result = await _userService.GetPagedAsync(query,ct);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+        [HttpPost("ChangeStatus")]
+        public async Task<IActionResult> ChangeStatus([FromBody] ChangeUserStatusRequest request)
+        {
+            var result = await _userService.ChangeUserStatusAsync(request);
             if (result.Success)
             {
                 return Ok(result);

@@ -5,7 +5,14 @@ using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.JobCards;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Garage_Management.Application.Services.Workbays
 {
@@ -71,7 +78,12 @@ namespace Garage_Management.Application.Services.Workbays
                 UpdateAt = bay.UpdateAt,
                 StartAt = bay.StartAt,
                 EndAt = bay.EndAt,
-                JobCards = jobs.Select(MapJobCard).ToList()
+                JobCards = jobs
+                    .OrderBy(x => x.QueueOrder)
+                    .ThenBy(x => x.StartDate)
+                    .ThenBy(x => x.JobCardId)
+                    .Select(MapJobCard)
+                    .ToList()
             };
         }
 
@@ -82,6 +94,7 @@ namespace Garage_Management.Application.Services.Workbays
                 JobCardId = jobCard.JobCardId,
                 CustomerId = jobCard.CustomerId,
                 CustomerName = $"{jobCard.Customer?.FirstName} {jobCard.Customer?.LastName}".Trim(),
+                QueueOrder = jobCard.QueueOrder,
                 Mechanics = jobCard.Mechanics
                     .Where(x => x.Employee != null)
                     .Select(x => new JobCardMechanicView
@@ -117,6 +130,100 @@ namespace Garage_Management.Application.Services.Workbays
                     })
                     .ToList()
             };
+        }
+
+        public async Task<ApiResponse<RebalanceWorkBayQueueResponse>> RebalanceQueueAsync(
+            int workBayId,
+            CancellationToken cancellationToken)
+        {
+            var workBay = await _workBayRepository.GetByIdAsync(workBayId);
+            if (workBay == null)
+            {
+                return ApiResponse<RebalanceWorkBayQueueResponse>.ErrorResponse("Khoang sửa chữa không tồn tại");
+            }
+
+            var jobs = await _jobCardRepository.GetTrackedByWorkBayIdAsync(workBayId, cancellationToken);
+
+            decimal queueOrder = 1000m;
+            foreach (var job in jobs)
+            {
+                job.QueueOrder = queueOrder;
+                queueOrder += 1000m;
+            }
+
+            await _jobCardRepository.SaveAsync(cancellationToken);
+
+            return ApiResponse<RebalanceWorkBayQueueResponse>.SuccessResponse(
+                new RebalanceWorkBayQueueResponse
+                {
+                    WorkBayId = workBayId,
+                    UpdatedCount = jobs.Count
+                },
+                "Rebalance queue thành công");
+        }
+
+        public async Task<ApiResponse<WorkBayDto>> CreateWorkBayAsync(CreateWorkBayRequest request, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(request.Name))
+            {
+                return ApiResponse<WorkBayDto>.ErrorResponse("Tên khoang sửa chữa không được để trống");
+            }
+            var workBay = new WorkBay
+            {
+                Name = request.Name,
+                Note = request.Note,
+                Status = WorkBayStatus.Available,
+                CreateAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
+            };
+            await _workBayRepository.AddAsync(workBay, cancellationToken);
+            await _workBayRepository.SaveAsync(cancellationToken);
+            return ApiResponse<WorkBayDto>.SuccessResponse(new WorkBayDto
+            {
+                Id = workBay.Id,
+                Name = workBay.Name,
+                Note = workBay.Note,
+                Status = workBay.Status,
+                JobcardId = workBay.JobcardId,
+                CreateAt = workBay.CreateAt,
+                StartAt = workBay.StartAt,
+                EndAt = workBay.EndAt
+            }, "Tạo khoang sửa chữa thành công");
+        }
+
+        public async Task<ApiResponse<WorkBayDto>> UpdateWorkBayAsync(int id, UpdateWorkBayRequest request, CancellationToken cancellationToken)
+        {
+            var workBay = await _workBayRepository.GetByIdAsync(id);
+            if (workBay == null)
+            {
+                return ApiResponse<WorkBayDto>.ErrorResponse("Khoang sửa chữa không tồn tại");
+            }
+            workBay.Name = request.Name;
+            workBay.Note = request.Note;
+            workBay.Status = request.Status;
+            if (request.Status == WorkBayStatus.Occupied)
+            {
+                workBay.StartAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+                workBay.EndAt = null;
+            }
+            else if (request.Status == WorkBayStatus.Available)
+            {
+                workBay.EndAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+                workBay.StartAt = null;
+            }
+             _workBayRepository.Update(workBay);
+            await _workBayRepository.SaveAsync(cancellationToken);
+
+            return ApiResponse<WorkBayDto>.SuccessResponse(new WorkBayDto
+            {
+                Id = workBay.Id,
+                Name = workBay.Name,
+                Note = workBay.Note,
+                Status = workBay.Status,
+                JobcardId = workBay.JobcardId,
+                CreateAt = workBay.CreateAt,
+                StartAt = workBay.StartAt,
+                EndAt = workBay.EndAt
+            },"Cập nhật khoang sửa chữa thành công");
         }
     }
 }

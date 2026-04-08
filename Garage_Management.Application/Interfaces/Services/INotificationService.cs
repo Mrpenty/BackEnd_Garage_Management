@@ -11,5 +11,7 @@ namespace Garage_Management.Application.Interfaces.Services
     public interface INotificationService
     {
         Task<ApiResponse<NotificationResponse>> CreateAndSendNotificationAsync(CreateNotificationRequest request, CancellationToken ct = default);
+
+        Task<ApiResponse<List<NotificationResponse>>> GetUserNotificationsAsync(CancellationToken ct = default);
     }
 }

@@ -2,11 +2,8 @@ using Garage_Management.Application.DTOs.RepairEstimateServices;
 using Garage_Management.Application.Interfaces.Repositories.RepairEstimaties;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Services;
-using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Common.Enums;
-using Garage_Management.Base.Entities.RepairEstimaties;
-using System.Threading;
-using System.Threading.Tasks;
+using Garage_Management.Base.Common.Models;
 
 namespace Garage_Management.Application.Services.RepairEstimaties
 {
@@ -28,12 +25,17 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateServiceResponse?> GetByIdAsync(int repairEstimateId, int serviceId, CancellationToken ct = default)
         {
+            ValidateRepairEstimateId(repairEstimateId);
+            ValidateServiceId(serviceId);
+
             var entity = await _repo.GetByIdAsync(repairEstimateId, serviceId, ct);
             return entity == null ? null : Map(entity);
         }
 
         public async Task<PagedResult<RepairEstimateServiceResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
         {
+            ValidatePaging(page, pageSize);
+
             var paged = await _repo.GetPagedAsync(page, pageSize, ct);
             return new PagedResult<RepairEstimateServiceResponse>
             {
@@ -46,22 +48,19 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateServiceResponse> CreateAsync(RepairEstimateServiceCreateRequest request, CancellationToken ct = default)
         {
-            if (request.RepairEstimateId <= 0)
-                throw new InvalidOperationException("RepairEstimateId không hợp lệ");
-            if (request.ServiceId <= 0)
-                throw new InvalidOperationException("ServiceId không hợp lệ");
-            if (request.Quantity <= 0)
-                throw new InvalidOperationException("Quantity phải lớn hơn 0");
-            if (request.UnitPrice <= 0)
-                throw new InvalidOperationException("UnitPrice phải lớn hơn 0");
+            ArgumentNullException.ThrowIfNull(request);
+            ValidateCreateRequest(request);
 
-            var estimate = await _repairEstimateRepository.GetByIdAsync(request.RepairEstimateId, ct);
-            if (estimate == null)
+            var repairEstimate = await _repairEstimateRepository.GetByIdAsync(request.RepairEstimateId, ct);
+            if (repairEstimate == null)
                 throw new InvalidOperationException("RepairEstimate not found");
 
             var service = await _serviceRepository.GetByIdAsync(request.ServiceId);
             if (service == null)
                 throw new InvalidOperationException("Service not found");
+
+            if (!service.IsActive)
+                throw new InvalidOperationException($"Service {request.ServiceId} is inactive");
 
             var existed = await _repo.GetByIdAsync(request.RepairEstimateId, request.ServiceId, ct);
             if (existed != null)
@@ -83,24 +82,27 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateServiceResponse?> UpdateAsync(int repairEstimateId, int serviceId, RepairEstimateServiceUpdateRequest request, CancellationToken ct = default)
         {
+            ValidateRepairEstimateId(repairEstimateId);
+            ValidateServiceId(serviceId);
+            ArgumentNullException.ThrowIfNull(request);
+
             var entity = await _repo.GetByIdAsync(repairEstimateId, serviceId, ct);
-            if (entity == null) return null;
+            if (entity == null)
+                return null;
+
+            ValidateUpdateRequest(request, entity.UnitPrice, entity.Quantity);
 
             if (request.UnitPrice.HasValue)
-            {
-                if (request.UnitPrice.Value <= 0)
-                    throw new InvalidOperationException("UnitPrice phải lớn hơn 0");
                 entity.UnitPrice = request.UnitPrice.Value;
-            }
 
             if (request.Quantity.HasValue)
-            {
-                if (request.Quantity.Value <= 0)
-                    throw new InvalidOperationException("Quantity phải lớn hơn 0");
                 entity.Quantity = request.Quantity.Value;
-            }
 
-            entity.TotalAmount = entity.UnitPrice * entity.Quantity;
+            var expectedTotalAmount = entity.UnitPrice * entity.Quantity;
+            if (request.TotalAmount.HasValue && request.TotalAmount.Value != expectedTotalAmount)
+                throw new InvalidOperationException("TotalAmount must equal UnitPrice multiplied by Quantity");
+
+            entity.TotalAmount = request.TotalAmount ?? expectedTotalAmount;
 
             await _repo.UpdateAsync(entity, ct);
             return Map(entity);
@@ -108,8 +110,12 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<bool> DeleteAsync(int repairEstimateId, int serviceId, CancellationToken ct = default)
         {
+            ValidateRepairEstimateId(repairEstimateId);
+            ValidateServiceId(serviceId);
+
             var entity = await _repo.GetByIdAsync(repairEstimateId, serviceId, ct);
-            if (entity == null) return false;
+            if (entity == null)
+                return false;
 
             await _repo.DeleteAsync(entity, ct);
             return true;
@@ -117,6 +123,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateServiceResponse?> UpdateStatusAsync(int repairEstimateId, int serviceId, RepairEstimateServiceStatusUpdateRequest request, CancellationToken ct = default)
         {
+            ValidateRepairEstimateId(repairEstimateId);
+            ValidateServiceId(serviceId);
+            ArgumentNullException.ThrowIfNull(request);
             ValidateStatus(request.Status);
 
             var entity = await _repo.GetTrackedByIdAsync(repairEstimateId, serviceId, ct);
@@ -145,6 +154,65 @@ namespace Garage_Management.Application.Services.RepairEstimaties
         {
             if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
                 throw new InvalidOperationException("Invalid repair estimate service status");
+        }
+
+        private static void ValidatePaging(int page, int pageSize)
+        {
+            if (page <= 0)
+                throw new InvalidOperationException("Page must be greater than 0");
+
+            if (pageSize <= 0)
+                throw new InvalidOperationException("PageSize must be greater than 0");
+        }
+
+        private static void ValidateRepairEstimateId(int repairEstimateId)
+        {
+            if (repairEstimateId <= 0)
+                throw new InvalidOperationException("RepairEstimateId must be greater than 0");
+        }
+
+        private static void ValidateServiceId(int serviceId)
+        {
+            if (serviceId <= 0)
+                throw new InvalidOperationException("ServiceId must be greater than 0");
+        }
+
+        private static void ValidateCreateRequest(RepairEstimateServiceCreateRequest request)
+        {
+            ValidateRepairEstimateId(request.RepairEstimateId);
+            ValidateServiceId(request.ServiceId);
+
+            if (request.UnitPrice <= 0)
+                throw new InvalidOperationException("UnitPrice must be greater than 0");
+
+            if (request.Quantity <= 0)
+                throw new InvalidOperationException("Quantity must be greater than 0");
+
+            if (request.TotalAmount <= 0)
+                throw new InvalidOperationException("TotalAmount must be greater than 0");
+
+            var expectedTotalAmount = request.UnitPrice * request.Quantity;
+            if (request.TotalAmount != expectedTotalAmount)
+                throw new InvalidOperationException("TotalAmount must equal UnitPrice multiplied by Quantity");
+        }
+
+        private static void ValidateUpdateRequest(RepairEstimateServiceUpdateRequest request, decimal currentUnitPrice, int currentQuantity)
+        {
+            if (request.UnitPrice.HasValue && request.UnitPrice.Value <= 0)
+                throw new InvalidOperationException("UnitPrice must be greater than 0");
+
+            if (request.Quantity.HasValue && request.Quantity.Value <= 0)
+                throw new InvalidOperationException("Quantity must be greater than 0");
+
+            if (request.TotalAmount.HasValue && request.TotalAmount.Value < 0)
+                throw new InvalidOperationException("TotalAmount must not be negative");
+
+            var finalUnitPrice = request.UnitPrice ?? currentUnitPrice;
+            var finalQuantity = request.Quantity ?? currentQuantity;
+            var expectedTotalAmount = finalUnitPrice * finalQuantity;
+
+            if (request.TotalAmount.HasValue && request.TotalAmount.Value != expectedTotalAmount)
+                throw new InvalidOperationException("TotalAmount must equal UnitPrice multiplied by Quantity");
         }
     }
 }

@@ -45,40 +45,34 @@ namespace Garage_Management.Application.Services.JobCards
             AddMultipleSparePartsToJobCardDto dto,
             CancellationToken ct)
         {
+            ValidateJobCardId(jobCardId);
+            ArgumentNullException.ThrowIfNull(dto);
+            ValidateSparePartItems(dto.SpareParts);
+
             var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
             if (jobCard == null)
                 return null;
 
             EnsureJobCardApprovedForSparePartCreation(jobCard);
 
-            if (dto.SpareParts == null || dto.SpareParts.Count == 0)
-                throw new InvalidOperationException("Danh sach phu tung khong duoc rong");
-
-            var duplicateIds = dto.SpareParts
-                .GroupBy(x => x.SparePartId)
-                .Where(x => x.Count() > 1)
-                .Select(x => x.Key)
-                .ToList();
-
-            if (duplicateIds.Count > 0)
-                throw new InvalidOperationException($"SparePartId bi trung trong request: {string.Join(", ", duplicateIds)}");
-
             var entities = new List<JobCardSparePart>();
 
             foreach (var item in dto.SpareParts)
             {
-                if (item.Quantity <= 0)
-                    throw new InvalidOperationException($"Quantity cua phu tung {item.SparePartId} phai lon hon 0");
-
                 var existed = await _jobCardSparePartRepository.GetByIdAsync(jobCardId, item.SparePartId, ct);
                 if (existed != null)
-                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} đã tồn tại trong jobcard");
+                    throw new InvalidOperationException($"Spare part {item.SparePartId} already exists in job card");
 
                 var inventory = await _inventoryRepository.GetByIdAsync(item.SparePartId);
                 if (inventory == null)
-                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} không tồn tại");
+                    throw new InvalidOperationException($"Spare part {item.SparePartId} not found");
 
-                var unitPrice = inventory.SellingPrice ?? 0m;
+                ValidateInventoryForSparePart(item, inventory);
+
+                if (inventory.Quantity < item.Quantity)
+                    throw new InvalidOperationException($"Spare part {item.SparePartId} does not have enough stock");
+
+                var unitPrice = inventory.SellingPrice!.Value;
                 var entity = new JobCardSparePart
                 {
                     JobCardId = jobCardId,
@@ -91,7 +85,6 @@ namespace Garage_Management.Application.Services.JobCards
                     CreatedAt = DateTime.UtcNow
                 };
 
-                // Tạo giao dịch xuất kho thay vì trừ tồn kho trực tiếp
                 await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
                 {
                     SparePartId = item.SparePartId,
@@ -99,7 +92,7 @@ namespace Garage_Management.Application.Services.JobCards
                     QuantityChange = item.Quantity,
                     UnitPrice = unitPrice,
                     JobCardId = jobCardId,
-                    Note = $"Xuất kho cho JobCard #{jobCardId}"
+                    Note = $"Export for JobCard #{jobCardId}"
                 }, ct);
 
                 await _jobCardSparePartRepository.AddAsync(entity, ct);
@@ -115,18 +108,20 @@ namespace Garage_Management.Application.Services.JobCards
             int sparePartId,
             CancellationToken ct)
         {
+            ValidateJobCardId(jobCardId);
+            ValidateSparePartId(sparePartId);
+
             var entity = await _jobCardSparePartRepository.GetByIdAsync(jobCardId, sparePartId, ct);
             if (entity == null)
                 return false;
 
             var jobCard = await _jobCardRepository.GetByIdAsync(entity.JobCardId);
             if (jobCard == null)
-                throw new InvalidOperationException("Không tìm thấy JobCard");
+                throw new InvalidOperationException("JobCard not found");
 
-            // Tạo giao dịch nhập kho lại (trả phụ tùng về kho)
             var inventory = await _inventoryRepository.GetByIdAsync(entity.SparePartId);
             if (inventory == null)
-                throw new InvalidOperationException("Không tìm thấy tồn kho");
+                throw new InvalidOperationException("Inventory not found");
 
             await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
             {
@@ -135,7 +130,7 @@ namespace Garage_Management.Application.Services.JobCards
                 QuantityChange = entity.Quantity,
                 UnitPrice = entity.UnitPrice,
                 JobCardId = entity.JobCardId,
-                Note = $"Hoàn kho từ JobCard #{entity.JobCardId}"
+                Note = $"Return from JobCard #{entity.JobCardId}"
             }, ct);
 
             _jobCardSparePartRepository.Delete(entity);
@@ -144,15 +139,70 @@ namespace Garage_Management.Application.Services.JobCards
             return true;
         }
 
+        private static void ValidateJobCardId(int jobCardId)
+        {
+            if (jobCardId <= 0)
+                throw new InvalidOperationException("JobCardId phai lon hon 0");
+        }
+
+        private static void ValidateSparePartId(int sparePartId)
+        {
+            if (sparePartId <= 0)
+                throw new InvalidOperationException("SparePartId phai lon hon 0");
+        }
+
+        private static void ValidateSparePartItems(List<AddSparePartToJobCardDto>? spareParts)
+        {
+            if (spareParts == null || spareParts.Count == 0)
+                throw new InvalidOperationException("Danh sach phu tung khong duoc rong");
+
+            var duplicateIds = spareParts
+                .Where(x => x != null)
+                .GroupBy(x => x.SparePartId)
+                .Where(x => x.Count() > 1)
+                .Select(x => x.Key)
+                .ToList();
+
+            if (duplicateIds.Count > 0)
+                throw new InvalidOperationException($"SparePartId bi trung trong request: {string.Join(", ", duplicateIds)}");
+
+            foreach (var item in spareParts)
+            {
+                if (item == null)
+                    throw new InvalidOperationException("Thong tin phu tung khong hop le");
+
+                ValidateSparePartId(item.SparePartId);
+
+                if (item.Quantity <= 0)
+                    throw new InvalidOperationException($"Quantity cua phu tung {item.SparePartId} phai lon hon 0");
+
+                if (item.Note != null && string.IsNullOrWhiteSpace(item.Note))
+                    throw new InvalidOperationException($"Note cua phu tung {item.SparePartId} khong duoc chi chua khoang trang");
+
+                if (item.Note?.Length > 500)
+                    throw new InvalidOperationException($"Note cua phu tung {item.SparePartId} khong duoc vuot qua 500 ky tu");
+            }
+        }
+
+        private static void ValidateInventoryForSparePart(AddSparePartToJobCardDto item, Base.Entities.Inventories.Inventory inventory)
+        {
+            if (!inventory.IsActive)
+                throw new InvalidOperationException($"Phu tung {item.SparePartId} da ngung kinh doanh");
+
+            if (!inventory.SellingPrice.HasValue)
+                throw new InvalidOperationException($"Phu tung {item.SparePartId} chua co gia ban");
+
+            if (inventory.SellingPrice.Value < 0)
+                throw new InvalidOperationException($"Gia ban cua phu tung {item.SparePartId} khong hop le");
+        }
+
         private static void EnsureJobCardApprovedForSparePartCreation(JobCard jobCard)
         {
             if (jobCard.Status == JobCardStatus.WaitingSupervisorApproval)
-                throw new InvalidOperationException(
-                    "JobCard đang chờ supervisor phê duyệt. Hãy phê duyệt supervisor trước, sau đó chuyển sang WaitingCustomerApproval");
+                throw new InvalidOperationException("JobCard dang cho supervisor phe duyet. Hay phe duyet supervisor truoc, sau do chuyen sang WaitingCustomerApproval");
 
             if (jobCard.Status != JobCardStatus.WaitingCustomerApproval)
-                throw new InvalidOperationException(
-                    $"Chỉ được tạo phụ tùng khi JobCard ở trạng thái WaitingCustomerApproval. Trạng thái hiện tại: {jobCard.Status}.");
+                throw new InvalidOperationException($"Chi duoc tao phu tung khi JobCard o trang thai WaitingCustomerApproval. Trang thai hien tai: {jobCard.Status}.");
         }
 
         private static JobCardSparePartResponse Map(JobCardSparePart entity)

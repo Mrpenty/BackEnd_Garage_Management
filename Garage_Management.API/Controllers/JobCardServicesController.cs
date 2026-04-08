@@ -1,4 +1,4 @@
-using Garage_Management.Application.DTOs.JobCardServices;
+﻿using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -41,8 +41,24 @@ namespace Garage_Management.API.Controllers
             [FromBody] JobCardServiceCreateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = data.JobCardServiceId }, ApiResponse<JobCardServiceResponse>.SuccessResponse(data, "Created"));
+            try
+            {
+                var data = await _service.CreateAsync(request, ct);
+
+                if (!data.Success)
+                {
+                    return BadRequest(data);
+                }
+                return CreatedAtAction(nameof(GetById), new { id = data.Data.JobCardServiceId }, data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<JobCardServiceResponse>
+                {
+                    Success = false,
+                    Message = $"Lỗi Controller: {ex.Message} | Inner: {ex.InnerException?.Message}"
+                });
+            }
         }
 
         [HttpPut("{id:int}")]

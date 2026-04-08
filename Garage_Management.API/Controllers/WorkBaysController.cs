@@ -26,15 +26,9 @@ namespace Garage_Management.API.Controllers
             [FromQuery] WorkBayStatus? status,
             CancellationToken ct = default)
         {
-            var data = await _service.GetListAsync(status, ct);
-
-            return Ok(new ApiResponse<IEnumerable<WorkBayDto>>
-            {
-                Success = true,
-                Data = data
-            });
+            var result = await _service.GetListAsync(status, ct);
+            return Ok(result);
         }
-
         /// <summary>
         /// Lấy chi tiết một WorkBay theo Id
         /// </summary>
@@ -50,7 +44,7 @@ namespace Garage_Management.API.Controllers
                 return NotFound(new ApiResponse<WorkBayDto>
                 {
                     Success = false,
-                    Message = "WorkBay not found"
+                    Message = "Khoang sửa chữa không tìm thấy"
                 });
             }
 
@@ -59,6 +53,37 @@ namespace Garage_Management.API.Controllers
                 Success = true,
                 Data = data
             });
+        }
+
+        [HttpPost("Create")]
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> Create([FromBody] CreateWorkBayRequest request,
+            CancellationToken ct = default)
+        {
+            var result = await _service.CreateWorkBayAsync(request, ct);
+            return Ok(result);
+        }
+        [HttpPost("{id:int}/change-info")]
+
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> ChangeStatus(int id, [FromBody] UpdateWorkBayRequest request,
+            CancellationToken ct = default)
+        {
+            var result = await _service.UpdateWorkBayAsync(id, request, ct);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
+
+        }
+
+        [HttpPost("{id:int}/rebalance-queue")]
+        public async Task<ActionResult<ApiResponse<RebalanceWorkBayQueueResponse>>> RebalanceQueue(
+            int id,
+            CancellationToken ct = default)
+        {
+            var result = await _service.RebalanceQueueAsync(id, ct);
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
         }
 
     }
