@@ -429,29 +429,32 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
         public async Task<bool> ReorderWorkBayQueueAsync(
-            ReorderJobCardQueueDto dto,
-            CancellationToken cancellationToken)
+     ReorderJobCardQueueDto dto,
+     CancellationToken cancellationToken)
         {
             if (dto.JobCardId <= 0 || dto.WorkBayId <= 0)
-                return false;
+                throw new Exception("JobCardId hoặc WorkBayId không hợp lệ.");
 
             if (dto.PreviousJobCardId == dto.JobCardId || dto.NextJobCardId == dto.JobCardId)
-                return false;
+                throw new Exception("Previous/Next không được trùng với JobCardId.");
 
             if (dto.PreviousJobCardId.HasValue &&
                 dto.NextJobCardId.HasValue &&
                 dto.PreviousJobCardId.Value == dto.NextJobCardId.Value)
             {
-                return false;
+                throw new Exception("PreviousJobCardId và NextJobCardId không được trùng nhau.");
             }
 
             var jobCard = await _repository.GetByIdAsync(dto.JobCardId);
-            if (jobCard == null || jobCard.WorkBayId != dto.WorkBayId)
-                return false;
+            if (jobCard == null)
+                throw new Exception("JobCard không tồn tại.");
+
+            if (jobCard.WorkBayId != dto.WorkBayId)
+                throw new Exception("JobCard không thuộc WorkBay này.");
 
             var jobsInWorkBay = await _repository.GetTrackedByWorkBayIdAsync(dto.WorkBayId, cancellationToken);
             if (!jobsInWorkBay.Any())
-                return false;
+                throw new Exception("WorkBay không có JobCard nào.");
 
             var otherJobs = jobsInWorkBay
                 .Where(x => x.JobCardId != dto.JobCardId)
@@ -464,15 +467,18 @@ namespace Garage_Management.Application.Services.JobCards
                 var previousJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.PreviousJobCardId.Value);
                 var nextJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.NextJobCardId.Value);
 
-                if (previousJob == null || nextJob == null)
-                    return false;
+                if (previousJob == null)
+                    throw new Exception("PreviousJobCard không tồn tại trong WorkBay.");
+
+                if (nextJob == null)
+                    throw new Exception("NextJobCard không tồn tại trong WorkBay.");
 
                 if (previousJob.QueueOrder >= nextJob.QueueOrder)
-                    return false;
+                    throw new Exception("Thứ tự Queue không hợp lệ: Previous >= Next.");
 
                 var gap = nextJob.QueueOrder - previousJob.QueueOrder;
                 if (gap <= 0.000001m)
-                    return false;
+                    throw new Exception("Khoảng cách QueueOrder quá nhỏ, cần re-index.");
 
                 newQueueOrder = (previousJob.QueueOrder + nextJob.QueueOrder) / 2m;
             }
@@ -480,7 +486,7 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 var nextJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.NextJobCardId.Value);
                 if (nextJob == null)
-                    return false;
+                    throw new Exception("NextJobCard không tồn tại trong WorkBay.");
 
                 newQueueOrder = otherJobs.Any()
                     ? otherJobs.Min(x => x.QueueOrder) - 1000m
@@ -490,7 +496,7 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 var previousJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.PreviousJobCardId.Value);
                 if (previousJob == null)
-                    return false;
+                    throw new Exception("PreviousJobCard không tồn tại trong WorkBay.");
 
                 newQueueOrder = otherJobs.Any()
                     ? otherJobs.Max(x => x.QueueOrder) + 1000m
@@ -498,7 +504,7 @@ namespace Garage_Management.Application.Services.JobCards
             }
             else
             {
-                return false;
+                throw new Exception("Phải cung cấp PreviousJobCardId hoặc NextJobCardId.");
             }
 
             jobCard.QueueOrder = newQueueOrder;
