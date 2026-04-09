@@ -50,6 +50,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 
         public List<ServiceJobCardMechanicResponse> Services { get; set; } = new();
         public List<SparePartJobCardMechanicResponse> SpareParts { get; set; } = new();
+        public List<AppointmentSparePartResponse>? AppointmentSpareParts { get; set; }
     }
 
     public class ServiceJobCardMechanicResponse
@@ -91,6 +92,12 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public bool IsUnderWarranty { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
+    }
+
+    public class AppointmentSparePartResponse
+    {
+        public int SparePartId { get; set; }
+        public string PartName { get; set; } = string.Empty;
     }
 
 }
