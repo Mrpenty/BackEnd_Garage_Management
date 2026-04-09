@@ -7,12 +7,13 @@ using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
 using JobCardServiceTaskEntity = Garage_Management.Base.Entities.JobCards.JobCardServiceTask;
 using System.Security.Claims;
-
+using Garage_Management.Base.Common.Format;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Common.Format;
 
@@ -43,7 +44,7 @@ namespace Garage_Management.UnitTest.JobCards
                 Mock.Of<IWorkBayRepository>(),
                 Mock.Of<IAppointmentRepository>(),
                 _httpContextAccessor.Object,
-                _progressCalculator.Object
+                new ProgressCalculator()
             );
         }
 
@@ -67,11 +68,9 @@ namespace Garage_Management.UnitTest.JobCards
             var jobCard = new JobCardEntity { JobCardId = 2, Status = JobCardStatus.InProgress, ProgressPercentage = 50, Services = new List<JobCardServiceEntity>() };
             _jobCardRepo.Setup(x => x.GetByIdAsync(2)).ReturnsAsync(jobCard);
             _jobCardRepo.Setup(x => x.IsMechanicAssignedAsync(2, 3)).ReturnsAsync(false);
-
-            await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(async () =>
-            {
-                await _service.UpdateRepairProgressAsync(2, new UpdateJobCardProgressDto(), CancellationToken.None);
-            });
+            var result = await _service.UpdateRepairProgressAsync(2, new UpdateJobCardProgressDto(), CancellationToken.None);
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual("Bạn không có quyền cập nhật tiến độ phiếu sửa chữa này", result.Message);
         }
 
         [TestMethod]

@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+docs/superpowers/plans/2026-04-01-invoice-api.md
+docs/superpowers/plans/2026-04-01-vnpay-integration.md

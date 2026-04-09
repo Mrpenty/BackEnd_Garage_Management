@@ -14,10 +14,10 @@ using Garage_Management.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 namespace Garage_Management.Application.Repositories.Inventories
 {
-    
 
-  
-        public class InventoryRepository : BaseRepository<Inventory>, IInventoryRepository
+
+
+    public class InventoryRepository : BaseRepository<Inventory>, IInventoryRepository
     {
             private readonly AppDbContext _context;
 
