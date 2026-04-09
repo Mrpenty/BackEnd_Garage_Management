@@ -38,5 +38,27 @@ namespace Garage_Management.UnitTest.VehicleModels
             Assert.AreEqual(1, result.Total);
             Assert.AreEqual(1, result.PageData.Count());
         }
+
+        [TestMethod]
+        public async Task GetPagedAsync_Empty_ReturnsEmptyList()
+        {
+            var repo = new Mock<IVehicleModelRepository>();
+            var brandRepo = new Mock<IVehicleBrandRepository>();
+            var service = new VehicleModelService(repo.Object, brandRepo.Object);
+
+            repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PagedResult<VehicleModel>
+                {
+                    Page = 1,
+                    PageSize = 10,
+                    Total = 0,
+                    PageData = new List<VehicleModel>()
+                });
+
+            var result = await service.GetPagedAsync(1, 10);
+
+            Assert.AreEqual(0, result.Total);
+            Assert.AreEqual(0, result.PageData.Count());
+        }
     }
 }
