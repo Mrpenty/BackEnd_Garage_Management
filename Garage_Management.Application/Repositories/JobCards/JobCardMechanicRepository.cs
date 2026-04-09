@@ -96,6 +96,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                     ProgressNotes = jm.JobCard.ProgressNotes,
                     JobCardDescription = jm.JobCard.Note, 
                     Supervisor = jm.JobCard.Supervisor != null ? $"{jm.JobCard.Supervisor.FirstName} {jm.JobCard.Supervisor.LastName}".Trim() : string.Empty,
+                    QueueOrder = jm.JobCard.QueueOrder,
 
                     // Customer
                     CustomerId = jm.JobCard.CustomerId,
@@ -164,7 +165,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                             .ToList()
                         : null
                   })
-                .ToListAsync();
+                 .ToListAsync();
 
             if (data == null || data.Count == 0)
                 return new PagedResult<JobCardMechanicDto>

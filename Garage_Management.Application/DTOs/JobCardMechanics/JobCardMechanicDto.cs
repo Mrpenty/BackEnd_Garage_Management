@@ -11,7 +11,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 {
     public class JobCardMechanicDto
     {
-        public int JobCardMechanicId { get; set; }   
+        //public int JobCardMechanicId { get; set; }   
 
         // Thông tin phân công
         public int JobCardId { get; set; }
@@ -31,7 +31,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public string? JobCardDescription { get; set; } = string.Empty;
          
         public string? Supervisor{ get; set; } = string.Empty;
-
+        public decimal QueueOrder { get; set; }
         // Thông tin Khách hàng
         public int CustomerId { get; set; }
         public string CustomerFullName { get; set; } = string.Empty;

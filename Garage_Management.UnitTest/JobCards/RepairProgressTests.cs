@@ -7,13 +7,15 @@ using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
 using JobCardServiceTaskEntity = Garage_Management.Base.Entities.JobCards.JobCardServiceTask;
 using System.Security.Claims;
-
+using Garage_Management.Base.Common.Format;
 using Garage_Management.Base.Entities.JobCards;
+using Garage_Management.Base.Common.Format;
 
 namespace Garage_Management.UnitTest.JobCards
 {
@@ -22,6 +24,8 @@ namespace Garage_Management.UnitTest.JobCards
     {
         private Mock<IJobCardRepository> _jobCardRepo;
         private Mock<IHttpContextAccessor> _httpContextAccessor;
+        private Mock<ProgressCalculator> _progressCalculator;
+
         private Garage_Management.Application.Services.JobCards.JobCardService _service;
 
         [TestInitialize]
@@ -29,6 +33,7 @@ namespace Garage_Management.UnitTest.JobCards
         {
             _jobCardRepo = new Mock<IJobCardRepository>();
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
+            _progressCalculator = new Mock<ProgressCalculator>();
 
             _service = new Application.Services.JobCards.JobCardService(
                 _jobCardRepo.Object,
@@ -38,7 +43,8 @@ namespace Garage_Management.UnitTest.JobCards
                 Mock.Of<IJobCardSparePartRepository>(),
                 Mock.Of<IWorkBayRepository>(),
                 Mock.Of<IAppointmentRepository>(),
-                _httpContextAccessor.Object
+                _httpContextAccessor.Object,
+                new ProgressCalculator()
             );
         }
 
@@ -62,11 +68,9 @@ namespace Garage_Management.UnitTest.JobCards
             var jobCard = new JobCardEntity { JobCardId = 2, Status = JobCardStatus.InProgress, ProgressPercentage = 50, Services = new List<JobCardServiceEntity>() };
             _jobCardRepo.Setup(x => x.GetByIdAsync(2)).ReturnsAsync(jobCard);
             _jobCardRepo.Setup(x => x.IsMechanicAssignedAsync(2, 3)).ReturnsAsync(false);
-
-            await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(async () =>
-            {
-                await _service.UpdateRepairProgressAsync(2, new UpdateJobCardProgressDto(), CancellationToken.None);
-            });
+            var result = await _service.UpdateRepairProgressAsync(2, new UpdateJobCardProgressDto(), CancellationToken.None);
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual("Bạn không có quyền cập nhật tiến độ phiếu sửa chữa này", result.Message);
         }
 
         [TestMethod]
@@ -102,12 +106,12 @@ namespace Garage_Management.UnitTest.JobCards
 
             var dto = new UpdateJobCardProgressDto
             {
-                Status = JobCardStatus.InProgress,
+                StatusJobCard = JobCardStatus.InProgress,
                 ProgressPercentage = 80,
                 ProgressNotes = "Hoàn thành bước 1",
                 ServiceUpdates = new List<UpdateServiceStatusDto>
                 {
-                    new UpdateServiceStatusDto { JobCardServiceId = 100, Status = ServiceStatus.Completed }
+                    new UpdateServiceStatusDto { JobCardServiceId = 100, StatusService = ServiceStatus.Completed }
                 }
             };
 
@@ -115,10 +119,10 @@ namespace Garage_Management.UnitTest.JobCards
 
             Assert.IsTrue(result.Success);
             Assert.AreEqual("Cập nhật tiến độ thành công.", result.Message);
-            Assert.AreEqual(JobCardStatus.Completed, result.Data!.Status); // tất cả service đã complete => JobCardCompleted
+            Assert.AreEqual(JobCardStatus.Completed, result.Data!.StatusJobCard); // tất cả service đã complete => JobCardCompleted
             Assert.AreEqual(100, result.Data.ProgressPercentage);
             Assert.IsNotNull(result.Data.EndDate);
-            Assert.AreEqual(ServiceStatus.Completed, result.Data.Services[0].Status);
+            Assert.AreEqual(ServiceStatus.Completed, result.Data.Services[0].StatusService);
         }
 
         [TestMethod]
