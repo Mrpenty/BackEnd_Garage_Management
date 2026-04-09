@@ -91,7 +91,7 @@ namespace Garage_Management.UnitTest.JobCards
         }
 
         [TestMethod]
-        public async Task AssignWorkBayAsync_ReturnFalse_WhenWorkBayOccupied()
+        public async Task AssignWorkBayAsync_ReturnTrue_WhenWorkBayOccupied()
         {
             var jobCard = new JobCardEntity { JobCardId = 3 };
 
@@ -104,15 +104,23 @@ namespace Garage_Management.UnitTest.JobCards
 
             _jobCardRepo.Setup(x => x.GetByIdAsync(3))
                         .ReturnsAsync(jobCard);
+            _jobCardRepo.Setup(x => x.GetMaxQueueOrderByWorkBayAsync(5, It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(2000m);
 
             _workBayRepo.Setup(x => x.GetByIdAsync(5))
                         .ReturnsAsync(bay);
+
+            _workBayRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                        .Returns(Task.CompletedTask);
+            _jobCardRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(1);
 
             var result = await _service.AssignWorkBayAsync(
                 new AssignWorkBayRequestDto { JobCardId = 3, WorkBayId = 5 },
                 CancellationToken.None);
 
-            Assert.IsFalse(result);
+            Assert.IsTrue(result);
+            Assert.AreEqual(3000m, jobCard.QueueOrder);
         }
 
         [TestMethod]
@@ -128,6 +136,8 @@ namespace Garage_Management.UnitTest.JobCards
 
             _jobCardRepo.Setup(x => x.GetByIdAsync(4))
                         .ReturnsAsync(jobCard);
+            _jobCardRepo.Setup(x => x.GetMaxQueueOrderByWorkBayAsync(6, It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(1000m);
 
             _workBayRepo.Setup(x => x.GetByIdAsync(6))
                         .ReturnsAsync(bay);
@@ -135,7 +145,9 @@ namespace Garage_Management.UnitTest.JobCards
 
 
             _workBayRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(1));
+                        .Returns(Task.CompletedTask);
+            _jobCardRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(1);
 
             var result = await _service.AssignWorkBayAsync(
                 new AssignWorkBayRequestDto { JobCardId = 4, WorkBayId = 6 },
@@ -144,6 +156,7 @@ namespace Garage_Management.UnitTest.JobCards
             Assert.IsTrue(result);
             Assert.AreEqual(WorkBayStatus.Occupied, bay.Status);
             Assert.AreEqual(4, bay.JobcardId);
+            Assert.AreEqual(2000m, jobCard.QueueOrder);
         }
 
         [TestMethod]

@@ -31,8 +31,16 @@ namespace Garage_Management.API.Controllers
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(page, pageSize, ct);
-            return Ok(ApiResponse<PagedResult<ServiceResponse>>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetPagedAsync(page, pageSize, ct);
+                return Ok(ApiResponse<PagedResult<ServiceResponse>>.SuccessResponse(data, "Lấy danh sách dịch vụ thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<PagedResult<ServiceResponse>>.ErrorResponse(ex.Message));
+            }
+
         }
 
         ///Author: KhanhDV
@@ -46,7 +54,7 @@ namespace Garage_Management.API.Controllers
             CancellationToken ct = default)
         {
             var data = await _service.GetByVehicleTypeAsync(vehicleTypeId, ct);
-            return Ok(ApiResponse<List<ServiceResponse>>.SuccessResponse(data, "OK"));
+            return Ok(ApiResponse<List<ServiceResponse>>.SuccessResponse(data, "Lấy danh sách dịch vụ theo loại xe thành công"));
         }
 
         [HttpGet("service-vehicle-type-pairs")]
@@ -55,8 +63,15 @@ namespace Garage_Management.API.Controllers
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
-            var result = await _service.GetServiceVehicleTypePairsAsync(page, pageSize, ct);
-            return Ok(ApiResponse<PagedResult<ServiceVehicleTypePairResponse>>.SuccessResponse(result, "OK"));
+            try
+            {
+                var result = await _service.GetServiceVehicleTypePairsAsync(page, pageSize, ct);
+                return Ok(ApiResponse<PagedResult<ServiceVehicleTypePairResponse>>.SuccessResponse(result, "Lấy danh sách cặp dịch vụ - loại xe thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<PagedResult<ServiceVehicleTypePairResponse>>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -67,11 +82,17 @@ namespace Garage_Management.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<ServiceResponse>>> GetById(int id, CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(id, ct);
-            if (data == null)
-                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
-
-            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetByIdAsync(id, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Không tìm thấy dịch vụ"));
+                return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Lấy dịch vụ thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<ServiceResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -85,8 +106,15 @@ namespace Garage_Management.API.Controllers
             [FromBody] ServiceCreateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = data.ServiceId }, ApiResponse<ServiceResponse>.SuccessResponse(data, "Created"));
+            try
+            {
+                var data = await _service.CreateAsync(request, ct);
+                return CreatedAtAction(nameof(GetById), new { id = data.ServiceId }, ApiResponse<ServiceResponse>.SuccessResponse(data, "Tạo dịch vụ thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<ServiceResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         /// <summary>
@@ -99,11 +127,18 @@ namespace Garage_Management.API.Controllers
             [FromBody] ServicePriceUpdateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdatePriceAsync(id, request, ct);
-            if (data == null)
-                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
-
-            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Price updated"));
+            try
+            {
+                var data = await _service.UpdatePriceAsync(id, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Không tìm thấy dịch vụ"));
+                return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Cập nhật giá dịch vụ thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<ServiceResponse>.ErrorResponse(ex.Message));
+            }
+            
         }
 
         /// <summary>
@@ -116,11 +151,17 @@ namespace Garage_Management.API.Controllers
             [FromBody] ServiceUpdateStatusRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
-            if (data == null)
-                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
-
-            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Status updated"));
+            try
+            {
+                var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Không tìm thấy dịch vụ"));
+                return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Cập nhật trạng thái dịch vụ thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<ServiceResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -131,6 +172,7 @@ namespace Garage_Management.API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {
+
             var ok = await _service.DeleteAsync(id, ct);
             if (!ok)
                 return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));
@@ -145,11 +187,17 @@ namespace Garage_Management.API.Controllers
         [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<ServiceResponse>>> Deactivate(int id, CancellationToken ct = default)
         {
-            var data = await _service.DeactivateAsync(id, ct);
-            if (data == null)
-                return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Service not found"));
-
-            return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Deactivated"));
+            try
+            {
+                var data = await _service.DeactivateAsync(id, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<ServiceResponse>.ErrorResponse("Không tìm thấy dịch vụ"));
+                return Ok(ApiResponse<ServiceResponse>.SuccessResponse(data, "Ngừng kích hoạt dịch vụ thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<ServiceResponse>.ErrorResponse(ex.Message));
+            }
         }
     }
 }

@@ -35,6 +35,11 @@ namespace Garage_Management.Application.Services.JobCards
 {
     public class JobCardService : IJobCardService
     {
+        private const int AppointmentEarlyCreationGraceMinutes = 30;
+        private const int AppointmentLateCreationGraceMinutes = 120;
+        private static readonly TimeZoneInfo GarageTimeZone =
+            TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
         private readonly IJobCardRepository _repository;
         private readonly IServiceRepository _serviceRepository;
         private readonly IInventoryRepository _inventoryRepository;
@@ -92,10 +97,29 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 app = await _appointmentRepository.GetByIdAsync(dto.AppointmentId.Value);
 
+                if (app == null)
+                {
+                    throw new Exception("Không tìm thấy lịch hẹn.");
+                }
+
                 // CHECK 4: status
-                if (app != null && app.Status != AppointmentStatus.Confirmed)
+                if (app.Status != AppointmentStatus.Confirmed)
                 {
                     throw new Exception("Lịch hẹn đang ở trạng thái không phù hợp.");
+                }
+
+                var currentGarageTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, GarageTimeZone);
+                var earliestAllowedTime = app.AppointmentDateTime.AddMinutes(-AppointmentEarlyCreationGraceMinutes);
+                var latestAllowedTime = app.AppointmentDateTime.AddMinutes(AppointmentLateCreationGraceMinutes);
+
+                if (currentGarageTime < earliestAllowedTime)
+                {
+                    throw new Exception($"Chỉ được tạo JobCard trong vòng {AppointmentEarlyCreationGraceMinutes} phút trước giờ hẹn.");
+                }
+
+                if (currentGarageTime > latestAllowedTime)
+                {
+                    throw new Exception($"Lịch hẹn đã quá giờ tiếp nhận {AppointmentLateCreationGraceMinutes} phút. Vui lòng tạo lịch hẹn mới hoặc tiếp nhận dưới dạng walk-in.");
                 }
             }
             var entity = new JobCard
@@ -139,6 +163,7 @@ namespace Garage_Management.Application.Services.JobCards
                 AppointmentId = entity.AppointmentId,
                 CustomerId = entity.CustomerId,
                 VehicleId = entity.VehicleId,
+                QueueOrder = entity.QueueOrder,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
@@ -162,6 +187,7 @@ namespace Garage_Management.Application.Services.JobCards
                 CustomerId = entity.CustomerId,
                 VehicleId = entity.VehicleId,
                 WorkbayId = entity.WorkBay.Id,
+                QueueOrder = entity.QueueOrder,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 Status = entity.Status,
@@ -172,6 +198,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
                 CreatedByEmployeeId = entity.CreatedBy,
+
                 Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
@@ -195,7 +222,15 @@ namespace Garage_Management.Application.Services.JobCards
                 Status = service.Status,
                 SourceInspectionItemId = service.SourceInspectionItemId,
                 CreatedAt = service.CreatedAt,
-                UpdatedAt = service.UpdatedAt
+                UpdatedAt = service.UpdatedAt,
+                ServiceTasks = service.ServiceTasks?
+                   .Select(t => new JobCardServiceTaskDto
+                    {
+                          JobCardServiceTaskId = t.JobCardServiceTaskId,
+                          TaskName = t.ServiceTask?.TaskName ?? "Không có tên công việc",
+                          Status = t.Status
+                    }).OrderBy(t => t.JobCardServiceTaskId)
+                      .ToList() ?? new List<JobCardServiceTaskDto>()
             };
         }
         public async Task<bool> UpdateStatusAsync(int id, JobCardStatus status, CancellationToken cancellationToken)
@@ -249,7 +284,9 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = x.JobCardId,
 
                 CustomerId = x.CustomerId,
-                CustomerName = x.Customer.FirstName + " " + x.Customer.LastName,
+                CustomerName = x.Customer.LastName + " " + x.Customer.FirstName,
+                QueueOrder = x.QueueOrder,
+                CustomerPhone = x.Customer.User.PhoneNumber,
 
                 Vehicle = new VehicleListDto
                 {
@@ -261,7 +298,14 @@ namespace Garage_Management.Application.Services.JobCards
 
                 Status = x.Status,
                 StartDate = x.StartDate,
-
+                Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
+                {
+                    MechanicId = m.EmployeeId,
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    AssignedAt = m.AssignedAt,
+                    StartedAt = m.StartedAt,
+                    CompletedAt = m.CompletedAt,
+                }).ToList(),
                 Services = x.Services.Select(s => new ServiceResponse
                 {
                     ServiceId = s.ServiceId,
@@ -355,12 +399,18 @@ namespace Garage_Management.Application.Services.JobCards
             if (jobCard == null)
                 return false;
 
+            var previousWorkBayId = jobCard.WorkBayId;
+
             var workBay = await _workBayRepository.GetByIdAsync(dto.WorkBayId);
             if (workBay == null)
                 return false;
 
             // cho phép gán dù bay đang bận
             jobCard.WorkBayId = workBay.Id;
+            if (previousWorkBayId != dto.WorkBayId || jobCard.QueueOrder <= 0)
+            {
+                jobCard.QueueOrder = ((await _repository.GetMaxQueueOrderByWorkBayAsync(dto.WorkBayId, cancellationToken)) ?? 0m) + 1000m;
+            }
 
             // nếu bay đang trống → bắt đầu luôn
             if (workBay.JobcardId == null)
@@ -383,6 +433,94 @@ namespace Garage_Management.Application.Services.JobCards
             await _workBayRepository.SaveAsync(cancellationToken);
             await _repository.SaveAsync(cancellationToken);
 
+            return true;
+        }
+
+        public async Task<bool> ReorderWorkBayQueueAsync(
+     ReorderJobCardQueueDto dto,
+     CancellationToken cancellationToken)
+        {
+            if (dto.JobCardId <= 0 || dto.WorkBayId <= 0)
+                throw new Exception("JobCardId hoặc WorkBayId không hợp lệ.");
+
+            if (dto.PreviousJobCardId == dto.JobCardId || dto.NextJobCardId == dto.JobCardId)
+                throw new Exception("Previous/Next không được trùng với JobCardId.");
+
+            if (dto.PreviousJobCardId.HasValue &&
+                dto.NextJobCardId.HasValue &&
+                dto.PreviousJobCardId.Value == dto.NextJobCardId.Value)
+            {
+                throw new Exception("PreviousJobCardId và NextJobCardId không được trùng nhau.");
+            }
+
+            var jobCard = await _repository.GetByIdAsync(dto.JobCardId);
+            if (jobCard == null)
+                throw new Exception("JobCard không tồn tại.");
+
+            if (jobCard.WorkBayId != dto.WorkBayId)
+                throw new Exception("JobCard không thuộc WorkBay này.");
+
+            var jobsInWorkBay = await _repository.GetTrackedByWorkBayIdAsync(dto.WorkBayId, cancellationToken);
+            if (!jobsInWorkBay.Any())
+                throw new Exception("WorkBay không có JobCard nào.");
+
+            var otherJobs = jobsInWorkBay
+                .Where(x => x.JobCardId != dto.JobCardId)
+                .ToList();
+
+            decimal newQueueOrder;
+
+            if (dto.PreviousJobCardId.HasValue && dto.NextJobCardId.HasValue)
+            {
+                var previousJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.PreviousJobCardId.Value);
+                var nextJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.NextJobCardId.Value);
+
+                if (previousJob == null)
+                    throw new Exception("PreviousJobCard không tồn tại trong WorkBay.");
+
+                if (nextJob == null)
+                    throw new Exception("NextJobCard không tồn tại trong WorkBay.");
+
+                if (previousJob.QueueOrder >= nextJob.QueueOrder)
+                    throw new Exception("Thứ tự Queue không hợp lệ: Previous >= Next.");
+
+                var gap = nextJob.QueueOrder - previousJob.QueueOrder;
+                if (gap <= 0.000001m)
+                    throw new Exception("Khoảng cách QueueOrder quá nhỏ, cần re-index.");
+
+                newQueueOrder = (previousJob.QueueOrder + nextJob.QueueOrder) / 2m;
+            }
+            else if (dto.NextJobCardId.HasValue)
+            {
+                var nextJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.NextJobCardId.Value);
+                if (nextJob == null)
+                    throw new Exception("NextJobCard không tồn tại trong WorkBay.");
+
+                newQueueOrder = otherJobs.Any()
+                    ? otherJobs.Min(x => x.QueueOrder) - 1000m
+                    : 1000m;
+            }
+            else if (dto.PreviousJobCardId.HasValue)
+            {
+                var previousJob = otherJobs.FirstOrDefault(x => x.JobCardId == dto.PreviousJobCardId.Value);
+                if (previousJob == null)
+                    throw new Exception("PreviousJobCard không tồn tại trong WorkBay.");
+
+                newQueueOrder = otherJobs.Any()
+                    ? otherJobs.Max(x => x.QueueOrder) + 1000m
+                    : 1000m;
+            }
+            else
+            {
+                throw new Exception("Phải cung cấp PreviousJobCardId hoặc NextJobCardId.");
+            }
+
+            jobCard.QueueOrder = newQueueOrder;
+            jobCard.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+
+            await _repository.SaveAsync(cancellationToken);
             return true;
         }
 
@@ -469,6 +607,7 @@ namespace Garage_Management.Application.Services.JobCards
                 AppointmentId = x.AppointmentId,
                 CustomerId = x.CustomerId,
                 VehicleId = x.VehicleId,
+                QueueOrder = x.QueueOrder,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate,
                 Status = x.Status,
@@ -586,7 +725,9 @@ namespace Garage_Management.Application.Services.JobCards
             }
             // Tính ProgressPercentage theo logic mới
             jobCard.ProgressPercentage = _progressCalculator.CalculateJobCardProgress(jobCard);
-
+            // Ưu tiên giá trị người dùng truyền vào (nếu có)
+            if (dto.ProgressPercentage.HasValue)
+                jobCard.ProgressPercentage = Math.Clamp(dto.ProgressPercentage.Value, 0, 100);
             // Kiểm tra nếu tất cả services đã completed, thì đánh dấu JobCard completed
             bool allServicesCompleted = jobCard.Services.All(s => s.Status == ServiceStatus.Completed);
             bool allTasksCompleted = jobCard.Services

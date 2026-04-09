@@ -17,8 +17,9 @@ namespace Garage_Management.Application.DTOs.JobCards
 
         public int CustomerId { get; set; }
         public string CustomerName { get; set; } = string.Empty;
-
+        public string CustomerPhone { get; set; } = string.Empty;
         public VehicleListDto Vehicle { get; set; } = null!;
+        public decimal QueueOrder { get; set; }
 
         public JobCardStatus Status { get; set; }
         public DateTime StartDate { get; set; }

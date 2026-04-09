@@ -22,5 +22,6 @@ namespace Garage_Management.Application.Interfaces.Services
         /// </summary>
         Task<ApiResponse<WorkBayDto>> UpdateWorkBayAsync(int id,UpdateWorkBayRequest request, CancellationToken cancellationToken);
         Task<WorkBayDto?> GetByIdAsync(int workBayId, CancellationToken cancellationToken);
+        Task<ApiResponse<RebalanceWorkBayQueueResponse>> RebalanceQueueAsync(int workBayId, CancellationToken cancellationToken);
     }
 }

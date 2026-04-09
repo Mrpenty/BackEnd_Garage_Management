@@ -70,12 +70,15 @@ namespace Garage_Management.Application.Repositories.JobCards
         {
                    var query = _context.JobCards
             .Include(x => x.Customer)
+              .ThenInclude(x => x.User)
             .Include(x => x.Vehicle)
                 .ThenInclude(v => v.Brand)
             .Include(x => x.Vehicle)
                 .ThenInclude(v => v.Model)
             .Include(x => x.Services)
                 .ThenInclude(s => s.Service)
+            .Include(j => j.Mechanics)
+                 .ThenInclude(m => m.Employee)
             .Where(j => j.Status != JobCardStatus.Completed)
             .AsQueryable();
 
@@ -247,8 +250,9 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(x => x.Services)
                     .ThenInclude(s => s.Service)
                 .Where(x => x.WorkBayId == workBayId)
-                .OrderBy(x => x.Status == JobCardStatus.InProgress ? 0 : 1)
+                .OrderBy(x => x.QueueOrder)
                 .ThenBy(x => x.StartDate)
+                .ThenBy(x => x.JobCardId)
                 .ToListAsync(cancellationToken);
         }
         public async Task<List<JobCard>> GetByWorkBayIdsAsync(
@@ -261,12 +265,33 @@ namespace Garage_Management.Application.Repositories.JobCards
                     .ThenInclude(v => v.Brand)
                 .Include(x => x.Vehicle)
                     .ThenInclude(v => v.Model)
-                 .Include(j => j.Mechanics)
+                .Include(j => j.Mechanics)
                     .ThenInclude(m => m.Employee)
                 .Include(x => x.Services)
                     .ThenInclude(s => s.Service)
                 .Where(x => x.WorkBayId.HasValue &&
                             workBayIds.Contains(x.WorkBayId.Value))
+                .OrderBy(x => x.QueueOrder)
+                .ThenBy(x => x.StartDate)
+                .ThenBy(x => x.JobCardId)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<decimal?> GetMaxQueueOrderByWorkBayAsync(int workBayId, CancellationToken cancellationToken)
+        {
+            return await _context.JobCards
+                .Where(x => x.WorkBayId == workBayId)
+                .Select(x => (decimal?)x.QueueOrder)
+                .MaxAsync(cancellationToken);
+        }
+
+        public async Task<List<JobCard>> GetTrackedByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken)
+        {
+            return await _context.JobCards
+                .Where(x => x.WorkBayId == workBayId)
+                .OrderBy(x => x.QueueOrder)
+                .ThenBy(x => x.StartDate)
+                .ThenBy(x => x.JobCardId)
                 .ToListAsync(cancellationToken);
         }
     }

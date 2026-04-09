@@ -13,8 +13,8 @@ namespace Garage_Management.Application.DTOs.JobCards
         /// <summary>
         /// Phần trăm hoàn thành (0-100)
         /// </summary>
-       // [Range(0, 100)]
-       // public int? ProgressPercentage { get; set; }
+        [Range(0, 100)]
+        public int? ProgressPercentage { get; set; }
 
         /// <summary>
         /// Các bước đã hoàn thành (mô tả text)

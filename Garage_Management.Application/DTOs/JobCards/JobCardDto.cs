@@ -11,6 +11,7 @@ namespace Garage_Management.Application.DTOs.JobCards
         public int CustomerId { get; set; }
         public int VehicleId { get; set; }
         public int WorkbayId { get; set; }
+        public decimal QueueOrder { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public JobCardStatus Status { get; set; }

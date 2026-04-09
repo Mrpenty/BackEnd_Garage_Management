@@ -39,11 +39,17 @@ namespace Garage_Management.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<VehicleModelResponse>>> GetById(int id, CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(id, ct);
-            if (data == null)
-                return NotFound(ApiResponse<VehicleModelResponse>.ErrorResponse("VehicleModel not found"));
-
-            return Ok(ApiResponse<VehicleModelResponse>.SuccessResponse(data, "OK"));
+            try
+            {
+                var data = await _service.GetByIdAsync(id, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<VehicleModelResponse>.ErrorResponse("Không tìm thấy model xe máy"));
+                return Ok(ApiResponse<VehicleModelResponse>.SuccessResponse(data, "OK"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<VehicleModelResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -56,8 +62,15 @@ namespace Garage_Management.API.Controllers
             [FromBody] VehicleModelCreateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = data.ModelId }, ApiResponse<VehicleModelResponse>.SuccessResponse(data, "Created"));
+            try
+            {
+                var data = await _service.CreateAsync(request, ct);
+                return CreatedAtAction(nameof(GetById), new { id = data.ModelId }, ApiResponse<VehicleModelResponse>.SuccessResponse(data, "Model xe máy đã được tạo thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<VehicleModelResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         ///Author: KhanhDV
@@ -71,11 +84,19 @@ namespace Garage_Management.API.Controllers
             [FromBody] VehicleModelUpdate request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateAsync(id, request, ct);
-            if (data == null)
-                return NotFound(ApiResponse<VehicleModelResponse>.ErrorResponse("VehicleModel not found"));
+            try
+            {
+                var data = await _service.UpdateAsync(id, request, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<VehicleModelResponse>.ErrorResponse("Model xe máy không tìm thấy"));
 
-            return Ok(ApiResponse<VehicleModelResponse>.SuccessResponse(data, "Updated"));
+                return Ok(ApiResponse<VehicleModelResponse>.SuccessResponse(data, "Cập nhật model xe máy thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<VehicleModelResponse>.ErrorResponse(ex.Message));
+            }
+           
         }
         ///Author: KhanhDV
         ///Created Date: 13-2-2026

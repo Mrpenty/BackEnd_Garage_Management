@@ -36,7 +36,9 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(jm => jm.JobCard)
                     .ThenInclude(jc => jc.Supervisor)
                 .Include(jm => jm.JobCard)
-                    .ThenInclude(jc => jc.Appointment)
+                    .ThenInclude(jc => jc.Appointment!)
+                        .ThenInclude(a => a.SpareParts)
+                        .ThenInclude(sp => sp.Inventory)
                 .Include(jm => jm.JobCard)
                     .ThenInclude(jc => jc.Services)
                     .ThenInclude(jc =>jc.ServiceTasks)
@@ -94,6 +96,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                     ProgressNotes = jm.JobCard.ProgressNotes,
                     JobCardDescription = jm.JobCard.Note, 
                     Supervisor = jm.JobCard.Supervisor != null ? $"{jm.JobCard.Supervisor.FirstName} {jm.JobCard.Supervisor.LastName}".Trim() : string.Empty,
+                    QueueOrder = jm.JobCard.QueueOrder,
 
                     // Customer
                     CustomerId = jm.JobCard.CustomerId,
@@ -115,13 +118,15 @@ namespace Garage_Management.Application.Repositories.JobCards
                      .Where(s => s.Service != null && s.Status != ServiceStatus.Cancelled)
                      .Select(s => new ServiceJobCardMechanicResponse
                      {
+                           JobCardServiceId = s.JobCardServiceId,
                            ServiceId = s.ServiceId,
                            ServiceName = s.Service.ServiceName,
                            ServiceStatus = s.Status,
                            ServiceStatusName = s.Status.ToString(),
                            TotalEstimateMinute = s.ServiceTasks.Sum(st => st.ServiceTask.EstimateMinute),
-                         ServiceTasks = s.ServiceTasks.Select(st => new ServiceTaskJobCardMechanicResponse
+                           ServiceTasks = s.ServiceTasks.Select(st => new ServiceTaskJobCardMechanicResponse
                            {
+                               JobCardServicedTaskId= st.JobCardServiceTaskId,
                                ServiceTaskId = st.ServiceTaskId,
                                TaskName = st.ServiceTask.TaskName,
                                TaskOrder = st.ServiceTask.TaskOrder,
@@ -148,9 +153,19 @@ namespace Garage_Management.Application.Repositories.JobCards
                             Note = sp.Note,
                             CreatedAt = sp.CreatedAt
                         })
-                        .ToList()
+                        .ToList(),
+
+                    AppointmentSpareParts = jm.JobCard.Appointment != null
+                        ? jm.JobCard.Appointment.SpareParts
+                            .Select(asp => new AppointmentSparePartResponse
+                            {
+                                SparePartId = asp.SparePartId,
+                                PartName = asp.Inventory.PartName
+                            })
+                            .ToList()
+                        : null
                   })
-                .ToListAsync();
+                 .ToListAsync();
 
             if (data == null || data.Count == 0)
                 return new PagedResult<JobCardMechanicDto>

@@ -11,7 +11,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 {
     public class JobCardMechanicDto
     {
-        public int JobCardMechanicId { get; set; }   
+        //public int JobCardMechanicId { get; set; }   
 
         // Thông tin phân công
         public int JobCardId { get; set; }
@@ -31,7 +31,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public string? JobCardDescription { get; set; } = string.Empty;
          
         public string? Supervisor{ get; set; } = string.Empty;
-
+        public decimal QueueOrder { get; set; }
         // Thông tin Khách hàng
         public int CustomerId { get; set; }
         public string CustomerFullName { get; set; } = string.Empty;
@@ -50,10 +50,12 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 
         public List<ServiceJobCardMechanicResponse> Services { get; set; } = new();
         public List<SparePartJobCardMechanicResponse> SpareParts { get; set; } = new();
+        public List<AppointmentSparePartResponse>? AppointmentSpareParts { get; set; }
     }
 
     public class ServiceJobCardMechanicResponse
     {
+        public int JobCardServiceId { get; set; }
         public int ServiceId { get; set; }
         public string ServiceName { get; set; } = string.Empty;
         public string? Description { get; set; }
@@ -68,6 +70,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 
     public class ServiceTaskJobCardMechanicResponse
     {
+        public int JobCardServicedTaskId { get; set; }
         public int ServiceTaskId { get; set; }
         public string TaskName { get; set; } = string.Empty;
         public int TaskOrder { get; set; }
@@ -89,6 +92,12 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
         public bool IsUnderWarranty { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
+    }
+
+    public class AppointmentSparePartResponse
+    {
+        public int SparePartId { get; set; }
+        public string PartName { get; set; } = string.Empty;
     }
 
 }

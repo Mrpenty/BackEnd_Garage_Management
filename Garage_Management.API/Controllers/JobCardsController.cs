@@ -146,6 +146,26 @@ namespace Garage_Management.API.Controllers
             }
         }
 
+        [HttpPost("reorder-workbay-queue")]
+        public async Task<IActionResult> ReorderWorkBayQueue(
+            [FromBody] ReorderJobCardQueueDto dto,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _service.ReorderWorkBayQueueAsync(dto, cancellationToken);
+
+                if (!result)
+                    return BadRequest(new { message = "Không thể sắp xếp lại thứ tự JobCard trong WorkBay" });
+
+                return Ok(new { message = "Cập nhật thứ tự JobCard thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
 
         [HttpPost("release-workbay")]
         public async Task<IActionResult> ReleaseWorkBay(

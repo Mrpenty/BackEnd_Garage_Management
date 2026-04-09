@@ -36,12 +36,16 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateDetailResponse?> GetByIdAsync(int repairEstimateId, CancellationToken ct = default)
         {
+            ValidateRepairEstimateId(repairEstimateId);
+
             var entity = await _repo.GetByIdAsync(repairEstimateId, ct);
             return entity == null ? null : MapDetail(entity);
         }
 
         public async Task<List<RepairEstimateDetailResponse>?> GetByJobCardIdAsync(int jobCardId, CancellationToken ct = default)
         {
+            ValidateJobCardId(jobCardId);
+
             var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
             if (jobCard == null)
                 return null;
@@ -52,11 +56,8 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateDetailResponse> CreateAsync(RepairEstimateCreateRequest request, CancellationToken ct = default)
         {
-            if (request.JobCardId <= 0)
-                throw new InvalidOperationException("JobCardId không hợp lệ");
-
-            if (request.Services == null || request.Services.Count == 0)
-                throw new InvalidOperationException("Báo giá phải có ít nhất 1 dịch vụ");
+            ArgumentNullException.ThrowIfNull(request);
+            ValidateCreateRequest(request);
 
             var jobCard = await _jobCardRepository.GetByIdAsync(request.JobCardId);
             if (jobCard == null)
@@ -73,7 +74,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             foreach (var item in request.Services)
             {
                 if (item.ServiceId <= 0)
-                    throw new InvalidOperationException("ServiceId không hợp lệ");
+                    throw new InvalidOperationException("ServiceId khong hop le");
 
                 if (item.Quantity <= 0)
                     throw new InvalidOperationException("Service quantity must be greater than 0");
@@ -82,8 +83,14 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 if (service == null)
                     throw new InvalidOperationException($"Service {item.ServiceId} not found");
 
+                if (!service.IsActive)
+                    throw new InvalidOperationException($"Service {item.ServiceId} is inactive");
+
                 if (!service.BasePrice.HasValue)
                     throw new InvalidOperationException($"Service {item.ServiceId} does not have a base price");
+
+                if (service.BasePrice.Value < 0)
+                    throw new InvalidOperationException($"Service {item.ServiceId} has an invalid base price");
 
                 entity.Services.Add(new Base.Entities.RepairEstimaties.RepairEstimateService
                 {
@@ -98,7 +105,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             foreach (var item in request.SpareParts)
             {
                 if (item.SparePartId <= 0)
-                    throw new InvalidOperationException("SparePartId không hợp lệ");
+                    throw new InvalidOperationException("SparePartId khong hop le");
 
                 if (item.Quantity <= 0)
                     throw new InvalidOperationException("SparePart quantity must be greater than 0");
@@ -107,8 +114,14 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 if (inventory == null)
                     throw new InvalidOperationException($"SparePart {item.SparePartId} not found");
 
+                if (!inventory.IsActive)
+                    throw new InvalidOperationException($"SparePart {item.SparePartId} is inactive");
+
                 if (!inventory.SellingPrice.HasValue)
                     throw new InvalidOperationException($"SparePart {item.SparePartId} does not have a selling price");
+
+                if (inventory.SellingPrice.Value < 0)
+                    throw new InvalidOperationException($"SparePart {item.SparePartId} has an invalid selling price");
 
                 entity.SpareParts.Add(new RepairEstimateSparePart
                 {
@@ -131,6 +144,8 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateDetailResponse?> UpdateStatusAsync(int repairEstimateId, RepairEstimateStatusUpdateRequest request, CancellationToken ct = default)
         {
+            ValidateRepairEstimateId(repairEstimateId);
+            ArgumentNullException.ThrowIfNull(request);
             ValidateStatus(request.Status);
 
             var entity = await _repo.GetTrackedByIdAsync(repairEstimateId, ct);
@@ -198,6 +213,62 @@ namespace Garage_Management.Application.Services.RepairEstimaties
         {
             if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
                 throw new InvalidOperationException("Invalid repair estimate status");
+        }
+
+        private static void ValidateRepairEstimateId(int repairEstimateId)
+        {
+            if (repairEstimateId <= 0)
+                throw new InvalidOperationException("RepairEstimateId must be greater than 0");
+        }
+
+        private static void ValidateJobCardId(int jobCardId)
+        {
+            if (jobCardId <= 0)
+                throw new InvalidOperationException("JobCardId must be greater than 0");
+        }
+
+        private static void ValidateCreateRequest(RepairEstimateCreateRequest request)
+        {
+            ValidateJobCardId(request.JobCardId);
+
+            if (request.Note != null && string.IsNullOrWhiteSpace(request.Note))
+                throw new InvalidOperationException("Note must not contain only whitespace");
+
+            if (request.Note?.Length > 1000)
+                throw new InvalidOperationException("Note must not exceed 1000 characters");
+
+            if (request.Services == null)
+                throw new InvalidOperationException("Services list is required");
+
+            if (request.SpareParts == null)
+                throw new InvalidOperationException("SpareParts list is required");
+
+            if (request.Services.Count == 0 && request.SpareParts.Count == 0)
+                throw new InvalidOperationException("Repair estimate must contain at least one service or spare part");
+
+            foreach (var item in request.Services)
+            {
+                if (item == null)
+                    throw new InvalidOperationException("Service item is invalid");
+
+                if (item.ServiceId <= 0)
+                    throw new InvalidOperationException("ServiceId must be greater than 0");
+
+                if (item.Quantity <= 0)
+                    throw new InvalidOperationException($"Service quantity for service {item.ServiceId} must be greater than 0");
+            }
+
+            foreach (var item in request.SpareParts)
+            {
+                if (item == null)
+                    throw new InvalidOperationException("SparePart item is invalid");
+
+                if (item.SparePartId <= 0)
+                    throw new InvalidOperationException("SparePartId must be greater than 0");
+
+                if (item.Quantity <= 0)
+                    throw new InvalidOperationException($"SparePart quantity for spare part {item.SparePartId} must be greater than 0");
+            }
         }
 
         private static void ValidateDuplicates(RepairEstimateCreateRequest request)

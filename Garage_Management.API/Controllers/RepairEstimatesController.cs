@@ -26,11 +26,18 @@ namespace Garage_Management.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<RepairEstimateDetailResponse>>> GetById(int id, CancellationToken ct = default)
         {
-            var data = await _service.GetByIdAsync(id, ct);
-            if (data == null)
-                return NotFound(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse("RepairEstimate not found"));
+            try
+            {
+                var data = await _service.GetByIdAsync(id, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse("RepairEstimate not found"));
 
-            return Ok(ApiResponse<RepairEstimateDetailResponse>.SuccessResponse(data, "OK"));
+                return Ok(ApiResponse<RepairEstimateDetailResponse>.SuccessResponse(data, "OK"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpGet("job-cards/{jobCardId:int}")]
@@ -38,11 +45,18 @@ namespace Garage_Management.API.Controllers
             int jobCardId,
             CancellationToken ct = default)
         {
-            var data = await _service.GetByJobCardIdAsync(jobCardId, ct);
-            if (data == null)
-                return NotFound(ApiResponse<List<RepairEstimateDetailResponse>>.ErrorResponse("JobCard not found"));
+            try
+            {
+                var data = await _service.GetByJobCardIdAsync(jobCardId, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<List<RepairEstimateDetailResponse>>.ErrorResponse("JobCard not found"));
 
-            return Ok(ApiResponse<List<RepairEstimateDetailResponse>>.SuccessResponse(data, "OK"));
+                return Ok(ApiResponse<List<RepairEstimateDetailResponse>>.SuccessResponse(data, "OK"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<List<RepairEstimateDetailResponse>>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpPost]
@@ -57,6 +71,10 @@ namespace Garage_Management.API.Controllers
                     nameof(GetById),
                     new { id = data.RepairEstimateId },
                     ApiResponse<RepairEstimateDetailResponse>.SuccessResponse(data, "Created"));
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
@@ -82,6 +100,10 @@ namespace Garage_Management.API.Controllers
                     return NotFound(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse("RepairEstimate not found"));
 
                 return Ok(ApiResponse<RepairEstimateDetailResponse>.SuccessResponse(data, "Updated status"));
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateDetailResponse>.ErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {

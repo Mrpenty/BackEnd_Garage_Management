@@ -9,5 +9,6 @@ namespace Garage_Management.Application.Interfaces.Services
         Task<List<RepairEstimateDetailResponse>?> GetByJobCardIdAsync(int jobCardId, CancellationToken ct = default);
         Task<RepairEstimateDetailResponse> CreateAsync(RepairEstimateCreateRequest request, CancellationToken ct = default);
         Task<RepairEstimateDetailResponse?> UpdateStatusAsync(int repairEstimateId, RepairEstimateStatusUpdateRequest request, CancellationToken ct = default);
+
     }
 }

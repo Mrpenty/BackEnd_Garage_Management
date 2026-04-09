@@ -22,6 +22,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateSparePartResponse> CreateAsync(RepairEstimateSparePartCreateRequest request, CancellationToken ct = default)
         {
+            ArgumentNullException.ThrowIfNull(request);
+            ValidateCreateRequest(request);
+
             if (!await _repo.RepairEstimateExistsAsync(request.RepairEstimateId, ct))
                 throw new InvalidOperationException("RepairEstimate not found");
 
@@ -29,8 +32,8 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             if (inventory == null)
                 throw new InvalidOperationException("SparePart not found");
 
-            if (request.Quantity <= 0)
-                throw new InvalidOperationException("Quantity must be greater than 0");
+            if (!inventory.IsActive)
+                throw new InvalidOperationException($"SparePart {request.SparePartId} is inactive");
 
             var existed = await _repo.GetByIdAsync(request.RepairEstimateId, request.SparePartId, ct);
             if (existed != null)
@@ -38,6 +41,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             if (!inventory.SellingPrice.HasValue)
                 throw new InvalidOperationException("SparePart does not have a selling price in inventory");
+
+            if (inventory.SellingPrice.Value < 0)
+                throw new InvalidOperationException("SparePart has an invalid selling price in inventory");
 
             var unitPrice = inventory.SellingPrice.Value;
 
@@ -57,6 +63,9 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
         public async Task<RepairEstimateSparePartResponse?> UpdateStatusAsync(int repairEstimateId, int sparePartId, RepairEstimateSparePartStatusUpdateRequest request, CancellationToken ct = default)
         {
+            ValidateRepairEstimateId(repairEstimateId);
+            ValidateSparePartId(sparePartId);
+            ArgumentNullException.ThrowIfNull(request);
             ValidateStatus(request.Status);
 
             var entity = await _repo.GetTrackedByIdAsync(repairEstimateId, sparePartId, ct);
@@ -85,6 +94,27 @@ namespace Garage_Management.Application.Services.RepairEstimaties
         {
             if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
                 throw new InvalidOperationException("Invalid repair estimate spare part status");
+        }
+
+        private static void ValidateCreateRequest(RepairEstimateSparePartCreateRequest request)
+        {
+            ValidateRepairEstimateId(request.RepairEstimateId);
+            ValidateSparePartId(request.SparePartId);
+
+            if (request.Quantity <= 0)
+                throw new InvalidOperationException("Quantity must be greater than 0");
+        }
+
+        private static void ValidateRepairEstimateId(int repairEstimateId)
+        {
+            if (repairEstimateId <= 0)
+                throw new InvalidOperationException("RepairEstimateId must be greater than 0");
+        }
+
+        private static void ValidateSparePartId(int sparePartId)
+        {
+            if (sparePartId <= 0)
+                throw new InvalidOperationException("SparePartId must be greater than 0");
         }
     }
 }
