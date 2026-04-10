@@ -24,6 +24,8 @@ namespace Garage_Management.Application.Repositories.Invoices
                     .ThenInclude(j => j.Customer)
                 .Include(i => i.JobCard)
                     .ThenInclude(j => j.Vehicle)
+                .Include(i => i.JobCard)
+                    .ThenInclude(j => j.Appointment)
                 .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId, ct);
         }
 
