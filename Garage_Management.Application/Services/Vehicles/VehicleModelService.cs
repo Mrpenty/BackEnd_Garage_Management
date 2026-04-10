@@ -71,8 +71,14 @@ namespace Garage_Management.Application.Services.Vehicles
 
         public async Task<VehicleModelResponse?> UpdateAsync(int id, VehicleModelUpdate request, CancellationToken ct = default)
         {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
+
+            if (!entity.IsActive)
+                throw new InvalidOperationException("Không thể cập nhật model đã bị vô hiệu hóa");
 
             if (request.TypeId <= 0)
                 throw new InvalidOperationException("TypeId không hợp lệ");
