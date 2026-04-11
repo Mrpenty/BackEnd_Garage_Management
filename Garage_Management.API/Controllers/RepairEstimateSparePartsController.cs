@@ -26,6 +26,10 @@ namespace Garage_Management.API.Controllers
                 var data = await _service.CreateAsync(request, ct);
                 return Ok(ApiResponse<RepairEstimateSparePartResponse>.SuccessResponse(data, "Created"));
             }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
+            }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
@@ -50,6 +54,10 @@ namespace Garage_Management.API.Controllers
                     return NotFound(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse("RepairEstimateSparePart not found"));
 
                 return Ok(ApiResponse<RepairEstimateSparePartResponse>.SuccessResponse(data, "Updated status"));
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ApiResponse<RepairEstimateSparePartResponse>.ErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {

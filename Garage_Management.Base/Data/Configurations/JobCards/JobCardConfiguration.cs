@@ -16,6 +16,8 @@ namespace Garage_Management.Base.Data.Configurations.JobCards
             builder.HasKey(j => j.JobCardId);
             builder.Property(j => j.Note)
                 .HasMaxLength(1000);
+            builder.Property(j => j.QueueOrder)
+                .HasPrecision(18, 6);
 
             // Quan hệ N-1: JobCard có thể phát sinh từ một Appointment
             builder.HasOne(j => j.Appointment)

@@ -24,6 +24,8 @@ namespace Garage_Management.Application.Interfaces.Repositories.JobCards
 
         Task<List<JobCard>> GetByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken);
         Task<List<JobCard>> GetByWorkBayIdsAsync(List<int> workBayIds, CancellationToken cancellationToken);
+        Task<decimal?> GetMaxQueueOrderByWorkBayAsync(int workBayId, CancellationToken cancellationToken);
+        Task<List<JobCard>> GetTrackedByWorkBayIdAsync(int workBayId, CancellationToken cancellationToken);
 
     }
 }

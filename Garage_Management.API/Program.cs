@@ -8,6 +8,7 @@ using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
 using Garage_Management.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using VNPAY.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,16 @@ builder.Services.AddApplicationServices();
 builder.Services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyReference).Assembly);
 builder.Services.Configure<JwtConfiguration>(builder.Configuration.GetSection("Jwt"));
 // Add services extensions
+var vnpayConfig = builder.Configuration.GetSection("VNPAY");
+builder.Services.AddVnpayClient(config =>
+{
+    config.TmnCode = vnpayConfig["TmnCode"]!;
+    config.HashSecret = vnpayConfig["HashSecret"]!;
+    config.CallbackUrl = vnpayConfig["CallbackUrl"]!;
+    config.BaseUrl = vnpayConfig["BaseUrl"]!;
+    config.Version = vnpayConfig["Version"]!;
+    config.OrderType = vnpayConfig["OrderType"]!;
+});
 builder.Services.AddIdentityServices();
 builder.Services.AddCorsServices(builder.Configuration, builder.Environment);
 builder.Services.AddSwaggerServices();
@@ -58,7 +69,6 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
 //app.UseHttpsRedirection();
 app.UseCorsPolicy(app.Environment);
 app.UseAuthentication();

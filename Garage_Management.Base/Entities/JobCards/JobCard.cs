@@ -45,6 +45,11 @@ namespace Garage_Management.Base.Entities.JobCards
         public DateTime? EndDate { get; set; }
 
         /// <summary>
+        /// Manual order key used to sort job cards in a work bay queue.
+        /// </summary>
+        public decimal QueueOrder { get; set; }
+
+        /// <summary>
         /// Trạng thái tổng thể của phiếu sửa chữa
         /// </summary>
         public JobCardStatus Status { get; set; } = JobCardStatus.Created;
