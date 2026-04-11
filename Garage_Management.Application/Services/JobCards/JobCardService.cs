@@ -129,7 +129,7 @@ namespace Garage_Management.Application.Services.JobCards
                VehicleId = dto.VehicleId,
                Note = dto.Note,
                SupervisorId = dto.SupervisorId,
-               StartDate = DateTime.UtcNow,
+               StartDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, GarageTimeZone),
                Status = JobCardStatus.Created,
                CreatedBy = currentUserId
            };
@@ -194,7 +194,7 @@ namespace Garage_Management.Application.Services.JobCards
                 ProgressPercentage = entity.ProgressPercentage,
                 CompletedSteps = entity.CompletedSteps,
                 ProgressNotes = entity.ProgressNotes,
-                Services = entity.Services.Select(MapJobCardService).ToList(),
+                Services = entity.Services.Where(s => s.DeletedAt == null).Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
                 CreatedByEmployeeId = entity.CreatedBy,
@@ -207,6 +207,18 @@ namespace Garage_Management.Application.Services.JobCards
                     StartedAt = m.StartedAt,
                     CompletedAt = m.CompletedAt,
                 }).ToList(),
+                SpareParts = entity.SpareParts.Select(sp => new JobCardSparePartView
+                {
+                   SparePartId = sp.SparePartId,
+                   SparePartName = sp.Inventory.PartName,
+                   Quantity = sp.Quantity,
+                   UnitPrice = sp.UnitPrice,
+                   TotalAmount = sp.TotalAmount,
+                   IsUnderWarranty= sp.IsUnderWarranty,
+                   Note = sp.Note,
+                   CreatedAt = sp.CreatedAt,
+
+                }).ToList() ?? new List<JobCardSparePartView>()
             };
         }
 
