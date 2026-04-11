@@ -71,8 +71,14 @@ namespace Garage_Management.Application.Services.Vehicles
 
         public async Task<VehicleModelResponse?> UpdateAsync(int id, VehicleModelUpdate request, CancellationToken ct = default)
         {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
+
+            if (!entity.IsActive)
+                throw new InvalidOperationException("Không thể cập nhật model đã bị vô hiệu hóa");
 
             if (request.TypeId <= 0)
                 throw new InvalidOperationException("TypeId không hợp lệ");
@@ -101,11 +107,14 @@ namespace Garage_Management.Application.Services.Vehicles
 
         public async Task<bool> DeActiveAsync(int id, CancellationToken ct = default)
         {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
 
-            if (await _repo.HasVehiclesAsync(id, ct))
-                throw new InvalidOperationException("Không thể xóa vì đang có xe liên kết");
+            if (!entity.IsActive)
+                throw new InvalidOperationException("Model đã được vô hiệu hóa trước đó");
 
             entity.IsActive = false;
             _repo.Update(entity);

@@ -36,7 +36,9 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(jm => jm.JobCard)
                     .ThenInclude(jc => jc.Supervisor)
                 .Include(jm => jm.JobCard)
-                    .ThenInclude(jc => jc.Appointment)
+                    .ThenInclude(jc => jc.Appointment!)
+                        .ThenInclude(a => a.SpareParts)
+                        .ThenInclude(sp => sp.Inventory)
                 .Include(jm => jm.JobCard)
                     .ThenInclude(jc => jc.Services)
                     .ThenInclude(jc =>jc.ServiceTasks)
@@ -151,7 +153,17 @@ namespace Garage_Management.Application.Repositories.JobCards
                             Note = sp.Note,
                             CreatedAt = sp.CreatedAt
                         })
-                        .ToList()
+                        .ToList(),
+
+                    AppointmentSpareParts = jm.JobCard.Appointment != null
+                        ? jm.JobCard.Appointment.SpareParts
+                            .Select(asp => new AppointmentSparePartResponse
+                            {
+                                SparePartId = asp.SparePartId,
+                                PartName = asp.Inventory.PartName
+                            })
+                            .ToList()
+                        : null
                   })
                  .ToListAsync();
 
