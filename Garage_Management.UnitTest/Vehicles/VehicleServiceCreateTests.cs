@@ -237,5 +237,35 @@ namespace Garage_Management.UnitTest.Vehicles
             Assert.IsNotNull(captured);
             Assert.AreEqual(77, captured!.BrandId);
         }
+
+        [TestMethod]
+        public async Task CreateAsync_ValidRequest_SetsCreatedAt()
+        {
+            var request = new VehicleCreateRequest
+            {
+                CustomerId = 1,
+                ModelId = 2,
+                LicensePlate = "29A12345"
+            };
+
+            _customerRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Customer { CustomerId = 1 });
+            _modelRepo.Setup(x => x.GetByIdAsync(2)).ReturnsAsync(new VehicleModel { ModelId = 2, BrandId = 5 });
+
+            Vehicle? captured = null;
+            _repo.Setup(x => x.AddAsync(It.IsAny<Vehicle>(), It.IsAny<CancellationToken>()))
+                .Callback<Vehicle, CancellationToken>((v, _) =>
+                {
+                    captured = v;
+                    v.VehicleId = 105;
+                })
+                .Returns(Task.CompletedTask);
+            _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+            var result = await _service.CreateAsync(request, CancellationToken.None);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(captured);
+            Assert.AreNotEqual(default, captured!.CreatedAt);
+        }
     }
 }
