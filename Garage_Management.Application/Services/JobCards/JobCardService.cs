@@ -19,6 +19,8 @@ using Garage_Management.Base.Entities.JobCards;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,6 +51,7 @@ namespace Garage_Management.Application.Services.JobCards
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ProgressCalculator _progressCalculator;
+        private readonly ILogger<JobCardService> _logger;
 
 
 
@@ -61,7 +64,8 @@ namespace Garage_Management.Application.Services.JobCards
             IWorkBayRepository workBayRepository,
             IAppointmentRepository appointmentRepository,
             IHttpContextAccessor httpContext,
-            ProgressCalculator progressCalculator)
+            ProgressCalculator progressCalculator,
+            ILogger<JobCardService> logger)
         {
             _repository = repository;
             _serviceRepository = serviceRepository;
@@ -72,6 +76,31 @@ namespace Garage_Management.Application.Services.JobCards
             _appointmentRepository = appointmentRepository;
             _httpContextAccessor = httpContext;
             _progressCalculator = progressCalculator;
+            _logger = logger;
+        }
+
+        public JobCardService(
+            IJobCardRepository repository,
+            IServiceRepository serviceRepository,
+            IInventoryRepository inventoryRepository,
+            IJobCardServiceRepository jobCardServiceRepository,
+            IJobCardSparePartRepository jobCardSparePartRepository,
+            IWorkBayRepository workBayRepository,
+            IAppointmentRepository appointmentRepository,
+            IHttpContextAccessor httpContext,
+            ProgressCalculator progressCalculator)
+            : this(
+                repository,
+                serviceRepository,
+                inventoryRepository,
+                jobCardServiceRepository,
+                jobCardSparePartRepository,
+                workBayRepository,
+                appointmentRepository,
+                httpContext,
+                progressCalculator,
+                NullLogger<JobCardService>.Instance)
+        {
         }
 
 
@@ -253,10 +282,19 @@ namespace Garage_Management.Application.Services.JobCards
             var jobCard = await _repository.GetWithMechanicsAsync(jobCardId);
 
             if (jobCard == null)
+            {
+                _logger.LogWarning("Phân công kỹ thuật viên thất bại: không tìm thấy JobCardId {JobCardId}.", jobCardId);
                 return false;
+            }
 
             if (jobCard.Mechanics.Any(x => x.EmployeeId == dto.MechanicId))
+            {
+                _logger.LogInformation(
+                    "Phân công kỹ thuật viên bị bỏ qua: JobCardId {JobCardId} đã có MechanicId {MechanicId}.",
+                    jobCardId,
+                    dto.MechanicId);
                 return true;
+            }
 
             jobCard.Mechanics.Add(new JobCardMechanic
             {
@@ -271,6 +309,12 @@ namespace Garage_Management.Application.Services.JobCards
 
             _repository.Update(jobCard);
             await _repository.SaveAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Phân công kỹ thuật viên thành công: JobCardId {JobCardId} đã gán MechanicId {MechanicId} và chuyển trạng thái sang {Status}.",
+                jobCardId,
+                dto.MechanicId,
+                jobCard.Status);
 
             return true;
         }
