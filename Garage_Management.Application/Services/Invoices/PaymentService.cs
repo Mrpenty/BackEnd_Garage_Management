@@ -75,6 +75,13 @@ namespace Garage_Management.Application.Services.Invoices
                 invoice.PaymentStatus = PaymentStatus.Paid.ToString();
                 invoice.PaymentMethod = $"VNPAY - {paymentResult.CardType}";
 
+                invoice.JobCard.Status = JobCardStatus.Completed;
+
+                if (invoice.JobCard.Appointment != null)
+                {
+                    invoice.JobCard.Appointment.Status = AppointmentStatus.Completed;
+                }
+
                 _invoiceRepository.Update(invoice);
                 await _invoiceRepository.SaveAsync(ct);
 
@@ -148,6 +155,13 @@ namespace Garage_Management.Application.Services.Invoices
 
             invoice.PaymentStatus = PaymentStatus.Paid.ToString();
             invoice.PaymentMethod = "BankTransfer";
+
+            invoice.JobCard.Status = JobCardStatus.Completed;
+
+            if (invoice.JobCard.Appointment != null)
+            {
+                invoice.JobCard.Appointment.Status = AppointmentStatus.Completed;
+            }
 
             _invoiceRepository.Update(invoice);
             await _invoiceRepository.SaveAsync(ct);

@@ -44,7 +44,8 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(j => j.Services)
                     .ThenInclude(s => s.ServiceTasks)
                         .ThenInclude(st => st.ServiceTask)
-                .Include(j => j.SpareParts)  // Danh sách phụ tùng sử dụng
+                .Include(j => j.SpareParts) // Danh sách phụ tùng sử dụng
+                 .ThenInclude(sp => sp.Inventory)
                 .Include(j => j.Customer)   // Thông tin khách hàng
                       .ThenInclude(S => S.User)
                 .Include(j => j.Vehicle)     // Thông tin xe
