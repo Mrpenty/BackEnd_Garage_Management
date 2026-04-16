@@ -156,7 +156,7 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
                 .Callback<StockTransactionCreateRequest, CancellationToken>((request, _) => capturedRequest = request)
                 .ReturnsAsync(new StockTransactionResponse());
             _jobCardSparePartRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
+                .Returns(Task.CompletedTask);
 
             var result = await _service.UpdateAsync(1, 10, new UpdateJobCardSparePartDto
             {
@@ -198,7 +198,7 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
                 .Callback<StockTransactionCreateRequest, CancellationToken>((request, _) => capturedRequest = request)
                 .ReturnsAsync(new StockTransactionResponse());
             _jobCardSparePartRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
+                .Returns(Task.CompletedTask);
 
             var result = await _service.UpdateAsync(2, 20, new UpdateJobCardSparePartDto
             {
@@ -235,7 +235,7 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
             _jobCardRepo.Setup(x => x.GetByIdAsync(3))
                 .ReturnsAsync(new JobCardEntity { JobCardId = 3 });
             _jobCardSparePartRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
+                .Returns(Task.CompletedTask);
 
             var result = await _service.UpdateAsync(3, 30, new UpdateJobCardSparePartDto
             {
