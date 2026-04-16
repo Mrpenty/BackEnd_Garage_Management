@@ -61,16 +61,16 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 var existed = await _jobCardSparePartRepository.GetByIdAsync(jobCardId, item.SparePartId, ct);
                 if (existed != null)
-                    throw new InvalidOperationException($"Spare part {item.SparePartId} already exists in job card");
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} đã tồn tại trong JobCard");
 
                 var inventory = await _inventoryRepository.GetByIdAsync(item.SparePartId);
                 if (inventory == null)
-                    throw new InvalidOperationException($"Spare part {item.SparePartId} not found");
+                    throw new InvalidOperationException($"Không tìm thấy phụ tùng {item.SparePartId}");
 
                 ValidateInventoryForSparePart(item, inventory);
 
                 if (inventory.Quantity < item.Quantity)
-                    throw new InvalidOperationException($"Spare part {item.SparePartId} does not have enough stock");
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} không đủ số lượng tồn kho");
 
                 var unitPrice = inventory.SellingPrice!.Value;
                 var entity = new JobCardSparePart
@@ -92,7 +92,7 @@ namespace Garage_Management.Application.Services.JobCards
                     QuantityChange = item.Quantity,
                     UnitPrice = unitPrice,
                     JobCardId = jobCardId,
-                    Note = $"Export for JobCard #{jobCardId}"
+                    Note = $"Xuất cho JobCard #{jobCardId}"
                 }, ct);
 
                 await _jobCardSparePartRepository.AddAsync(entity, ct);
@@ -101,6 +101,79 @@ namespace Garage_Management.Application.Services.JobCards
 
             await _jobCardSparePartRepository.SaveAsync(ct);
             return entities.Select(Map).ToList();
+        }
+
+        public async Task<JobCardSparePartResponse?> UpdateAsync(
+            int jobCardId,
+            int sparePartId,
+            UpdateJobCardSparePartDto dto,
+            CancellationToken ct)
+        {
+            ValidateJobCardId(jobCardId);
+            ValidateSparePartId(sparePartId);
+            ArgumentNullException.ThrowIfNull(dto);
+            ValidateUpdateRequest(dto);
+
+            var entity = await _jobCardSparePartRepository.GetByIdAsync(jobCardId, sparePartId, ct);
+            if (entity == null)
+                return null;
+
+            var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
+            if (jobCard == null)
+                throw new InvalidOperationException("Không tìm thấy JobCard");
+
+            var hasChanges = false;
+
+            if (dto.Quantity.HasValue && dto.Quantity.Value != entity.Quantity)
+            {
+                var quantityDelta = dto.Quantity.Value - entity.Quantity;
+                if (quantityDelta > 0)
+                {
+                    await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
+                    {
+                        SparePartId = sparePartId,
+                        TransactionType = TransactionType.ExportToJobCard,
+                        QuantityChange = quantityDelta,
+                        UnitPrice = entity.UnitPrice,
+                        JobCardId = jobCardId,
+                        Note = $"Điều chỉnh xuất thêm cho JobCard #{jobCardId}"
+                    }, ct);
+                }
+                else
+                {
+                    await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
+                    {
+                        SparePartId = sparePartId,
+                        TransactionType = TransactionType.ReturnFromJobCard,
+                        QuantityChange = Math.Abs(quantityDelta),
+                        UnitPrice = entity.UnitPrice,
+                        JobCardId = jobCardId,
+                        Note = $"Điều chỉnh hoàn trả từ JobCard #{jobCardId}"
+                    }, ct);
+                }
+
+                entity.Quantity = dto.Quantity.Value;
+                entity.TotalAmount = entity.Quantity * entity.UnitPrice;
+                hasChanges = true;
+            }
+
+            if (dto.IsUnderWarranty.HasValue)
+            {
+                entity.IsUnderWarranty = dto.IsUnderWarranty.Value;
+                hasChanges = true;
+            }
+
+            if (dto.Note != null)
+            {
+                entity.Note = dto.Note;
+                hasChanges = true;
+            }
+
+            if (!hasChanges)
+                throw new InvalidOperationException("Không có dữ liệu cập nhật");
+
+            await _jobCardSparePartRepository.SaveAsync(ct);
+            return Map(entity);
         }
 
         public async Task<bool> RemoveSparePartAsync(
@@ -117,11 +190,11 @@ namespace Garage_Management.Application.Services.JobCards
 
             var jobCard = await _jobCardRepository.GetByIdAsync(entity.JobCardId);
             if (jobCard == null)
-                throw new InvalidOperationException("JobCard not found");
+                throw new InvalidOperationException("Không tìm thấy JobCard");
 
             var inventory = await _inventoryRepository.GetByIdAsync(entity.SparePartId);
             if (inventory == null)
-                throw new InvalidOperationException("Inventory not found");
+                throw new InvalidOperationException("Không tìm thấy tồn kho");
 
             await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
             {
@@ -130,7 +203,7 @@ namespace Garage_Management.Application.Services.JobCards
                 QuantityChange = entity.Quantity,
                 UnitPrice = entity.UnitPrice,
                 JobCardId = entity.JobCardId,
-                Note = $"Return from JobCard #{entity.JobCardId}"
+                Note = $"Hoàn trả từ JobCard #{entity.JobCardId}"
             }, ct);
 
             _jobCardSparePartRepository.Delete(entity);
@@ -151,6 +224,21 @@ namespace Garage_Management.Application.Services.JobCards
                 throw new InvalidOperationException("SparePartId phai lon hon 0");
         }
 
+        private static void ValidateUpdateRequest(UpdateJobCardSparePartDto dto)
+        {
+            if (!dto.Quantity.HasValue && !dto.IsUnderWarranty.HasValue && dto.Note == null)
+                throw new InvalidOperationException("Không có dữ liệu để cập nhật");
+
+            if (dto.Quantity.HasValue && dto.Quantity.Value <= 0)
+                throw new InvalidOperationException("Quantity phải lớn hơn 0");
+
+            if (dto.Note != null && string.IsNullOrWhiteSpace(dto.Note))
+                throw new InvalidOperationException("Note không được chỉ chứa khoảng trắng");
+
+            if (dto.Note?.Length > 500)
+                throw new InvalidOperationException("Note không được vượt quá 500 ký tự");
+        }
+
         private static void ValidateSparePartItems(List<AddSparePartToJobCardDto>? spareParts)
         {
             if (spareParts == null || spareParts.Count == 0)
@@ -164,7 +252,7 @@ namespace Garage_Management.Application.Services.JobCards
                 .ToList();
 
             if (duplicateIds.Count > 0)
-                throw new InvalidOperationException($"SparePartId bi trung trong request: {string.Join(", ", duplicateIds)}");
+                throw new InvalidOperationException($"SparePartId bị trùng trong yêu cầu: {string.Join(", ", duplicateIds)}");
 
             foreach (var item in spareParts)
             {

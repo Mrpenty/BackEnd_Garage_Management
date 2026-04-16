@@ -57,6 +57,17 @@ namespace Garage_Management.UnitTest.JobCardServices
         }
 
         [TestMethod]
+        public async Task GetByIdAsync_ReturnsNull_WhenEntityDoesNotExist()
+        {
+            _jobCardServiceRepo.Setup(x => x.GetByIdAsync(99))
+                .ReturnsAsync((JobCardServiceEntity?)null);
+
+            var result = await _service.GetByIdAsync(99);
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
         public async Task GetPagedAsync_MapsPagedResult()
         {
             _jobCardServiceRepo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<CancellationToken>()))

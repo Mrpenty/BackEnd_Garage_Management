@@ -172,7 +172,9 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 foreach (var service in dto.Services)
                 {
-                    await AddServiceAsync(entity.JobCardId, service, cancellationToken);
+                    var added = await AddServiceAsync(entity.JobCardId, service, cancellationToken);
+                    if (!added)
+                        throw new InvalidOperationException($"Service {service.ServiceId} không tồn tại.");
                 }
             }
 
@@ -231,7 +233,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
-                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Không rõ",
                     AssignedAt = m.AssignedAt,
                     StartedAt = m.StartedAt,
                     CompletedAt = m.CompletedAt,
@@ -345,7 +347,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
-                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Không rõ",
                     AssignedAt = m.AssignedAt,
                     StartedAt = m.StartedAt,
                     CompletedAt = m.CompletedAt,
@@ -405,7 +407,7 @@ namespace Garage_Management.Application.Services.JobCards
 
             if (service == null) return false;
             if (!service.BasePrice.HasValue || service.BasePrice.Value <= 0)
-                throw new InvalidOperationException("Service chua c� gi�, kh�ng th? th�m v�o JobCard");
+                throw new InvalidOperationException("Dịch vụ chưa có giá, không thể thêm vào JobCard");
 
             // 3️⃣ Tạo JobCardService (entity)
             var jobCardService = new JobCardServiceEntity
@@ -665,7 +667,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
-                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Unknown",
+                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Không rõ",
                     AssignedAt = m.AssignedAt,
                     StartedAt = m.StartedAt,
                     CompletedAt = m.CompletedAt,
@@ -708,11 +710,11 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 // Thêm vào ProgressNotes
                 jobCard.ProgressNotes = string.IsNullOrEmpty(jobCard.ProgressNotes)
-                    ? $"New faults discovered: {dto.AdditionalFaults}"
-                    : $"{jobCard.ProgressNotes}\nNew faults discovered: {dto.AdditionalFaults}";
+                    ? $"Phát hiện lỗi mới: {dto.AdditionalFaults}"
+                    : $"{jobCard.ProgressNotes}\nPhát hiện lỗi mới: {dto.AdditionalFaults}";
 
                 // TODO: Tạo notification cho Supervisor
-                // Có thể inject INotificationService và gọi CreateNotificationAsync(jobCard.SupervisorId, "New faults reported", dto.AdditionalFaults);
+                // Có thể inject INotificationService và gọi CreateNotificationAsync(jobCard.SupervisorId, "Đã phát hiện lỗi mới", dto.AdditionalFaults);
             }
 
             // Cập nhật trạng thái các services 
@@ -801,7 +803,7 @@ namespace Garage_Management.Application.Services.JobCards
                 {
                     JobCardServiceId = s.JobCardServiceId,
                     ServiceId = s.ServiceId,
-                    ServiceName = s.Service?.ServiceName ?? "Unknown Service",
+                    ServiceName = s.Service?.ServiceName ?? "Không rõ dịch vụ",
                     StatusService = s.Status,
                     StatusName = s.Status.ToString(),
                     Description = s.Description,
@@ -869,7 +871,7 @@ namespace Garage_Management.Application.Services.JobCards
                 var tasks = service.ServiceTasks.Select(t => new TaskProgressDto
                 {
                     JobCardServiceTaskId = t.JobCardServiceTaskId,
-                    TaskName = t.ServiceTask?.TaskName ?? "Unknown Task",
+                    TaskName = t.ServiceTask?.TaskName ?? "Không rõ công việc",
                     Status = t.Status,
                     ServiceTaskStatusName = t.Status.ToString(),
                     EstimateMinute = t.ServiceTask?.EstimateMinute ?? 0,
@@ -884,7 +886,7 @@ namespace Garage_Management.Application.Services.JobCards
                 {
                     JobCardServiceId = service.JobCardServiceId,
                     ServiceId = service.ServiceId,
-                    ServiceName = service.Service?.ServiceName ?? "Unknown Service",
+                    ServiceName = service.Service?.ServiceName ?? "Không rõ dịch vụ",
                     Status = service.Status,
                     ServiceStatusName = service.Status.ToString(),
                     Description = service.Description,
@@ -898,11 +900,11 @@ namespace Garage_Management.Application.Services.JobCards
             var response = new ViewRepairProgressResponse
             {
                 JobCardId = jobCard.JobCardId,
-                CustomerName = jobCard.Customer != null ? $"{jobCard.Customer.FirstName} {jobCard.Customer.LastName}" : "Unknown Customer",
+                CustomerName = jobCard.Customer != null ? $"{jobCard.Customer.FirstName} {jobCard.Customer.LastName}" : "Không rõ khách hàng",
                 CustomerPhoneNumber = jobCard.Customer?.User.PhoneNumber,
-                VehicleBrand = jobCard.Vehicle?.Brand.BrandName ?? "Unknown Brand",
-                VehicleModel = jobCard.Vehicle?.Model.ModelName ?? "Unknown Model",
-                VehicleLicensePlate = jobCard.Vehicle?.LicensePlate ?? "Unknown License Plate",
+                VehicleBrand = jobCard.Vehicle?.Brand.BrandName ?? "Không rõ hãng xe",
+                VehicleModel = jobCard.Vehicle?.Model.ModelName ?? "Không rõ mẫu xe",
+                VehicleLicensePlate = jobCard.Vehicle?.LicensePlate ?? "Không rõ biển số",
                 Status = jobCard.Status,
                 StatusJobCardName = jobCard.Status.ToString(),
                 ProgressPercentage = jobCard.ProgressPercentage,
@@ -913,7 +915,7 @@ namespace Garage_Management.Application.Services.JobCards
                 EstimatedCompletionTime = _progressCalculator.CalculateEstimatedCompletionDisplay(jobCard.StartDate, totalRemainingMinutes, bufferMinutes),
                 EstimatedJobCardMinutesRemaining = totalRemainingMinutes,
                 Services = services,
-                AssignedMechanic = jobCard.Mechanics.Any() ? string.Join(", ", jobCard.Mechanics.Select(m => m.Employee?.FullName ?? "Unknown")) : null,
+                AssignedMechanic = jobCard.Mechanics.Any() ? string.Join(", ", jobCard.Mechanics.Select(m => m.Employee?.FullName ?? "Không rõ")) : null,
                 Supervisor = jobCard.Supervisor?.FullName
             };
 
