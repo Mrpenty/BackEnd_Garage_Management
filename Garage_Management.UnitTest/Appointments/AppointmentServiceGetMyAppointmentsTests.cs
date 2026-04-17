@@ -83,7 +83,7 @@ namespace Garage_Management.UnitTest.Appointments
 
             var customers = new List<Customer>
             {
-                new Customer { CustomerId = 1, UserId = 10 }
+                new Customer { CustomerId = 1, UserId = 10, FirstName = "Nguyễn", LastName = "Văn An" }
             }.AsQueryable();
             var asyncCustomers = new TestAsyncEnumerable<Customer>(customers);
             _customerRepo.Setup(x => x.GetAll()).Returns(asyncCustomers);
@@ -98,6 +98,16 @@ namespace Garage_Management.UnitTest.Appointments
                     new Appointment
                     {
                         AppointmentId = 1,
+                        CustomerId = 1,
+                        FirstName = "Nguyễn",
+                        LastName = "Văn An",
+                        Phone = "+84912345678",
+                        CustomVehicleBrand = "Toyota",
+                        CustomVehicleModel = "Vios",
+                        LicensePlate = "29A-12345",
+                        AppointmentDateTime = new DateTime(2026, 4, 20, 9, 0, 0, DateTimeKind.Utc),
+                        Status = Base.Common.Enums.AppointmentStatus.Pending,
+                        Description = "Bảo dưỡng định kỳ 10.000km",
                         Services = new List<Garage_Management.Base.Entities.Accounts.AppointmentService>(),
                         SpareParts = new List<AppointmentSparePart>()
                     }

@@ -221,7 +221,16 @@ namespace Garage_Management.UnitTest.Appointments
             return new Appointment
             {
                 AppointmentId = 1,
+                CustomerId = 5,
+                FirstName = "Lê",
+                LastName = "Thị Hương",
+                Phone = "+84978123456",
+                CustomVehicleBrand = "Hyundai",
+                CustomVehicleModel = "Accent",
+                LicensePlate = "30G-54321",
+                AppointmentDateTime = new DateTime(2026, 4, 25, 10, 0, 0, DateTimeKind.Utc),
                 Status = status,
+                Description = "Kiểm tra hệ thống phanh và thay dầu",
                 CreatedAt = DateTime.UtcNow,
                 Services = new List<Garage_Management.Base.Entities.Accounts.AppointmentService>(),
                 SpareParts = new List<AppointmentSparePart>()

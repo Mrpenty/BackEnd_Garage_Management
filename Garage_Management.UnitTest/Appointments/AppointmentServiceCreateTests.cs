@@ -58,27 +58,30 @@ namespace Garage_Management.UnitTest.Appointments
                 _httpContextAccessor.Object);
         }
 
+        /// <summary>
+        /// UTCID01 - Normal: Khach vang lai tao lich hen thanh cong voi dich vu va phu tung
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithValidGuest_ReturnsResponse()
+        public async Task UTCID01_CreateAsync_WithValidGuest_ReturnsResponse()
         {
             var request = new AppointmentCreateRequest
             {
                 CustomerId = null,
-                FirstName = "Khanh",
-                LastName = "Do",
+                FirstName = "Khánh",
+                LastName = "Đỗ",
                 Phone = "0912345678",
                 CustomVehicleBrand = "Honda",
                 CustomVehicleModel = "Vision",
                 LicensePlate = "29A-12345",
-                AppointmentDateTime = DateTime.UtcNow,
-                ServiceIds = new List<int> { 1, 2 },
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc),
+                ServiceIds = new List<int> { 2, 4 },
                 SparePartsIds = new List<int> { 10 }
             };
 
             var services = new List<Service>
             {
-                new Service { ServiceId = 1 },
-                new Service { ServiceId = 2 }
+                new Service { ServiceId = 2 },
+                new Service { ServiceId = 4 }
             }.AsQueryable();
             var asyncServices = new TestAsyncEnumerable<Service>(services);
             _serviceRepo.Setup(x => x.GetAll()).Returns(asyncServices);
@@ -120,21 +123,21 @@ namespace Garage_Management.UnitTest.Appointments
                         {
                             new Garage_Management.Base.Entities.Accounts.AppointmentService
                             {
-                                ServiceId = 1,
+                                ServiceId = 2,
                                 Service = new Service
                                 {
-                                    ServiceId = 1,
-                                    ServiceName = "S1",
+                                    ServiceId = 2,
+                                    ServiceName = "Thay nhớt",
                                     ServiceTasks = new List<ServiceTask>()
                                 }
                             },
                             new Garage_Management.Base.Entities.Accounts.AppointmentService
                             {
-                                ServiceId = 2,
+                                ServiceId = 4,
                                 Service = new Service
                                 {
-                                    ServiceId = 2,
-                                    ServiceName = "S2",
+                                    ServiceId = 4,
+                                    ServiceName = "Rửa xe",
                                     ServiceTasks = new List<ServiceTask>()
                                 }
                             }
@@ -147,7 +150,7 @@ namespace Garage_Management.UnitTest.Appointments
                                 Inventory = new Inventory
                                 {
                                     SparePartId = 10,
-                                    PartName = "P1"
+                                    PartName = "Lọc gió động cơ"
                                 }
                             }
                         }
@@ -158,8 +161,8 @@ namespace Garage_Management.UnitTest.Appointments
 
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.AppointmentId);
-            Assert.AreEqual("Khanh", result.FirstName);
-            Assert.AreEqual("Do", result.LastName);
+            Assert.AreEqual("Khánh", result.FirstName);
+            Assert.AreEqual("Đỗ", result.LastName);
             Assert.AreEqual("+84912345678", result.Phone);
             Assert.AreEqual("Honda", result.CustomVehicleBrand);
             Assert.AreEqual("Vision", result.CustomVehicleModel);
@@ -168,198 +171,221 @@ namespace Garage_Management.UnitTest.Appointments
             Assert.AreEqual(1, result.SpareParts.Count);
         }
 
+        /// <summary>
+        /// UTCID02 - Abnormal: CustomerId khong ton tai trong he thong
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithInvalidCustomerId_Throws()
+        public async Task UTCID02_CreateAsync_WithInvalidCustomerId_Throws()
         {
             var request = new AppointmentCreateRequest
             {
                 CustomerId = 99,
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
+                FirstName = "Nguyễn",
+                LastName = "Văn Minh",
+                Phone = "0987654321",
                 CustomVehicleBrand = "Honda",
                 CustomVehicleModel = "Vision",
                 LicensePlate = "29A-12345",
-                AppointmentDateTime = DateTime.UtcNow
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc),
+                ServiceIds = new List<int> { 2, 4 },
+                SparePartsIds = new List<int> { 10 }
             };
 
             _customerRepo.Setup(x => x.GetByIdAsync(99)).ReturnsAsync((Customer?)null);
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("CustomerId không tồn tại", ex.Message);
         }
 
+        /// <summary>
+        /// UTCID03 - Abnormal: SparePartsIds khong hop le (khong ton tai trong kho)
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithInvalidServiceIds_Throws()
+        public async Task UTCID03_CreateAsync_WithInvalidSparePartsIds_Throws()
         {
             var request = new AppointmentCreateRequest
             {
                 CustomerId = null,
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
+                FirstName = "Trần",
+                LastName = "Thị Lan",
+                Phone = "0356789012",
                 CustomVehicleBrand = "Honda",
                 CustomVehicleModel = "Vision",
                 LicensePlate = "29A-12345",
-                AppointmentDateTime = DateTime.UtcNow,
-                ServiceIds = new List<int> { 1, 2 }
-            };
-
-            var services = new List<Service> { new Service { ServiceId = 1 } }.AsQueryable();
-            var asyncServices = new TestAsyncEnumerable<Service>(services);
-            _serviceRepo.Setup(x => x.GetAll()).Returns(asyncServices);
-
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
-        }
-
-        [TestMethod]
-        public async Task CreateAsync_WithInvalidSpareParts_Throws()
-        {
-            var request = new AppointmentCreateRequest
-            {
-                CustomerId = null,
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
-                CustomVehicleBrand = "Honda",
-                CustomVehicleModel = "Vision",
-                LicensePlate = "29A-12345",
-                AppointmentDateTime = DateTime.UtcNow,
-                SparePartsIds = new List<int> { 10 }
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc),
+                SparePartsIds = new List<int> { 99 }
             };
 
             var inventories = new List<Inventory>().AsQueryable();
             var asyncInventories = new TestAsyncEnumerable<Inventory>(inventories);
             _inventoryRepo.Setup(x => x.Query()).Returns(asyncInventories);
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("SparePartsIds không hợp lệ", ex.Message);
         }
 
+        /// <summary>
+        /// UTCID04 - Abnormal: ServiceIds khong hop le (khong ton tai trong danh sach dich vu)
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithoutVehicleInfo_Throws()
+        public async Task UTCID04_CreateAsync_WithInvalidServiceIds_Throws()
         {
             var request = new AppointmentCreateRequest
             {
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
-                AppointmentDateTime = DateTime.UtcNow
+                CustomerId = null,
+                FirstName = "Lê",
+                LastName = "Hoàng Nam",
+                Phone = "0912345678",
+                CustomVehicleBrand = "Honda",
+                CustomVehicleModel = "Vision",
+                LicensePlate = "29A-12345",
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc),
+                ServiceIds = new List<int> { 99 }
             };
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            var services = new List<Service>().AsQueryable();
+            var asyncServices = new TestAsyncEnumerable<Service>(services);
+            _serviceRepo.Setup(x => x.GetAll()).Returns(asyncServices);
+
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("ServiceIds không hợp lệ", ex.Message);
         }
 
+        /// <summary>
+        /// UTCID05 - Abnormal: Khong co thong tin xe (VehicleId, VehicleModelId, CustomVehicleBrand deu null)
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithVehicleId_AndCustomInfo_Throws()
+        public async Task UTCID05_CreateAsync_WithoutVehicleInfo_Throws()
+        {
+            var request = new AppointmentCreateRequest
+            {
+                FirstName = "Phạm",
+                LastName = "Văn Đức",
+                Phone = "0978123456",
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
+            };
+
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("Bắt buộc phải có VehicleId hoặc (VehicleModelId + LicensePlate) hoặc (CustomVehicleBrand + CustomVehicleModel + LicensePlate)", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID06 - Abnormal: Co VehicleId nhung van nhap CustomVehicleBrand/Model/LicensePlate
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID06_CreateAsync_WithVehicleId_AndCustomInfo_Throws()
         {
             var request = new AppointmentCreateRequest
             {
                 VehicleId = 1,
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
+                FirstName = "Nguyễn",
+                LastName = "Thị Hoa",
+                Phone = "0867543210",
                 CustomVehicleBrand = "Honda",
                 CustomVehicleModel = "Vision",
                 LicensePlate = "29A-12345",
-                AppointmentDateTime = DateTime.UtcNow
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
             };
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống", ex.Message);
         }
 
+        /// <summary>
+        /// UTCID07 - Abnormal: Co VehicleModelId nhung khong co LicensePlate
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithVehicleModelId_NoLicensePlate_Throws()
+        public async Task UTCID07_CreateAsync_WithVehicleModelId_NoLicensePlate_Throws()
         {
             var request = new AppointmentCreateRequest
             {
                 VehicleModelId = 1,
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
-                AppointmentDateTime = DateTime.UtcNow
+                FirstName = "Võ",
+                LastName = "Minh Tuấn",
+                Phone = "0934567890",
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
             };
-
-            _vehicleModelRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Garage_Management.Base.Entities.Vehiclies.VehicleModel());
 
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
         }
 
+        /// <summary>
+        /// UTCID08 - Abnormal: Chi nhap CustomVehicleBrand ma khong nhap CustomVehicleModel
+        /// Code bat loi o buoc kiem tra thong tin xe truoc (thieu CustomVehicleModel nen bo 3 khong hop le)
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithCustomBrandOnly_Throws()
+        public async Task UTCID08_CreateAsync_WithCustomBrandOnly_Throws()
         {
             var request = new AppointmentCreateRequest
             {
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
+                FirstName = "Đặng",
+                LastName = "Quốc Bảo",
+                Phone = "0945678901",
                 CustomVehicleBrand = "Honda",
-                AppointmentDateTime = DateTime.UtcNow
+                LicensePlate = "29A-12345",
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
             };
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("Bắt buộc phải có VehicleId hoặc (VehicleModelId + LicensePlate) hoặc (CustomVehicleBrand + CustomVehicleModel + LicensePlate)", ex.Message);
         }
 
+        /// <summary>
+        /// UTCID09 - Abnormal: Co CustomVehicleBrand va CustomVehicleModel nhung khong co LicensePlate
+        /// Code bat loi o buoc kiem tra thong tin xe truoc (thieu LicensePlate nen bo 3 khong hop le)
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithCustomBrandModel_NoLicensePlate_Throws()
+        public async Task UTCID09_CreateAsync_WithCustomBrandModel_NoLicensePlate_Throws()
         {
             var request = new AppointmentCreateRequest
             {
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
+                FirstName = "Bùi",
+                LastName = "Thành Long",
+                Phone = "0823456789",
                 CustomVehicleBrand = "Honda",
                 CustomVehicleModel = "Vision",
-                AppointmentDateTime = DateTime.UtcNow
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
             };
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("Bắt buộc phải có VehicleId hoặc (VehicleModelId + LicensePlate) hoặc (CustomVehicleBrand + CustomVehicleModel + LicensePlate)", ex.Message);
         }
 
+        /// <summary>
+        /// UTCID10 - Abnormal: VehicleId khong ton tai trong he thong
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithInvalidVehicleId_Throws()
+        public async Task UTCID10_CreateAsync_WithInvalidVehicleId_Throws()
         {
             var request = new AppointmentCreateRequest
             {
-                VehicleId = 99,
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
-                AppointmentDateTime = DateTime.UtcNow
+                VehicleId = 999,
+                FirstName = "Hoàng",
+                LastName = "Văn Sơn",
+                Phone = "0376543210",
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
             };
 
-            _vehicleRepo.Setup(x => x.GetByIdAsync(99)).ReturnsAsync((Garage_Management.Base.Entities.Vehiclies.Vehicle?)null);
+            _vehicleRepo.Setup(x => x.GetByIdAsync(999)).ReturnsAsync((Garage_Management.Base.Entities.Vehiclies.Vehicle?)null);
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
+            Assert.AreEqual("VehicleId không tồn tại", ex.Message);
         }
 
+        /// <summary>
+        /// UTCID11 - Boundary: Tao lich hen voi VehicleModelId + LicensePlate (khong co VehicleId)
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithInvalidVehicleModelId_Throws()
-        {
-            var request = new AppointmentCreateRequest
-            {
-                VehicleModelId = 99,
-                LicensePlate = "29A-12345",
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
-                AppointmentDateTime = DateTime.UtcNow
-            };
-
-            _vehicleModelRepo.Setup(x => x.GetByIdAsync(99)).ReturnsAsync((Garage_Management.Base.Entities.Vehiclies.VehicleModel?)null);
-
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
-        }
-
-        [TestMethod]
-        public async Task CreateAsync_WithVehicleModelIdAndLicense_ReturnsResponse()
+        public async Task UTCID11_CreateAsync_WithVehicleModelIdAndLicense_ReturnsResponse()
         {
             var request = new AppointmentCreateRequest
             {
                 VehicleModelId = 1,
                 LicensePlate = "29A-12345",
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
-                AppointmentDateTime = DateTime.UtcNow
+                FirstName = "Lý",
+                LastName = "Quang Huy",
+                Phone = "0901234567",
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
             };
 
             _vehicleModelRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Garage_Management.Base.Entities.Vehiclies.VehicleModel());
@@ -380,20 +406,28 @@ namespace Garage_Management.UnitTest.Appointments
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.AppointmentId);
+            Assert.IsNull(result.CustomerId);
+            Assert.AreEqual("Lý", result.FirstName);
+            Assert.AreEqual("Quang Huy", result.LastName);
+            Assert.AreEqual("+84901234567", result.Phone);
+            Assert.IsNull(result.VehicleId);
             Assert.AreEqual(1, result.VehicleModelId);
             Assert.AreEqual("29A-12345", result.LicensePlate);
         }
 
+        /// <summary>
+        /// UTCID12 - Normal: Tao lich hen voi VehicleId co san trong he thong
+        /// </summary>
         [TestMethod]
-        public async Task CreateAsync_WithVehicleId_ReturnsResponse()
+        public async Task UTCID12_CreateAsync_WithVehicleId_ReturnsResponse()
         {
             var request = new AppointmentCreateRequest
             {
                 VehicleId = 1,
-                FirstName = "A",
-                LastName = "B",
-                Phone = "0900000000",
-                AppointmentDateTime = DateTime.UtcNow
+                FirstName = "Trương",
+                LastName = "Minh Khoa",
+                Phone = "0765432109",
+                AppointmentDateTime = new DateTime(2026, 4, 13, 8, 0, 0, DateTimeKind.Utc)
             };
 
             _vehicleRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Garage_Management.Base.Entities.Vehiclies.Vehicle());
@@ -414,7 +448,12 @@ namespace Garage_Management.UnitTest.Appointments
 
             Assert.IsNotNull(result);
             Assert.AreEqual(3, result.AppointmentId);
+            Assert.IsNull(result.CustomerId);
+            Assert.AreEqual("Trương", result.FirstName);
+            Assert.AreEqual("Minh Khoa", result.LastName);
+            Assert.AreEqual("+84765432109", result.Phone);
             Assert.AreEqual(1, result.VehicleId);
+            Assert.IsNull(result.VehicleModelId);
         }
     }
 }
