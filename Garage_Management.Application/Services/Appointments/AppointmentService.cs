@@ -79,7 +79,7 @@ namespace Garage_Management.Application.Services.Appointments
 
             if (!userRoles.Contains("Customer"))
             {
-                return ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse("khách hàng chỉ có thể xem lịch hẹn cá nhân");
+                return ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse("Khách hàng chỉ có thể xem lịch hẹn cá nhân");
             }
             var customer = await _customerRepo.GetAll().FirstAsync(c => c.UserId == currentUserId, ct);
 
@@ -125,7 +125,7 @@ namespace Garage_Management.Application.Services.Appointments
                 PageSize = pagedData.PageSize
             };
 
-            return ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse( result,$"Lấy danh sách lịch hẹn cá nhân thành công)"
+            return ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse( result,"Lấy danh sách lịch hẹn cá nhân thành công"
             );
         }
 
@@ -159,7 +159,7 @@ namespace Garage_Management.Application.Services.Appointments
             var effectiveCustomerId = request.CustomerId;
 
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
-                throw new InvalidOperationException("CustomerId không hợp lệ");
+                throw new InvalidOperationException("Mã khách hàng không hợp lệ");
 
             string? normalizedPhone = null;
             if (!string.IsNullOrWhiteSpace(request.Phone))
@@ -195,7 +195,7 @@ namespace Garage_Management.Application.Services.Appointments
             {
                 var customer = await _customerRepo.GetByIdAsync(effectiveCustomerId.Value);
                 if (customer == null)
-                    throw new InvalidOperationException("CustomerId không tồn tại");
+                    throw new InvalidOperationException("Mã khách hàng không tồn tại");
             }
 
             var hasVehicleId = request.VehicleId.HasValue;
@@ -219,7 +219,7 @@ namespace Garage_Management.Application.Services.Appointments
                     !string.IsNullOrWhiteSpace(request.CustomVehicleModel) ||
                     !string.IsNullOrWhiteSpace(request.LicensePlate))
                 {
-                    throw new InvalidOperationException("khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống");
+                    throw new InvalidOperationException("Khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống");
                 }
             }
 
@@ -269,7 +269,7 @@ namespace Garage_Management.Application.Services.Appointments
                     .AsNoTracking()
                     .CountAsync(x => serviceIds.Contains(x.ServiceId), ct);
                 if (count != serviceIds.Count)
-                    throw new InvalidOperationException("ServiceIds không hợp lệ");
+                    throw new InvalidOperationException("Danh sách dịch vụ không hợp lệ");
             }
 
             var sparePartIds = request.SparePartsIds?
@@ -283,7 +283,7 @@ namespace Garage_Management.Application.Services.Appointments
                     .AsNoTracking()
                     .CountAsync(x => sparePartIds.Contains(x.SparePartId), ct);
                 if (count != sparePartIds.Count)
-                    throw new InvalidOperationException("SparePartsIds không hợp lệ");
+                    throw new InvalidOperationException("Danh sách phụ tùng không hợp lệ");
             }
 
             int? createdBy = null;
@@ -347,34 +347,34 @@ namespace Garage_Management.Application.Services.Appointments
             if (request.CustomerId.HasValue)
             {
                 if (request.CustomerId.Value <= 0)
-                    throw new InvalidOperationException("CustomerId không hợp lệ");
+                    throw new InvalidOperationException("Mã khách hàng không hợp lệ");
                 var customer = await _customerRepo.GetByIdAsync(request.CustomerId.Value);
                 if (customer == null)
-                    throw new InvalidOperationException("CustomerId không tồn tại");
+                    throw new InvalidOperationException("Mã khách hàng không tồn tại");
                 entity.CustomerId = request.CustomerId.Value;
             }
             if (request.FirstName != null)
             {
                 if (string.IsNullOrWhiteSpace(request.FirstName))
-                    throw new InvalidOperationException("FirstName không hợp lệ");
+                    throw new InvalidOperationException("Tên không hợp lệ");
                 if (request.CustomerId.HasValue)
-                    throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName");
+                    throw new InvalidOperationException("Khi đã có CustomerId thì không được nhập FirstName");
                 entity.FirstName = request.FirstName;
             }
             if (request.LastName != null)
             {
                 if (string.IsNullOrWhiteSpace(request.LastName))
-                    throw new InvalidOperationException("LastName không hợp lệ");
+                    throw new InvalidOperationException("Họ không hợp lệ");
                 if (request.CustomerId.HasValue)
-                    throw new InvalidOperationException("Có CustomerId thì không được nhập LastName");
+                    throw new InvalidOperationException("Khi đã có CustomerId thì không được nhập LastName");
                 entity.LastName = request.LastName;
             }
             if (request.Phone != null)
             {
                 if (string.IsNullOrWhiteSpace(request.Phone))
-                    throw new InvalidOperationException("Phone không hợp lệ");
+                    throw new InvalidOperationException("Số điện thoại không hợp lệ");
                 if (request.CustomerId.HasValue)
-                    throw new InvalidOperationException("Có CustomerId thì không được nhập Phone");
+                    throw new InvalidOperationException("Khi đã có CustomerId thì không được nhập Phone");
                 entity.Phone = request.Phone;
             }
             if (!request.CustomerId.HasValue)
