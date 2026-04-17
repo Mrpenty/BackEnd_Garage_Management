@@ -696,18 +696,26 @@ namespace Garage_Management.Application.Services.JobCards
             }
 
             var currentUserId = int.Parse(httpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-         
+            var employeeIdClaim = httpContext.User.FindFirst("EmployeeId")
+               ?? httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (employeeIdClaim == null || !int.TryParse(employeeIdClaim.Value, out int currentEmployeeId))
+            {
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Không thể xác định EmployeeId từ token");
+            }
+
+
             // Kiểm tra JobCard tồn tại
             var jobCard = await _repository.GetByIdAsync(jobCardId);
             if (jobCard == null)
                 return ApiResponse<UpdateProgressResponse>.ErrorResponse("Không tìm thấy phiếu sửa chữa");
 
-            bool isMechanic = jobCard.Mechanics.Any(m => m.EmployeeId == currentUserId);
-            bool isSupervisor = jobCard.SupervisorId == currentUserId;
+            bool isMechanic = jobCard.Mechanics.Any(m => m.EmployeeId == currentEmployeeId);
+            bool isSupervisor = jobCard.SupervisorId == currentEmployeeId;
 
             if (!isMechanic && !isSupervisor)
             {
-                return ApiResponse<UpdateProgressResponse>.ErrorResponse("Bạn không có quyền cập nhật tiến độ phiếu sửa chữa này");
+                return ApiResponse<UpdateProgressResponse>.ErrorResponse($"Bạn không có quyền cập nhật tiến độ phiếu sửa chữa này. EmployeeId: {currentEmployeeId}, JobCardId: {jobCardId}");
             }
 
             // Cập nhật các trường progress
@@ -847,6 +855,15 @@ namespace Garage_Management.Application.Services.JobCards
             }
             var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var customerIdClaim = httpContext.User.FindFirst("CustomerId")?.Value;
+            var employeeIdClaim = httpContext.User.FindFirst("EmployeeId")?.Value;
+            int? employeeId = null;
+
+            if (!string.IsNullOrEmpty(employeeIdClaim) && int.TryParse(employeeIdClaim, out int empId))
+            {
+                employeeId = empId;
+            }
+
+
             var userRoleClaim = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userRoleClaim))
             {
@@ -864,7 +881,7 @@ namespace Garage_Management.Application.Services.JobCards
             bool hasPermission = userRole switch
             {
                 "Customer" => jobCard.Customer?.UserId == userId,
-                "Mechanic" => jobCard.Mechanics?.Any(m => m.EmployeeId == userId) == true,
+                "Mechanic" => jobCard.Mechanics?.Any(m => m.EmployeeId == employeeId) == true,
                 "Supervisor" or "Admin" => true,
                 _ => false
             };
