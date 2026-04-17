@@ -12,7 +12,11 @@
       "WebFetch(domain:qr.sepay.vn)",
       "WebSearch",
       "WebFetch(domain:docs.sepay.vn)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(grep -E \"\\\\.\\(xlsx|xls|csv|md\\)$\")",
+      "Bash(grep -v \"\\\\.dll$\")",
+      "Bash(grep -v \"\\\\.pdb$\")",
+      "Bash(xargs ls:*)"
     ]
   }
 }
