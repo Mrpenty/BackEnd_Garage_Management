@@ -4,6 +4,7 @@ namespace Garage_Management.Application.DTOs.JobCardServices
 {
     public class JobCardServiceResponse
     {
+        public string? ServiceName { get; set; }
         public int JobCardServiceId { get; set; }
         public int JobCardId { get; set; }
         public int ServiceId { get; set; }

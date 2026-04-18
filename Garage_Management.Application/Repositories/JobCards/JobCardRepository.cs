@@ -190,8 +190,10 @@ namespace Garage_Management.Application.Repositories.JobCards
             return await _context.JobCards
                 .Include(x => x.Appointment)
                 .Include(x => x.Customer)
+                .ThenInclude(x => x.User)
                 .Include(x => x.Vehicle)
                 .Include(x => x.Supervisor)
+                .ThenInclude(s => s.User)
                 .Include(x => x.Mechanics)
                     .ThenInclude(m => m.Employee)
                 .Include(x => x.Services)

@@ -216,8 +216,11 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = entity.JobCardId,
                 AppointmentId = entity.AppointmentId,
                 CustomerId = entity.CustomerId,
+                CustomerName = entity.Customer != null
+    ? $"{entity.Customer.FirstName} {entity.Customer.LastName}".Trim()
+    : null,
                 VehicleId = entity.VehicleId,
-                WorkbayId = entity.WorkBay.Id,
+                WorkbayId = entity.WorkBay?.Id,
                 QueueOrder = entity.QueueOrder,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
@@ -228,6 +231,9 @@ namespace Garage_Management.Application.Services.JobCards
                 Services = entity.Services.Where(s => s.DeletedAt == null).Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
+                SupervisorName = entity.Supervisor != null
+    ? $"{entity.Supervisor.FirstName} {entity.Supervisor.LastName}".Trim()
+    : null,
                 CreatedByEmployeeId = entity.CreatedBy,
 
                 Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
@@ -255,25 +261,29 @@ namespace Garage_Management.Application.Services.JobCards
 
         private static JobCardServiceResponse MapJobCardService(JobCardServiceEntity service)
         {
+            
             return new JobCardServiceResponse
             {
                 JobCardServiceId = service.JobCardServiceId,
                 JobCardId = service.JobCardId,
                 ServiceId = service.ServiceId,
+                ServiceName = service.Service?.ServiceName,
                 Description = service.Description,
-                Price = service.Price,
+                Price = service.Price, // Removed '?? 0' because 'service.Price' is already decimal (non-nullable)
                 Status = service.Status,
                 SourceInspectionItemId = service.SourceInspectionItemId,
                 CreatedAt = service.CreatedAt,
                 UpdatedAt = service.UpdatedAt,
+
                 ServiceTasks = service.ServiceTasks?
-                   .Select(t => new JobCardServiceTaskDto
+                    .Select(t => new JobCardServiceTaskDto
                     {
-                          JobCardServiceTaskId = t.JobCardServiceTaskId,
-                          TaskName = t.ServiceTask?.TaskName ?? "Không có tên công việc",
-                          Status = t.Status
-                    }).OrderBy(t => t.JobCardServiceTaskId)
-                      .ToList() ?? new List<JobCardServiceTaskDto>()
+                        JobCardServiceTaskId = t.JobCardServiceTaskId,
+                        TaskName = t.ServiceTask?.TaskName ?? "Không có tên công việc",
+                        Status = t.Status
+                    })
+                    .OrderBy(t => t.JobCardServiceTaskId)
+                    .ToList() ?? new List<JobCardServiceTaskDto>()
             };
         }
         public async Task<bool> UpdateStatusAsync(int id, JobCardStatus status, CancellationToken cancellationToken)
