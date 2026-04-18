@@ -93,14 +93,14 @@ namespace Garage_Management.Application.Services.Workbays
             {
                 JobCardId = jobCard.JobCardId,
                 CustomerId = jobCard.CustomerId,
-                CustomerName = $"{jobCard.Customer?.FirstName} {jobCard.Customer?.LastName}".Trim(),
+                CustomerName = $"{jobCard.Customer?.LastName} {jobCard.Customer?.FirstName}".Trim(),
                 QueueOrder = jobCard.QueueOrder,
                 Mechanics = jobCard.Mechanics
                     .Where(x => x.Employee != null)
                     .Select(x => new JobCardMechanicView
                     {
                         MechanicId = x.EmployeeId,
-                        MechanicName = $"{x.Employee?.FirstName} {x.Employee?.LastName}".Trim(),
+                        MechanicName = $"{x.Employee?.LastName} {x.Employee?.FirstName}".Trim(),
                         AssignedAt = x.AssignedAt,
                         StartedAt = x.StartedAt,
                         CompletedAt = x.CompletedAt,

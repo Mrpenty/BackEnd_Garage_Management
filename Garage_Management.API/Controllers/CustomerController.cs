@@ -26,8 +26,19 @@ namespace Garage_Management.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCustomers([FromQuery] ParamQuery query, CancellationToken ct)
         {
-            var result = await _customerService.GetPagedAsync(query, ct);
-            return Ok(result);
+            try
+            {
+                var result = await _customerService.GetPagedAsync(query, ct);
+
+                if (!result.Success)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống"));
+            }
 
         }
         /// <summary>
@@ -37,10 +48,23 @@ namespace Garage_Management.API.Controllers
         [HttpPost("CreateByReceptionist")]
         public async Task<IActionResult> CreateCustomerByReceptionist([FromBody] CreateCustomerRequest request, CancellationToken ct)
         {
-            var result = await _customerService.CreateCustomerByReceptionistAsync(request, ct);
-            if (result.Success)
+            try
+            {
+                var result = await _customerService.CreateCustomerByReceptionistAsync(request, ct);
+
+                if (!result.Success)
+                    return BadRequest(result);
+
                 return Ok(result);
-            return BadRequest(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<CustomerDto>.ErrorResponse(ex.Message));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResponse<CustomerDto>.ErrorResponse("Lỗi hệ thống"));
+            }
 
         }
     }

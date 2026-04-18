@@ -75,18 +75,25 @@ namespace Garage_Management.Application.Services.Accounts
 
             if (user == null)
             {
-                return new ApiResponse<LoginResponse>{Success = false, Message = "Tài khoản không tồn tại"};
+                //return new ApiResponse<LoginResponse>{Success = false, Message = "Tài khoản không tồn tại"};
+                throw new UnauthorizedAccessException("Tài khoản không tồn tại");
+
             }
             if (!user.IsActive)
             {
-                return new ApiResponse<LoginResponse>{Success = false,Message = "Tài khoản của bạn đã bị khóa." };
+                //return new ApiResponse<LoginResponse>{Success = false,Message = "Tài khoản của bạn đã bị khóa." };
+                throw new UnauthorizedAccessException("Tài khoản đã bị khóa");
+
             }
 
             if (dto.UseOtp)
             {
                 if (string.IsNullOrEmpty(dto.Otp))
                 {
-                    return new ApiResponse<LoginResponse>{Success = false,Message = "Vui lòng nhập OTP"};
+                    //return new ApiResponse<LoginResponse>{Success = false,Message = "Vui lòng nhập OTP"};
+                    throw new InvalidOperationException("Thiếu OTP");
+
+
                 }
 
                 var formatted = new FormatPhoneNumber().FormatPhoneNumberHepler(user.PhoneNumber);
@@ -97,6 +104,8 @@ namespace Garage_Management.Application.Services.Accounts
                 if (!isValid)
                 {
                     return ApiResponse<LoginResponse>.ErrorResponse(verifyMessage);
+                    throw new InvalidOperationException(verifyMessage);
+
                 }
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
@@ -130,7 +139,8 @@ namespace Garage_Management.Application.Services.Accounts
             // Login bằng password
             if (string.IsNullOrEmpty(dto.Password))
             {
-                return new ApiResponse<LoginResponse>{Success = false,Message = "Vui lòng nhập mật khẩu"};
+                //return new ApiResponse<LoginResponse>{Success = false,Message = "Vui lòng nhập mật khẩu"};
+                throw new InvalidOperationException("Vui lòng nhập mật khẩu");
             }
             var signInResult = await _signInManager.PasswordSignInAsync(user,dto.Password,isPersistent: false,lockoutOnFailure: false);
 
@@ -170,29 +180,37 @@ namespace Garage_Management.Application.Services.Accounts
             ArgumentNullException.ThrowIfNull(dto);
             if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Password))
             {
-                return new ApiResponse<LoginResponse>{Success = false,Message = "Hãy nhập đầy đủ các trường thiếu"};
+                //return new ApiResponse<LoginResponse>{Success = false,Message = "Hãy nhập đầy đủ các trường thiếu"};
+                throw new InvalidOperationException("Thiếu email hoặc mật khẩu");
+
             }
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null)
             {
-                return new ApiResponse<LoginResponse>{Success = false,Message = "Email không chính xác." };
+               // return new ApiResponse<LoginResponse>{Success = false,Message = "Email không chính xác." };
+                throw new InvalidOperationException("Email không chính xác.");
+
             }
             if (!user.IsActive)
             {
-                return new ApiResponse<LoginResponse>{Success = false,Message = "Tài khoản của bạn đã bị khóa." };
+              //  return new ApiResponse<LoginResponse>{Success = false,Message = "Tài khoản của bạn đã bị khóa." };
+                throw new InvalidOperationException("Tài khoản của bạn đã bị khóa.");
+
             }
 
             var roles = await _userManager.GetRolesAsync(user);
             if (roles.All(r => r == "Customer"))
             {
-                return new ApiResponse<LoginResponse>{Success = false,Message = "Tài khoản không có quyền truy cập khu vực nhân viên"};
+                //return new ApiResponse<LoginResponse>{Success = false,Message = "Tài khoản không có quyền truy cập khu vực nhân viên"};
+                throw new InvalidOperationException("Tài khoản không có quyền truy cập khu vực nhân viên");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user,dto.Password,lockoutOnFailure: true);
 
             if (!result.Succeeded)
             {
-                return new ApiResponse<LoginResponse>{Success = true,Message = "Email hoặc mật khẩu không chính xác." };
+                throw new UnauthorizedAccessException("Email hoặc mật khẩu không chính xác");
+
             }
             var accessToken = await _tokenGenerator.GenerateJwtTokenAsync(user);
             var refreshToken = _tokenGenerator.GenerateRefreshToken();
@@ -235,16 +253,18 @@ namespace Garage_Management.Application.Services.Accounts
 
         public async Task<ApiResponse<User>> RegisterCustomerAsync(CustomerRegisterRequest dto, CancellationToken cancellationToken = default)
         {
-            if (await _userRepository.ExistsByPhoneNumberAsync(dto.PhoneNumber, cancellationToken))
-                return ApiResponse<User>.ErrorResponse("Số điện thoại này đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng số khác.");
 
+            if (await _userRepository.ExistsByPhoneNumberAsync(dto.PhoneNumber, cancellationToken))
+                throw new InvalidOperationException("Số điện thoại này đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng số khác.");
             if (dto.Password.Length < 9 || !dto.Password.Any(char.IsUpper) ||
                 !dto.Password.Any(char.IsLower) || !dto.Password.Any(char.IsDigit))
-                return ApiResponse<User>.ErrorResponse("Mật khẩu phải có ít nhất 9 ký tự, bao gồm 1 chữ hoa, 1 chữ thường và 1 chữ số.");
+                throw new InvalidOperationException("Mật khẩu phải có ít nhất 9 ký tự, bao gồm 1 chữ hoa, 1 chữ thường và 1 chữ số.");
 
             var sendResult = await _smsService.SendOtpAsync(dto.PhoneNumber);
             if (!sendResult.Success)
-                return ApiResponse<User>.ErrorResponse(sendResult.Message);
+                throw new InvalidOperationException(sendResult.Message);
+
+
 
             var user = new User
             {
@@ -253,7 +273,8 @@ namespace Garage_Management.Application.Services.Accounts
                 Email = $"{dto.PhoneNumber}@customer.local",
                 PhoneNumberConfirmed = false,
                 IsActive = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
+
             };
 
             var createResult = await _userManager.CreateAsync(user, dto.Password);
@@ -269,7 +290,7 @@ namespace Garage_Management.Application.Services.Accounts
                 UserId = user.Id,
                 FirstName = dto.FirstName ?? "",
                 LastName = dto.LastName ?? "",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
             };
             await _customerRepository.AddAsync(customer, cancellationToken);
             await _customerRepository.SaveAsync(cancellationToken);
@@ -285,7 +306,8 @@ namespace Garage_Management.Application.Services.Accounts
 
             if (user == null || string.IsNullOrEmpty(user.PhoneNumber))
             {
-                return new ApiResponse<User> { Success = false, Message = "Không tìm thấy tài khoản nào với số điện thoại/email này." };
+                //return new ApiResponse<User> { Success = false, Message = "Không tìm thấy tài khoản nào với số điện thoại/email này." };
+                throw new InvalidOperationException("Không tìm thấy tài khoản nào với số điện thoại/email này.");
             }
 
             var (success, message) = await _smsService.SendOtpAsync(user.PhoneNumber);
@@ -307,35 +329,35 @@ namespace Garage_Management.Application.Services.Accounts
                 string.IsNullOrWhiteSpace(dto.NewPassword) ||
                 string.IsNullOrWhiteSpace(dto.ConfirmPassword))
             {
-                return ApiResponse<User>.ErrorResponse("Vui lòng nhập đầy đủ thông tin");
+                throw new InvalidOperationException("Vui lòng nhập đầy đủ thông tin");
             }
 
             if (dto.NewPassword != dto.ConfirmPassword)
             {
-                return ApiResponse<User>.ErrorResponse("Mật khẩu xác nhận không khớp"); 
+                throw new InvalidOperationException("Mật khẩu xác nhận không khớp");
             }
 
             var userId = _userManager.GetUserId(_signInManager.Context.User);
             if (string.IsNullOrEmpty(userId))
             {
-                return ApiResponse<User>.ErrorResponse("Người dùng chưa đăng nhập");
+                throw new InvalidOperationException("Người dùng chưa đăng nhập");
             }
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return ApiResponse<User>.ErrorResponse("Không tìm thấy người dùng");
+                throw new InvalidOperationException("Không tìm thấy người dùng");
             }
 
             if (!user.IsActive)
             {
-                return ApiResponse<User>.ErrorResponse("Tài khoản của bạn đã bị khóa."); 
+                throw new InvalidOperationException("Tài khoản của bạn đã bị khóa.");   
             }
 
             var isCurrentPasswordValid = await _userManager.CheckPasswordAsync(user, dto.OldPassword);
             if (!isCurrentPasswordValid)
             {
-                return ApiResponse<User>.ErrorResponse("Mật khẩu hiện tại không chính xác");
+                throw new InvalidOperationException("Mật khẩu hiện tại không chính xác");
             }
 
             //// Validate new password strength (BR-01)
@@ -348,14 +370,14 @@ namespace Garage_Management.Application.Services.Accounts
             // Check if new password is same as current password
             if (dto.OldPassword == dto.NewPassword)
             {
-                return ApiResponse<User>.ErrorResponse("Mật khẩu mới phải khác mật khẩu hiện tại");
+                throw new InvalidOperationException("Mật khẩu mới phải khác mật khẩu hiện tại");
             }
 
             var changePasswordResult = await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
             if (!changePasswordResult.Succeeded)
             {
                 var errors = string.Join("; ", changePasswordResult.Errors.Select(e => e.Description));
-                return ApiResponse<User>.ErrorResponse($"Không thể thay đổi mật khẩu: {errors}");
+                throw new InvalidOperationException($"Không thể thay đổi mật khẩu: {errors}");
             }
 
             user.UpdatedAt = DateTime.UtcNow;
@@ -368,21 +390,21 @@ namespace Garage_Management.Application.Services.Accounts
         {
             var user = await _userManager.FindByIdAsync(request.UserId.ToString());
             if (user == null)
-                return ApiResponse<User>.ErrorResponse("Không tìm thấy tài khoản");
+                throw new InvalidOperationException("Không tìm thấy tài khoản");
 
             if (user.IsActive)
-                return ApiResponse<User>.ErrorResponse("Tài khoản đã được kích hoạt");
+                throw new InvalidOperationException("Tài khoản đã được kích hoạt");
 
             var phoneNumber = user.PhoneNumber;
             if (string.IsNullOrEmpty(phoneNumber))
-                return ApiResponse<User>.ErrorResponse("Số điện thoại của tài khoản không hợp lệ");
+                throw new InvalidOperationException("Số điện thoại của tài khoản không hợp lệ");
             var formatted = new FormatPhoneNumber().FormatPhoneNumberHepler(phoneNumber);
             if (string.IsNullOrEmpty(formatted))
-                return ApiResponse<User>.ErrorResponse("Số điện thoại không hợp lệ");
+                throw new InvalidOperationException("Số điện thoại không hợp lệ");
 
             var verifyResult = await _smsService.VerifyOtpAsync(formatted, request.Otp);
             if (!verifyResult.IsValid)
-                return ApiResponse<User>.ErrorResponse(verifyResult.Message);
+                throw new InvalidOperationException(verifyResult.Message);
 
             // Kích hoạt tài khoản & xác nhận số điện thoại
             user.IsActive = true;

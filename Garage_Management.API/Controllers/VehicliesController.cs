@@ -85,11 +85,18 @@ namespace Garage_Management.API.Controllers
             try
             {
                 var data = await _service.CreateAsync(request, ct);
-                return CreatedAtAction(nameof(GetById), new { id = data.VehicleId }, ApiResponse<VehicleResponse>.SuccessResponse(data, "Tạo xe thành công"));
+
+                return CreatedAtAction(nameof(GetById),
+                    new { id = data.VehicleId },
+                    ApiResponse<VehicleResponse>.SuccessResponse(data, "Tạo xe thành công"));
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<VehicleResponse>.ErrorResponse(ex.Message));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResponse<VehicleResponse>.ErrorResponse("Lỗi hệ thống"));
             }
         }
 
@@ -107,14 +114,19 @@ namespace Garage_Management.API.Controllers
             try
             {
                 var data = await _service.UpdateAsync(id, request, ct);
+
                 if (data == null)
                     return NotFound(ApiResponse<VehicleResponse>.ErrorResponse("Không tìm thấy phương tiện"));
 
-                return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "Cập nhật thông tin xe máy thành công"));
+                return Ok(ApiResponse<VehicleResponse>.SuccessResponse(data, "Cập nhật thành công"));
             }
             catch (InvalidOperationException ex)
             {
-                return StatusCode(500, ApiResponse<VehicleResponse>.ErrorResponse(ex.Message));
+                return BadRequest(ApiResponse<VehicleResponse>.ErrorResponse(ex.Message));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResponse<VehicleResponse>.ErrorResponse("Lỗi hệ thống"));
             }
         }
 

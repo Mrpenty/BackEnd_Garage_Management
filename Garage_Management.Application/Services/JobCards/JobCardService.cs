@@ -284,7 +284,7 @@ namespace Garage_Management.Application.Services.JobCards
             entity.Status = status;
 
             if (status == JobCardStatus.Completed)
-                entity.EndDate = DateTime.UtcNow;
+                entity.EndDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             _repository.Update(entity);
             await _repository.SaveAsync(cancellationToken);
@@ -314,7 +314,7 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 JobCardId = jobCardId,
                 EmployeeId = dto.MechanicId,
-                AssignedAt = DateTime.UtcNow,
+                AssignedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
                 Note = dto.Note,
                 Status = MechanicAssignmentStatus.Assigned
             });
@@ -755,7 +755,7 @@ namespace Garage_Management.Application.Services.JobCards
                                 {
                                     task.Status = ServiceStatus.Completed;
                                     task.CompletedAt ??= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));   
-                                    task.PerformedById = currentUserId;
+                                    task.PerformedById = currentEmployeeId;
                                 }
                             }
                         }
@@ -785,7 +785,7 @@ namespace Garage_Management.Application.Services.JobCards
                         {
                             jobCardServiceTask.CompletedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
                         }
-                        jobCardServiceTask.PerformedById = currentUserId;
+                        jobCardServiceTask.PerformedById = currentEmployeeId;
                     }
                 }
             }

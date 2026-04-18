@@ -11,9 +11,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Garage_Management.Application.Services.Accounts
@@ -118,25 +120,34 @@ namespace Garage_Management.Application.Services.Accounts
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null || !httpContext.User.Identity?.IsAuthenticated == true)
             {
-                return ApiResponse<CustomerDto>.ErrorResponse("Không tìm thấy thông tin người dùng đăng nhập");
+                throw new InvalidOperationException("Không tìm thấy thông tin người dùng đăng nhập");
             }
 
             var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var receptionistUserId))
             {
-                return ApiResponse<CustomerDto>.ErrorResponse("Không thể xác định ID của nhân viên đang thực hiện");
+                throw new InvalidOperationException("Không thể xác định ID của nhân viên đang thực hiện");
             }
             if (string.IsNullOrWhiteSpace(request.FirstName) ||
                 string.IsNullOrWhiteSpace(request.LastName) ||
                 string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
-                return ApiResponse<CustomerDto>.ErrorResponse("Vui lòng nhập đầy đủ họ, tên và số điện thoại.");
+                throw new InvalidOperationException("Vui lòng nhập đầy đủ họ, tên và số điện thoại.");
             }
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                var emailValidator = new EmailAddressAttribute();
+                if (!emailValidator.IsValid(request.Email))
+                    throw new InvalidOperationException("Email không đúng định dạng");
+            }
+            var phoneRegex = new Regex(@"^(03|05|07|08|09)\d{8}$");
+            if (!phoneRegex.IsMatch(request.PhoneNumber))
+                throw new InvalidOperationException("Số điện thoại không hợp lệ");
 
             // 2. Kiểm tra trùng số điện thoại
             if (await _customerRepository.GetAll().AnyAsync(c => c.User.PhoneNumber == request.PhoneNumber, ct))
             {
-                return ApiResponse<CustomerDto>.ErrorResponse("Số điện thoại này đã được đăng ký.");
+                throw new InvalidOperationException("Số điện thoại này đã được đăng ký.");
             }
 
             // 3. Tạo User (tùy chọn - nếu muốn khách hàng có thể đăng nhập sau)
@@ -156,7 +167,8 @@ namespace Garage_Management.Application.Services.Accounts
                 var createUserResult = await _userManager.CreateAsync(newUser, "TempPass123!"); // mật khẩu tạm, nên thay bằng OTP flow
                 if (!createUserResult.Succeeded)
                 {
-                    return ApiResponse<CustomerDto>.ErrorResponse(string.Join("; ", createUserResult.Errors.Select(e => e.Description)));
+                    //return ApiResponse<CustomerDto>.ErrorResponse(string.Join("; ", createUserResult.Errors.Select(e => e.Description)));
+                    throw new InvalidOperationException("Không thể tạo tài khoản người dùng cho khách hàng: " + string.Join("; ", createUserResult.Errors.Select(e => e.Description)));
                 }
 
                 await _userManager.AddToRoleAsync(newUser, "Customer");
