@@ -3,6 +3,7 @@ using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
+using Garage_Management.Application.DTOs.User;
 using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Appointments;
@@ -18,9 +19,9 @@ using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -216,10 +217,18 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = entity.JobCardId,
                 AppointmentId = entity.AppointmentId,
                 CustomerId = entity.CustomerId,
-                CustomerName = entity.Customer != null
-    ? $"{entity.Customer.FirstName} {entity.Customer.LastName}".Trim()
-    : null,
+                CustomerName = entity.Customer != null? $"{entity.Customer.LastName} {entity.Customer.FirstName}".Trim(): null,
                 VehicleId = entity.VehicleId,
+                CustomerPhone = entity.Customer?.User.PhoneNumber,
+                Vehicles = entity.Vehicle != null? new List<VehicleDto>{
+                new VehicleDto
+                {
+                    VehicleId = entity.Vehicle.VehicleId,
+                    LicensePlate = entity.Vehicle.LicensePlate ?? "",
+                    Brand = entity.Vehicle.Brand?.BrandName,
+                    Model = entity.Vehicle.Model?.ModelName,
+                    Year = entity.Vehicle.Year
+                }}: new List<VehicleDto>(),
                 WorkbayId = entity.WorkBay?.Id,
                 QueueOrder = entity.QueueOrder,
                 StartDate = entity.StartDate,
@@ -231,15 +240,13 @@ namespace Garage_Management.Application.Services.JobCards
                 Services = entity.Services.Where(s => s.DeletedAt == null).Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
-                SupervisorName = entity.Supervisor != null
-    ? $"{entity.Supervisor.FirstName} {entity.Supervisor.LastName}".Trim()
-    : null,
+                SupervisorName = entity.Supervisor != null ? $"{entity.Supervisor.LastName} {entity.Supervisor.FirstName}".Trim() : null,
                 CreatedByEmployeeId = entity.CreatedBy,
 
                 Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
-                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Không rõ",
+                    MechanicName = m.Employee != null ? $"{m.Employee.LastName} {m.Employee.FirstName}".Trim() : "Không rõ",
                     AssignedAt = m.AssignedAt,
                     StartedAt = m.StartedAt,
                     CompletedAt = m.CompletedAt,
