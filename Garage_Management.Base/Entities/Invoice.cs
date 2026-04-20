@@ -1,4 +1,5 @@
 using Garage_Management.Base.Common.Base;
+using Garage_Management.Base.Entities.Branches;
 using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,13 @@ namespace Garage_Management.Base.Entities
     {
         
         public int InvoiceId { get; set; }
-        
+
+        /// <summary>
+        /// Chi nhánh phát hành hóa đơn (denormalize từ JobCard để query report nhanh)
+        /// </summary>
+        public int BranchId { get; set; }
+        public Branch Branch { get; set; } = null!;
+
         public int JobCardId { get; set; }
 
         public JobCard JobCard { get; set; } = null!;

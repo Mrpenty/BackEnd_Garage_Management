@@ -105,6 +105,15 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
 
+        private int ResolveBranchIdFromContext()
+        {
+            var ctx = _httpContextAccessor.HttpContext;
+            var branchClaim = ctx?.User?.FindFirst("BranchId")?.Value;
+            if (int.TryParse(branchClaim, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var branchId) && branchId > 0)
+                return branchId;
+            throw new InvalidOperationException("Không xác định được chi nhánh cho JobCard (thiếu claim BranchId).");
+        }
+
         public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken)
         {
            // ❗ CHECK 1: Appointment đã có JobCard chưa
@@ -152,8 +161,11 @@ namespace Garage_Management.Application.Services.JobCards
                     throw new Exception($"Lịch hẹn đã quá giờ tiếp nhận {AppointmentLateCreationGraceMinutes} phút. Vui lòng tạo lịch hẹn mới hoặc tiếp nhận dưới dạng walk-in.");
                 }
             }
+            var resolvedBranchId = app?.BranchId ?? ResolveBranchIdFromContext();
+
             var entity = new JobCard
            {
+               BranchId = resolvedBranchId,
                AppointmentId = dto.AppointmentId,
                CustomerId = dto.CustomerId,
                VehicleId = dto.VehicleId,

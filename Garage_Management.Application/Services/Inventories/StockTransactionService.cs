@@ -115,6 +115,7 @@ namespace Garage_Management.Application.Services.Inventories
 
             var entity = new StockTransaction
             {
+                BranchId = inventory.BranchId,
                 SparePartId = request.SparePartId,
                 TransactionType = request.TransactionType,
                 QuantityChange = effectiveQuantityChange,

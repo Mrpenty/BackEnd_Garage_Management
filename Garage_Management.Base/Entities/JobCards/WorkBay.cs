@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Entities.Branches;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,12 @@ namespace Garage_Management.Base.Entities.JobCards
     public class WorkBay
     {
         public int Id { get; set; }
+
+        /// <summary>
+        /// Chi nhánh sở hữu khoang sửa chữa này
+        /// </summary>
+        public int BranchId { get; set; }
+        public Branch Branch { get; set; } = null!;
 
         /// <summary>
         /// Phiếu sửa chữa đang được thực hiện tại vị trí này

@@ -1,5 +1,6 @@
 using Garage_Management.Base.Common.Base;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Entities.Branches;
 using Garage_Management.Base.Entities.JobCards;
 using System;
 
@@ -12,6 +13,12 @@ namespace Garage_Management.Base.Entities.Inventories
     {
        
         public int StockTransactionId { get; set; }
+
+        /// <summary>
+        /// Chi nhánh thực hiện giao dịch
+        /// </summary>
+        public int BranchId { get; set; }
+        public Branch Branch { get; set; } = null!;
 
         /// <summary>
         /// Phụ tùng được nhập/xuất

@@ -294,8 +294,12 @@ namespace Garage_Management.Application.Services.Appointments
                 createdBy = employee?.EmployeeId;
             }
 
+            if (request.BranchId <= 0)
+                throw new InvalidOperationException("Phải chọn chi nhánh khi đặt lịch");
+
             var entity = new Appointment
             {
+                BranchId = request.BranchId,
                 CustomerId = effectiveCustomerId,
                 FirstName = request.FirstName,
                 LastName = request.LastName,

@@ -11,6 +11,8 @@ namespace Garage_Management.Application.DTOs.Employee
     {
         public int EmployeeId { get; set; }
         public int UserId { get; set; }
+        public int BranchId { get; set; }
+        public string? BranchName { get; set; }
 
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
@@ -39,5 +41,10 @@ namespace Garage_Management.Application.DTOs.Employee
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public DateTime? StartWorkingDate { get; set; }
+
+        /// <summary>
+        /// Chi nhánh của nhân viên. Admin bắt buộc phải chỉ định khi tạo.
+        /// </summary>
+        public int BranchId { get; set; }
     }
 }
