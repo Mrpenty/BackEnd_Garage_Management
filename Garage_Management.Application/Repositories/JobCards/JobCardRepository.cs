@@ -44,7 +44,8 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(j => j.Services)
                     .ThenInclude(s => s.ServiceTasks)
                         .ThenInclude(st => st.ServiceTask)
-                .Include(j => j.SpareParts)  // Danh sách phụ tùng sử dụng
+                .Include(j => j.SpareParts) // Danh sách phụ tùng sử dụng
+                 .ThenInclude(sp => sp.Inventory)
                 .Include(j => j.Customer)   // Thông tin khách hàng
                       .ThenInclude(S => S.User)
                 .Include(j => j.Vehicle)     // Thông tin xe
@@ -189,8 +190,12 @@ namespace Garage_Management.Application.Repositories.JobCards
             return await _context.JobCards
                 .Include(x => x.Appointment)
                 .Include(x => x.Customer)
+                .ThenInclude(x => x.User)
                 .Include(x => x.Vehicle)
+                 .ThenInclude(v => v.Brand)
+                 .ThenInclude(m => m.Models)
                 .Include(x => x.Supervisor)
+                .ThenInclude(s => s.User)
                 .Include(x => x.Mechanics)
                     .ThenInclude(m => m.Employee)
                 .Include(x => x.Services)

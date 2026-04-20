@@ -294,12 +294,16 @@ namespace Garage_Management.Application.Services.Appointments
                 createdBy = employee?.EmployeeId;
             }
 
+            if (request.BranchId <= 0)
+                throw new InvalidOperationException("Phải chọn chi nhánh khi đặt lịch");
+
             var entity = new Appointment
             {
+                BranchId = request.BranchId,
                 CustomerId = effectiveCustomerId,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Phone = normalizedPhone,
+                Phone = request.Phone,
                 VehicleId = request.VehicleId,
                 VehicleModelId = request.VehicleModelId,
                 CustomVehicleBrand = request.CustomVehicleBrand,
@@ -309,7 +313,7 @@ namespace Garage_Management.Application.Services.Appointments
                 AppointmentDateTime = request.AppointmentDateTime,
                 Status = request.Status,
                 Description = request.Description,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
             };
 
             if (serviceIds.Count > 0)
@@ -400,7 +404,7 @@ namespace Garage_Management.Application.Services.Appointments
             if (request.Status.HasValue) entity.Status = request.Status.Value;
             if (request.Description != null) entity.Description = request.Description;
             if (request.UpdatedBy.HasValue) entity.UpdatedBy = request.UpdatedBy.Value;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             _repo.Update(entity);
             await _repo.SaveAsync(ct);
@@ -431,7 +435,7 @@ namespace Garage_Management.Application.Services.Appointments
                 throw new InvalidOperationException($"Không thể chuyển trạng thái từ {entity.Status} sang {status}");
 
             entity.Status = status;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             _repo.Update(entity);
             await _repo.SaveAsync(ct);

@@ -16,7 +16,8 @@
       "Bash(grep -E \"\\\\.\\(xlsx|xls|csv|md\\)$\")",
       "Bash(grep -v \"\\\\.dll$\")",
       "Bash(grep -v \"\\\\.pdb$\")",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(dotnet ef *)"
     ]
   }
 }

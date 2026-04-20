@@ -17,5 +17,10 @@ namespace Garage_Management.Application.Interfaces.Services.Invoices
         /// Xu ly webhook tu SePay khi co chuyen khoan vao tai khoan
         /// </summary>
         Task<bool> ProcessSePayWebhookAsync(SePayWebhookRequest request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Cap nhat trang thai Invoice sau khi thanh toan thanh cong
+        /// </summary>
+        Task<bool> UpdateAfterPaymentSuccessAsync(int invoiceId, CancellationToken ct = default);
     }
 }

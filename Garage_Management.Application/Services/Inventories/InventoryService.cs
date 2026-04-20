@@ -1,6 +1,8 @@
 ﻿using Garage_Management.Application.DTOs.Iventories;
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Services.Auth;
 using Garage_Management.Application.Interfaces.Services.Inventories;
+using Garage_Management.Application.Services.Auth;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Inventories;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +14,18 @@ namespace Garage_Management.Application.Services.Inventories
         private readonly IInventoryRepository _repo;
         private readonly ISparePartCategoryRepository _categoryRepo;
         private readonly ISparePartBrandRepository _brandRepo;
+        private readonly ICurrentUserService _currentUser;
 
         public InventoryService(
             IInventoryRepository repo,
             ISparePartCategoryRepository categoryRepo,
-            ISparePartBrandRepository brandRepo)
+            ISparePartBrandRepository brandRepo,
+            ICurrentUserService currentUser)
         {
             _repo = repo;
             _categoryRepo = categoryRepo;
             _brandRepo = brandRepo;
+            _currentUser = currentUser;
         }
 
         public async Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
@@ -35,6 +40,15 @@ namespace Garage_Management.Application.Services.Inventories
                     .Include(x => x.SparePartBrand)
                     .Include(x => x.SparePartCategory)
                     .AsQueryable();
+
+                if (!_currentUser.IsAdmin())
+                {
+                    var branchId = _currentUser.GetCurrentBranchId();
+                    if (branchId.HasValue)
+                    {
+                        q = q.Where(x => x.BranchId == branchId.Value);
+                    }
+                }
 
                 if (!string.IsNullOrWhiteSpace(query.Search))
                 {
@@ -100,7 +114,9 @@ namespace Garage_Management.Application.Services.Inventories
         public async Task<InventoryResponse?> GetByIdAsync(int id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdWithDetailsAsync(id, ct);
-            return entity == null ? null : Map(entity);
+            if (entity == null) return null;
+            EnsureCanAccess(entity.BranchId);
+            return Map(entity);
         }
 
         public async Task<InventoryResponse> CreateAsync(InventoryCreateRequest request, CancellationToken ct = default)
@@ -113,46 +129,12 @@ namespace Garage_Management.Application.Services.Inventories
             if (request.Quantity < 0)
                 throw new InvalidOperationException("Quantity không hợp lệ");
 
-            if (request.MinQuantity.HasValue && request.MinQuantity.Value < 0)
-                throw new InvalidOperationException("MinQuantity không hợp lệ");
-
-            // Validation giá
-            if (request.LastPurchasePrice.HasValue && request.LastPurchasePrice.Value < 0)
-                throw new InvalidOperationException("LastPurchasePrice không hợp lệ");
-
-            if (request.SellingPrice.HasValue && request.SellingPrice.Value < 0)
-                throw new InvalidOperationException("SellingPrice không hợp lệ");
-
-            // Validation FK - CategoryId
-            if (request.CategoryId.HasValue)
-            {
-                var category = await _categoryRepo.GetByIdAsync(request.CategoryId.Value);
-                if (category == null)
-                    throw new InvalidOperationException("CategoryId không tồn tại");
-            }
-
-            // Validation FK - SparePartBrandId
-            if (request.SparePartBrandId.HasValue)
-            {
-                var brand = await _brandRepo.GetByIdAsync(request.SparePartBrandId.Value);
-                if (brand == null)
-                    throw new InvalidOperationException("SparePartBrandId không tồn tại");
-            }
-
-            // Validation PartCode trùng lặp
-            var normalizedPartCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim();
-            if (normalizedPartCode != null)
-            {
-                var exists = await _repo.Query()
-                    .AsNoTracking()
-                    .AnyAsync(x => x.PartCode == normalizedPartCode, ct);
-                if (exists)
-                    throw new InvalidOperationException("PartCode đã tồn tại");
-            }
+            var branchId = ResolveBranchIdForCreate(request.BranchId);
 
             var entity = new Inventory
             {
-                PartCode = normalizedPartCode,
+                BranchId = branchId,
+                PartCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim(),
                 PartName = request.PartName.Trim(),
                 Unit = string.IsNullOrWhiteSpace(request.Unit) ? null : request.Unit.Trim(),
                 CategoryId = request.CategoryId,
@@ -172,39 +154,33 @@ namespace Garage_Management.Application.Services.Inventories
             return detail == null ? Map(entity) : Map(detail);
         }
 
+        private int ResolveBranchIdForCreate(int? requestedBranchId)
+        {
+            if (_currentUser.IsAdmin())
+            {
+                if (requestedBranchId is not { } adminBranch || adminBranch <= 0)
+                    throw new InvalidOperationException("Admin phải chỉ định BranchId khi tạo phụ tùng");
+                return adminBranch;
+            }
+            var scoped = _currentUser.GetCurrentBranchId();
+            if (!scoped.HasValue)
+                throw new UnauthorizedAccessException("Không xác định được chi nhánh từ tài khoản hiện tại");
+            return scoped.Value;
+        }
+
+        private void EnsureCanAccess(int branchId)
+        {
+            if (_currentUser.IsAdmin()) return;
+            var scoped = _currentUser.GetCurrentBranchId();
+            if (scoped.HasValue && scoped.Value == branchId) return;
+            throw new UnauthorizedAccessException("Không có quyền truy cập phụ tùng của chi nhánh khác");
+        }
+
         public async Task<InventoryResponse?> UpdateAsync(int id, InventoryUpdateRequest request, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
-            if (entity == null)
-                throw new InvalidOperationException("Id không tồn tại");
-
-            // Validation FK - CategoryId
-            if (request.CategoryId.HasValue)
-            {
-                var category = await _categoryRepo.GetByIdAsync(request.CategoryId.Value);
-                if (category == null)
-                    throw new InvalidOperationException("CategoryId không tồn tại");
-            }
-
-            // Validation FK - SparePartBrandId
-            if (request.SparePartBrandId.HasValue)
-            {
-                var brand = await _brandRepo.GetByIdAsync(request.SparePartBrandId.Value);
-                if (brand == null)
-                    throw new InvalidOperationException("SparePartBrandId không tồn tại");
-            }
-
-            // Validation PartCode trùng (trừ chính entity đang update)
-            if (!string.IsNullOrWhiteSpace(request.PartCode))
-            {
-                var normalizedPartCode = request.PartCode.Trim();
-                var exists = await _repo.Query()
-                    .AsNoTracking()
-                    .AnyAsync(x => x.PartCode == normalizedPartCode && x.SparePartId != id, ct);
-                if (exists)
-                    throw new InvalidOperationException("PartCode đã tồn tại");
-                entity.PartCode = normalizedPartCode;
-            }
+            if (entity == null) return null;
+            EnsureCanAccess(entity.BranchId);
 
             if (!string.IsNullOrWhiteSpace(request.PartName)) entity.PartName = request.PartName.Trim();
             if (request.Unit != null) entity.Unit = request.Unit.Trim();
@@ -238,8 +214,8 @@ namespace Garage_Management.Application.Services.Inventories
         public async Task<InventoryResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
-            if (entity == null)
-                throw new InvalidOperationException("Id không tồn tại");
+            if (entity == null) return null;
+            EnsureCanAccess(entity.BranchId);
 
             if (entity.IsActive == isActive)
                 return await GetByIdAsync(id, ct);
@@ -257,6 +233,7 @@ namespace Garage_Management.Application.Services.Inventories
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
+            EnsureCanAccess(entity.BranchId);
 
             if (await _repo.HasDependenciesAsync(id, ct))
                 throw new InvalidOperationException("Không thể xóa phụ tùng vì đã phát sinh dữ liệu liên quan");

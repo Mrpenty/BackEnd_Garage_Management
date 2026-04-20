@@ -78,6 +78,7 @@ namespace Garage_Management.Base.Services
             if (employee != null)
             {
                 claims.Add(new Claim("EmployeeId", employee.EmployeeId.ToString()));
+                claims.Add(new Claim("BranchId", employee.BranchId.ToString()));
             }
 
             var token = new JwtSecurityToken(

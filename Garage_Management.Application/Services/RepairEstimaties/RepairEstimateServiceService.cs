@@ -53,18 +53,18 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             var repairEstimate = await _repairEstimateRepository.GetByIdAsync(request.RepairEstimateId, ct);
             if (repairEstimate == null)
-                throw new InvalidOperationException("RepairEstimate not found");
+                throw new InvalidOperationException("Không tìm thấy báo giá sửa chữa");
 
             var service = await _serviceRepository.GetByIdAsync(request.ServiceId);
             if (service == null)
-                throw new InvalidOperationException("Service not found");
+                throw new InvalidOperationException("Không tìm thấy dịch vụ");
 
             if (!service.IsActive)
-                throw new InvalidOperationException($"Service {request.ServiceId} is inactive");
+                throw new InvalidOperationException($"Dịch vụ {request.ServiceId} đã ngừng hoạt động");
 
             var existed = await _repo.GetByIdAsync(request.RepairEstimateId, request.ServiceId, ct);
             if (existed != null)
-                throw new InvalidOperationException("RepairEstimateService already exists");
+                throw new InvalidOperationException("Dịch vụ báo giá sửa chữa này đã tồn tại");
 
             var entity = new Garage_Management.Base.Entities.RepairEstimaties.RepairEstimateService
             {
@@ -153,28 +153,28 @@ namespace Garage_Management.Application.Services.RepairEstimaties
         private static void ValidateStatus(RepairEstimateApprovalStatus status)
         {
             if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
-                throw new InvalidOperationException("Invalid repair estimate service status");
+                throw new InvalidOperationException("Trạng thái dịch vụ báo giá sửa chữa không hợp lệ");
         }
 
         private static void ValidatePaging(int page, int pageSize)
         {
             if (page <= 0)
-                throw new InvalidOperationException("Page must be greater than 0");
+                throw new InvalidOperationException("Trang phải lớn hơn 0");
 
             if (pageSize <= 0)
-                throw new InvalidOperationException("PageSize must be greater than 0");
+                throw new InvalidOperationException("Kích thước trang phải lớn hơn 0");
         }
 
         private static void ValidateRepairEstimateId(int repairEstimateId)
         {
             if (repairEstimateId <= 0)
-                throw new InvalidOperationException("RepairEstimateId must be greater than 0");
+                throw new InvalidOperationException("RepairEstimateId phải lớn hơn 0");
         }
 
         private static void ValidateServiceId(int serviceId)
         {
             if (serviceId <= 0)
-                throw new InvalidOperationException("ServiceId must be greater than 0");
+                throw new InvalidOperationException("ServiceId phải lớn hơn 0");
         }
 
         private static void ValidateCreateRequest(RepairEstimateServiceCreateRequest request)
@@ -183,36 +183,36 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             ValidateServiceId(request.ServiceId);
 
             if (request.UnitPrice <= 0)
-                throw new InvalidOperationException("UnitPrice must be greater than 0");
+                throw new InvalidOperationException("Đơn giá phải lớn hơn 0");
 
             if (request.Quantity <= 0)
-                throw new InvalidOperationException("Quantity must be greater than 0");
+                throw new InvalidOperationException("Số lượng phải lớn hơn 0");
 
             if (request.TotalAmount <= 0)
-                throw new InvalidOperationException("TotalAmount must be greater than 0");
+                throw new InvalidOperationException("Thành tiền phải lớn hơn 0");
 
             var expectedTotalAmount = request.UnitPrice * request.Quantity;
             if (request.TotalAmount != expectedTotalAmount)
-                throw new InvalidOperationException("TotalAmount must equal UnitPrice multiplied by Quantity");
+                throw new InvalidOperationException("Thành tiền phải bằng đơn giá nhân với số lượng");
         }
 
         private static void ValidateUpdateRequest(RepairEstimateServiceUpdateRequest request, decimal currentUnitPrice, int currentQuantity)
         {
             if (request.UnitPrice.HasValue && request.UnitPrice.Value <= 0)
-                throw new InvalidOperationException("UnitPrice must be greater than 0");
+                throw new InvalidOperationException("Đơn giá phải lớn hơn 0");
 
             if (request.Quantity.HasValue && request.Quantity.Value <= 0)
-                throw new InvalidOperationException("Quantity must be greater than 0");
+                throw new InvalidOperationException("Số lượng phải lớn hơn 0");
 
             if (request.TotalAmount.HasValue && request.TotalAmount.Value < 0)
-                throw new InvalidOperationException("TotalAmount must not be negative");
+                throw new InvalidOperationException("Thành tiền không được âm");
 
             var finalUnitPrice = request.UnitPrice ?? currentUnitPrice;
             var finalQuantity = request.Quantity ?? currentQuantity;
             var expectedTotalAmount = finalUnitPrice * finalQuantity;
 
             if (request.TotalAmount.HasValue && request.TotalAmount.Value != expectedTotalAmount)
-                throw new InvalidOperationException("TotalAmount must equal UnitPrice multiplied by Quantity");
+                throw new InvalidOperationException("Thành tiền phải bằng đơn giá nhân với số lượng");
         }
     }
 }

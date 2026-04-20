@@ -1,5 +1,6 @@
 using Garage_Management.Base.Entities;
 using Garage_Management.Base.Entities.Accounts;
+using Garage_Management.Base.Entities.Branches;
 using Garage_Management.Base.Entities.Inventories;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.RepairEstimaties;
@@ -18,6 +19,9 @@ namespace Garage_Management.Base.Data
             : base(options)
         {
         }
+
+        // DbSet - Branches
+        public DbSet<Branch> Branches => Set<Branch>();
 
         // DbSet - Accounts
        // public DbSet<User> Users => Set<User>();

@@ -79,5 +79,30 @@ namespace Garage_Management.API.Controllers
                     .ErrorResponse(ex.Message));
             }
         }
+
+        [HttpPut("{jobCardId:int}/spare-parts/{sparePartId:int}")]
+        public async Task<ActionResult<ApiResponse<JobCardSparePartResponse>>> UpdateSparePart(
+            int jobCardId,
+            int sparePartId,
+            [FromBody] UpdateJobCardSparePartDto dto,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var data = await _service.UpdateAsync(jobCardId, sparePartId, dto, ct);
+
+                if (data == null)
+                    return NotFound(ApiResponse<JobCardSparePartResponse>
+                        .ErrorResponse("Không tìm thấy phụ tùng trong JobCard"));
+
+                return Ok(ApiResponse<JobCardSparePartResponse>
+                    .SuccessResponse(data, "Cập nhật phụ tùng thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<JobCardSparePartResponse>
+                    .ErrorResponse(ex.Message));
+            }
+        }
     }
 }

@@ -30,5 +30,10 @@ namespace Garage_Management.Application.DTOs.Iventories
         public decimal? SellingPrice { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// Chi nhánh. Non-admin luôn lấy từ token, admin bắt buộc truyền.
+        /// </summary>
+        public int? BranchId { get; set; }
     }
 }

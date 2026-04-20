@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Application.DTOs.Invoices;
 using Garage_Management.Application.Interfaces.Services.Invoices;
+using Garage_Management.Application.Services.Invoices;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -70,5 +71,20 @@ namespace Garage_Management.API.Controllers
             await _paymentService.ProcessSePayWebhookAsync(request, ct);
             return Ok(new { success = true });
         }
+        /// <summary>
+        /// Thanh toán bằng tiền mặt tại quầy lễ tân
+        /// </summary>
+        [HttpPost("cash-payment")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponse<PaymentResponse>>> CashPayment(int invoiceId, CancellationToken ct = default)
+        {
+            var result = await _paymentService.UpdateAfterPaymentSuccessAsync(invoiceId, ct);
+            if (result)
+            {
+                return Ok(ApiResponse<string>.SuccessResponse( "Cập nhật trạng thái hóa đơn và phiếu sửa xe thành công sau khi thanh toán"));
+            }
+            return BadRequest(ApiResponse<string>.ErrorResponse("Cập nhật trạng thái thất bại. Vui lòng kiểm tra lại hóa đơn."));
+        }
+
     }
 }

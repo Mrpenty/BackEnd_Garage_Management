@@ -11,6 +11,7 @@ namespace Garage_Management.Application.Interfaces.Services.JobCard
         /// Thêm nhiều phụ tùng vào phiếu sửa chữa
         /// </summary>
         Task<List<JobCardSparePartResponse>?> AddSparePartsAsync(int jobCardId, AddMultipleSparePartsToJobCardDto dto, CancellationToken cancellationToken);
+        Task<JobCardSparePartResponse?> UpdateAsync(int jobCardId, int sparePartId, UpdateJobCardSparePartDto dto, CancellationToken ct);
         Task<bool> RemoveSparePartAsync(int jobCardId, int sparePartId, CancellationToken ct);
     }
 }

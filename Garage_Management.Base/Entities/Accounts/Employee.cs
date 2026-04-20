@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Base.Common.Base;
 using Garage_Management.Base.Common.Enums;
+using Garage_Management.Base.Entities.Branches;
 using Garage_Management.Base.Entities.JobCards;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,12 @@ namespace Garage_Management.Base.Entities.Accounts
         // Liên kết với tài khoản hệ thống (User)
         public int UserId { get; set; }
         public User User { get; set; } = null!;
+
+        /// <summary>
+        /// Chi nhánh mà nhân viên thuộc về
+        /// </summary>
+        public int BranchId { get; set; }
+        public Branch Branch { get; set; } = null!;
 
         // Thông tin cá nhân
         public string FirstName { get; set; } = string.Empty;
