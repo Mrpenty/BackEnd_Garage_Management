@@ -15,7 +15,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task DeleteAsync_HasDependencies_Throws()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object);
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Inventory { SparePartId = 1, PartName = "Bugi" });
             repo.Setup(x => x.HasDependenciesAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
@@ -26,7 +26,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task DeleteAsync_NoDependencies_ReturnsTrue()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object);
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Inventory { SparePartId = 1, PartName = "Bugi" });
             repo.Setup(x => x.HasDependenciesAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
             repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);

@@ -18,7 +18,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_WithData_ReturnsSuccessPagedResult()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object);
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10 };
 
             var data = new List<Inventory>
@@ -49,7 +49,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_Empty_ReturnsEmptyPagedResult()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object);
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10 };
 
             repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(new List<Inventory>().AsQueryable()));

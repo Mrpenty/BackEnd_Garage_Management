@@ -10,10 +10,17 @@ namespace Garage_Management.Application.Services.Inventories
     public class InventoryService : IInventoryService
     {
         private readonly IInventoryRepository _repo;
+        private readonly ISparePartCategoryRepository _categoryRepo;
+        private readonly ISparePartBrandRepository _brandRepo;
 
-        public InventoryService(IInventoryRepository repo)
+        public InventoryService(
+            IInventoryRepository repo,
+            ISparePartCategoryRepository categoryRepo,
+            ISparePartBrandRepository brandRepo)
         {
             _repo = repo;
+            _categoryRepo = categoryRepo;
+            _brandRepo = brandRepo;
         }
 
         public async Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
@@ -98,15 +105,54 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<InventoryResponse> CreateAsync(InventoryCreateRequest request, CancellationToken ct = default)
         {
+            // Validation tên phụ tùng
             if (string.IsNullOrWhiteSpace(request.PartName))
                 throw new InvalidOperationException("PartName không hợp lệ");
 
+            // Validation số lượng
             if (request.Quantity < 0)
                 throw new InvalidOperationException("Quantity không hợp lệ");
 
+            if (request.MinQuantity.HasValue && request.MinQuantity.Value < 0)
+                throw new InvalidOperationException("MinQuantity không hợp lệ");
+
+            // Validation giá
+            if (request.LastPurchasePrice.HasValue && request.LastPurchasePrice.Value < 0)
+                throw new InvalidOperationException("LastPurchasePrice không hợp lệ");
+
+            if (request.SellingPrice.HasValue && request.SellingPrice.Value < 0)
+                throw new InvalidOperationException("SellingPrice không hợp lệ");
+
+            // Validation FK - CategoryId
+            if (request.CategoryId.HasValue)
+            {
+                var category = await _categoryRepo.GetByIdAsync(request.CategoryId.Value);
+                if (category == null)
+                    throw new InvalidOperationException("CategoryId không tồn tại");
+            }
+
+            // Validation FK - SparePartBrandId
+            if (request.SparePartBrandId.HasValue)
+            {
+                var brand = await _brandRepo.GetByIdAsync(request.SparePartBrandId.Value);
+                if (brand == null)
+                    throw new InvalidOperationException("SparePartBrandId không tồn tại");
+            }
+
+            // Validation PartCode trùng lặp
+            var normalizedPartCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim();
+            if (normalizedPartCode != null)
+            {
+                var exists = await _repo.Query()
+                    .AsNoTracking()
+                    .AnyAsync(x => x.PartCode == normalizedPartCode, ct);
+                if (exists)
+                    throw new InvalidOperationException("PartCode đã tồn tại");
+            }
+
             var entity = new Inventory
             {
-                PartCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim(),
+                PartCode = normalizedPartCode,
                 PartName = request.PartName.Trim(),
                 Unit = string.IsNullOrWhiteSpace(request.Unit) ? null : request.Unit.Trim(),
                 CategoryId = request.CategoryId,
@@ -129,18 +175,42 @@ namespace Garage_Management.Application.Services.Inventories
         public async Task<InventoryResponse?> UpdateAsync(int id, InventoryUpdateRequest request, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return null;
+            if (entity == null)
+                throw new InvalidOperationException("Id không tồn tại");
 
-            if (!string.IsNullOrWhiteSpace(request.PartCode)) entity.PartCode = request.PartCode.Trim();
+            // Validation FK - CategoryId
+            if (request.CategoryId.HasValue)
+            {
+                var category = await _categoryRepo.GetByIdAsync(request.CategoryId.Value);
+                if (category == null)
+                    throw new InvalidOperationException("CategoryId không tồn tại");
+            }
+
+            // Validation FK - SparePartBrandId
+            if (request.SparePartBrandId.HasValue)
+            {
+                var brand = await _brandRepo.GetByIdAsync(request.SparePartBrandId.Value);
+                if (brand == null)
+                    throw new InvalidOperationException("SparePartBrandId không tồn tại");
+            }
+
+            // Validation PartCode trùng (trừ chính entity đang update)
+            if (!string.IsNullOrWhiteSpace(request.PartCode))
+            {
+                var normalizedPartCode = request.PartCode.Trim();
+                var exists = await _repo.Query()
+                    .AsNoTracking()
+                    .AnyAsync(x => x.PartCode == normalizedPartCode && x.SparePartId != id, ct);
+                if (exists)
+                    throw new InvalidOperationException("PartCode đã tồn tại");
+                entity.PartCode = normalizedPartCode;
+            }
+
             if (!string.IsNullOrWhiteSpace(request.PartName)) entity.PartName = request.PartName.Trim();
             if (request.Unit != null) entity.Unit = request.Unit.Trim();
             if (request.CategoryId.HasValue) entity.CategoryId = request.CategoryId;
             if (request.SparePartBrandId.HasValue) entity.SparePartBrandId = request.SparePartBrandId;
-            //if (request.Quantity.HasValue)
-            //{
-            //    if (request.Quantity.Value < 0) throw new InvalidOperationException("Quantity không hợp lệ");
-            //    entity.Quantity = request.Quantity.Value;
-            //}
+
             if (request.MinQuantity.HasValue)
             {
                 if (request.MinQuantity.Value < 0) throw new InvalidOperationException("Số lượng phụ tùng tối thiểu không hợp lệ");
@@ -168,7 +238,8 @@ namespace Garage_Management.Application.Services.Inventories
         public async Task<InventoryResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return null;
+            if (entity == null)
+                throw new InvalidOperationException("Id không tồn tại");
 
             if (entity.IsActive == isActive)
                 return await GetByIdAsync(id, ct);
