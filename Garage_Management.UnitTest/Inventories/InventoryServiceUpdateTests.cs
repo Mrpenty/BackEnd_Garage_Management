@@ -31,12 +31,13 @@ namespace Garage_Management.UnitTest.Inventories
             // Mặc định Query() trả về list rỗng
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(new List<Inventory>().AsQueryable()));
 
-            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object);
+            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsStaff());
         }
 
         private Inventory MakeEntity() => new Inventory
         {
             SparePartId = 1,
+            BranchId = 1,
             PartCode = "BG-001",
             PartName = "Bugi NGK CR7HSA",
             Unit = "Cái",

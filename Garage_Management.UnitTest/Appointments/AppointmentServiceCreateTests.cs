@@ -66,6 +66,7 @@ namespace Garage_Management.UnitTest.Appointments
         {
             var request = new AppointmentCreateRequest
             {
+                BranchId = 1,
                 CustomerId = null,
                 FirstName = "Khánh",
                 LastName = "Đỗ",
@@ -380,6 +381,7 @@ namespace Garage_Management.UnitTest.Appointments
         {
             var request = new AppointmentCreateRequest
             {
+                BranchId = 1,
                 VehicleModelId = 1,
                 LicensePlate = "29A-12345",
                 FirstName = "Lý",
@@ -423,6 +425,7 @@ namespace Garage_Management.UnitTest.Appointments
         {
             var request = new AppointmentCreateRequest
             {
+                BranchId = 1,
                 VehicleId = 1,
                 FirstName = "Trương",
                 LastName = "Minh Khoa",

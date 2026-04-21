@@ -11,6 +11,7 @@ namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class JobCardsController : ControllerBase
     {
         private readonly IJobCardService _service;

@@ -32,7 +32,7 @@ namespace Garage_Management.UnitTest.Inventories
             var emptyInventories = new List<Inventory>().AsQueryable();
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(emptyInventories));
 
-            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object);
+            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsStaff());
         }
 
         private void SetupValidCategoryAndBrand()

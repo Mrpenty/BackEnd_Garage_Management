@@ -1,12 +1,14 @@
 using Garage_Management.Application.DTOs.RepairEstimateSpareParts;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class RepairEstimateSparePartsController : ControllerBase
     {
         private readonly IRepairEstimateSparePartService _service;

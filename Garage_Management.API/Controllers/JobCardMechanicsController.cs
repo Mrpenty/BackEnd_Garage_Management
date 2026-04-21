@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -8,6 +9,7 @@ namespace Garage_Management.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class JobCardMechanicsController : ControllerBase
     {
         private readonly IJobCardMechanicService _service;

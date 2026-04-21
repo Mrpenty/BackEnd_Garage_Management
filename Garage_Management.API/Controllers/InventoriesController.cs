@@ -1,12 +1,14 @@
 ﻿using Garage_Management.Application.DTOs.Iventories;
 using Garage_Management.Application.Interfaces.Services.Inventories;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class InventoriesController : ControllerBase
     {
         private readonly IInventoryService _service;

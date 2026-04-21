@@ -58,7 +58,8 @@ namespace Garage_Management.UnitTest.Employees
                 Role = "Mechanic",
                 Email = "a@b.com",
                 PhoneNumber = "0987654321",
-                UserName = "user1"
+                UserName = "user1",
+                BranchId = 1
             };
 
             var result = await _service.CreateEmployeeAsync(request, CancellationToken.None);
@@ -84,7 +85,8 @@ namespace Garage_Management.UnitTest.Employees
                 Role = "",
                 Email = "a@b.com",
                 PhoneNumber = "0987654321",
-                UserName = "user1"
+                UserName = "user1",
+                BranchId = 1
             };
 
             var result = await _service.CreateEmployeeAsync(request, CancellationToken.None);
@@ -114,7 +116,8 @@ namespace Garage_Management.UnitTest.Employees
                 Role = "Mechanic",
                 Email = "a@b.com",
                 PhoneNumber = "0987654321",
-                UserName = "user1"
+                UserName = "user1",
+                BranchId = 1
             };
 
             var result = await _service.CreateEmployeeAsync(request, CancellationToken.None);
@@ -151,7 +154,8 @@ namespace Garage_Management.UnitTest.Employees
                 Role = "Mechanic",
                 Email = "a@b.com",
                 PhoneNumber = "0987654321",
-                UserName = "user1"
+                UserName = "user1",
+                BranchId = 1
             };
 
             var result = await _service.CreateEmployeeAsync(request, CancellationToken.None);

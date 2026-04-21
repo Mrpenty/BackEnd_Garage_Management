@@ -129,12 +129,51 @@ namespace Garage_Management.Application.Services.Inventories
             if (request.Quantity < 0)
                 throw new InvalidOperationException("Quantity không hợp lệ");
 
+            // Validation ngưỡng tồn tối thiểu
+            if (request.MinQuantity.HasValue && request.MinQuantity.Value < 0)
+                throw new InvalidOperationException("MinQuantity không hợp lệ");
+
+            // Validation giá nhập gần nhất
+            if (request.LastPurchasePrice.HasValue && request.LastPurchasePrice.Value < 0)
+                throw new InvalidOperationException("LastPurchasePrice không hợp lệ");
+
+            // Validation giá bán
+            if (request.SellingPrice.HasValue && request.SellingPrice.Value < 0)
+                throw new InvalidOperationException("SellingPrice không hợp lệ");
+
+            // Validation CategoryId tồn tại (nếu có)
+            if (request.CategoryId.HasValue)
+            {
+                var category = await _categoryRepo.GetByIdAsync(request.CategoryId.Value);
+                if (category == null)
+                    throw new InvalidOperationException("CategoryId không tồn tại");
+            }
+
+            // Validation SparePartBrandId tồn tại (nếu có)
+            if (request.SparePartBrandId.HasValue)
+            {
+                var brand = await _brandRepo.GetByIdAsync(request.SparePartBrandId.Value);
+                if (brand == null)
+                    throw new InvalidOperationException("SparePartBrandId không tồn tại");
+            }
+
+            // Validation PartCode duy nhất (nếu có)
+            var partCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim();
+            if (partCode != null)
+            {
+                var duplicate = await _repo.Query()
+                    .AsNoTracking()
+                    .AnyAsync(x => x.PartCode == partCode, ct);
+                if (duplicate)
+                    throw new InvalidOperationException("PartCode đã tồn tại");
+            }
+
             var branchId = ResolveBranchIdForCreate(request.BranchId);
 
             var entity = new Inventory
             {
                 BranchId = branchId,
-                PartCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim(),
+                PartCode = partCode,
                 PartName = request.PartName.Trim(),
                 Unit = string.IsNullOrWhiteSpace(request.Unit) ? null : request.Unit.Trim(),
                 CategoryId = request.CategoryId,

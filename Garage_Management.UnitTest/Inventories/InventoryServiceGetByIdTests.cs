@@ -1,6 +1,7 @@
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Services.Inventories;
 using Garage_Management.Base.Entities.Inventories;
+using Garage_Management.UnitTest.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -23,7 +24,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo = new Mock<IInventoryRepository>();
             _categoryRepo = new Mock<ISparePartCategoryRepository>();
             _brandRepo = new Mock<ISparePartBrandRepository>();
-            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object);
+            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsStaff());
         }
 
         /// <summary>
@@ -35,6 +36,7 @@ namespace Garage_Management.UnitTest.Inventories
             var entity = new Inventory
             {
                 SparePartId = 1,
+                BranchId = 1,
                 PartCode = "BG-001",
                 PartName = "Bugi NGK CR7HSA",
                 Unit = "Cái",
@@ -76,6 +78,7 @@ namespace Garage_Management.UnitTest.Inventories
             var entity = new Inventory
             {
                 SparePartId = 2,
+                BranchId = 1,
                 PartCode = null,
                 PartName = "Dây curoa Yamaha Exciter 150",
                 Unit = null,

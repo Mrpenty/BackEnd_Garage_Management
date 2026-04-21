@@ -2,12 +2,14 @@
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Application.Interfaces.Services.Accounts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class EmployeeController : ControllerBase
     {
         private readonly IMechanicService _mechanicService;
