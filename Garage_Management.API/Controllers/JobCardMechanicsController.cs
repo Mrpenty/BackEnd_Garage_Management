@@ -42,5 +42,14 @@ namespace Garage_Management.API.Controllers
                 return Ok(response);
             return BadRequest(response);
         }
+
+        [HttpPost("startInspection")]
+        public async Task<IActionResult> StartInspection([FromBody] StartInspectionDto dto, CancellationToken ct)
+        {
+            var response = await _service.StartInspectionAsync(dto, ct);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
     }
 }
