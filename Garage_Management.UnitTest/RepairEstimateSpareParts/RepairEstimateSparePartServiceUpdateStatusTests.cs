@@ -35,7 +35,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.UpdateStatusAsync(0, 5, request, CancellationToken.None));
 
-            Assert.AreEqual("RepairEstimateId must be greater than 0", ex.Message);
+            Assert.AreEqual("RepairEstimateId phải lớn hơn 0", ex.Message);
         }
 
         [TestMethod]
@@ -49,7 +49,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.UpdateStatusAsync(10, 0, request, CancellationToken.None));
 
-            Assert.AreEqual("SparePartId must be greater than 0", ex.Message);
+            Assert.AreEqual("SparePartId phải lớn hơn 0", ex.Message);
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.UpdateStatusAsync(10, 5, request, CancellationToken.None));
 
-            Assert.AreEqual("Invalid repair estimate spare part status", ex.Message);
+            Assert.AreEqual("Trạng thái phụ tùng báo giá sửa chữa không hợp lệ", ex.Message);
         }
 
         [TestMethod]

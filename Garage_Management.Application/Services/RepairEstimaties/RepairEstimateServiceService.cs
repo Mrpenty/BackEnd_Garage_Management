@@ -53,27 +53,35 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             var repairEstimate = await _repairEstimateRepository.GetByIdAsync(request.RepairEstimateId, ct);
             if (repairEstimate == null)
-                throw new InvalidOperationException("Không tìm thấy báo giá sửa chữa");
+                throw new InvalidOperationException("Khong tim thay bao gia sua chua");
 
             var service = await _serviceRepository.GetByIdAsync(request.ServiceId);
             if (service == null)
-                throw new InvalidOperationException("Không tìm thấy dịch vụ");
+                throw new InvalidOperationException("Khong tim thay dich vu");
 
             if (!service.IsActive)
-                throw new InvalidOperationException($"Dịch vụ {request.ServiceId} đã ngừng hoạt động");
+                throw new InvalidOperationException($"Dich vu {request.ServiceId} da ngung hoat dong");
+
+            if (!service.BasePrice.HasValue)
+                throw new InvalidOperationException($"Dich vu {request.ServiceId} chua co gia co ban");
+
+            if (service.BasePrice.Value < 0)
+                throw new InvalidOperationException($"Gia co ban cua dich vu {request.ServiceId} khong hop le");
 
             var existed = await _repo.GetByIdAsync(request.RepairEstimateId, request.ServiceId, ct);
             if (existed != null)
-                throw new InvalidOperationException("Dịch vụ báo giá sửa chữa này đã tồn tại");
+                throw new InvalidOperationException("Dich vu bao gia sua chua nay da ton tai");
+
+            var unitPrice = service.BasePrice.Value;
 
             var entity = new Garage_Management.Base.Entities.RepairEstimaties.RepairEstimateService
             {
                 RepairEstimateId = request.RepairEstimateId,
                 ServiceId = request.ServiceId,
                 Status = RepairEstimateApprovalStatus.WaitingApproval,
-                UnitPrice = request.UnitPrice,
+                UnitPrice = unitPrice,
                 Quantity = request.Quantity,
-                TotalAmount = request.UnitPrice * request.Quantity
+                TotalAmount = unitPrice * request.Quantity
             };
 
             await _repo.AddAsync(entity, ct);
@@ -90,19 +98,12 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             if (entity == null)
                 return null;
 
-            ValidateUpdateRequest(request, entity.UnitPrice, entity.Quantity);
-
-            if (request.UnitPrice.HasValue)
-                entity.UnitPrice = request.UnitPrice.Value;
+            ValidateUpdateRequest(request);
 
             if (request.Quantity.HasValue)
                 entity.Quantity = request.Quantity.Value;
 
-            var expectedTotalAmount = entity.UnitPrice * entity.Quantity;
-            if (request.TotalAmount.HasValue && request.TotalAmount.Value != expectedTotalAmount)
-                throw new InvalidOperationException("TotalAmount must equal UnitPrice multiplied by Quantity");
-
-            entity.TotalAmount = request.TotalAmount ?? expectedTotalAmount;
+            entity.TotalAmount = entity.UnitPrice * entity.Quantity;
 
             await _repo.UpdateAsync(entity, ct);
             return Map(entity);
@@ -153,28 +154,28 @@ namespace Garage_Management.Application.Services.RepairEstimaties
         private static void ValidateStatus(RepairEstimateApprovalStatus status)
         {
             if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
-                throw new InvalidOperationException("Trạng thái dịch vụ báo giá sửa chữa không hợp lệ");
+                throw new InvalidOperationException("Trang thai dich vu bao gia sua chua khong hop le");
         }
 
         private static void ValidatePaging(int page, int pageSize)
         {
             if (page <= 0)
-                throw new InvalidOperationException("Trang phải lớn hơn 0");
+                throw new InvalidOperationException("Trang phai lon hon 0");
 
             if (pageSize <= 0)
-                throw new InvalidOperationException("Kích thước trang phải lớn hơn 0");
+                throw new InvalidOperationException("Kich thuoc trang phai lon hon 0");
         }
 
         private static void ValidateRepairEstimateId(int repairEstimateId)
         {
             if (repairEstimateId <= 0)
-                throw new InvalidOperationException("RepairEstimateId phải lớn hơn 0");
+                throw new InvalidOperationException("RepairEstimateId phai lon hon 0");
         }
 
         private static void ValidateServiceId(int serviceId)
         {
             if (serviceId <= 0)
-                throw new InvalidOperationException("ServiceId phải lớn hơn 0");
+                throw new InvalidOperationException("ServiceId phai lon hon 0");
         }
 
         private static void ValidateCreateRequest(RepairEstimateServiceCreateRequest request)
@@ -182,37 +183,14 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             ValidateRepairEstimateId(request.RepairEstimateId);
             ValidateServiceId(request.ServiceId);
 
-            if (request.UnitPrice <= 0)
-                throw new InvalidOperationException("Đơn giá phải lớn hơn 0");
-
             if (request.Quantity <= 0)
-                throw new InvalidOperationException("Số lượng phải lớn hơn 0");
-
-            if (request.TotalAmount <= 0)
-                throw new InvalidOperationException("Thành tiền phải lớn hơn 0");
-
-            var expectedTotalAmount = request.UnitPrice * request.Quantity;
-            if (request.TotalAmount != expectedTotalAmount)
-                throw new InvalidOperationException("Thành tiền phải bằng đơn giá nhân với số lượng");
+                throw new InvalidOperationException("So luong phai lon hon 0");
         }
 
-        private static void ValidateUpdateRequest(RepairEstimateServiceUpdateRequest request, decimal currentUnitPrice, int currentQuantity)
+        private static void ValidateUpdateRequest(RepairEstimateServiceUpdateRequest request)
         {
-            if (request.UnitPrice.HasValue && request.UnitPrice.Value <= 0)
-                throw new InvalidOperationException("Đơn giá phải lớn hơn 0");
-
             if (request.Quantity.HasValue && request.Quantity.Value <= 0)
-                throw new InvalidOperationException("Số lượng phải lớn hơn 0");
-
-            if (request.TotalAmount.HasValue && request.TotalAmount.Value < 0)
-                throw new InvalidOperationException("Thành tiền không được âm");
-
-            var finalUnitPrice = request.UnitPrice ?? currentUnitPrice;
-            var finalQuantity = request.Quantity ?? currentQuantity;
-            var expectedTotalAmount = finalUnitPrice * finalQuantity;
-
-            if (request.TotalAmount.HasValue && request.TotalAmount.Value != expectedTotalAmount)
-                throw new InvalidOperationException("Thành tiền phải bằng đơn giá nhân với số lượng");
+                throw new InvalidOperationException("So luong phai lon hon 0");
         }
     }
 }

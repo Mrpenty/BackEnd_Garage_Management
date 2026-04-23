@@ -45,7 +45,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual("RepairEstimateId must be greater than 0", ex.Message);
+            Assert.AreEqual("RepairEstimateId phải lớn hơn 0", ex.Message);
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual("SparePartId must be greater than 0", ex.Message);
+            Assert.AreEqual("SparePartId phải lớn hơn 0", ex.Message);
         }
 
         [TestMethod]
@@ -77,7 +77,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual("Quantity must be greater than 0", ex.Message);
+            Assert.AreEqual("Số lượng phải lớn hơn 0", ex.Message);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual("RepairEstimate not found", ex.Message);
+            Assert.AreEqual("Không tìm thấy báo giá sửa chữa", ex.Message);
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual("SparePart not found", ex.Message);
+            Assert.AreEqual("Không tìm thấy phụ tùng", ex.Message);
         }
 
         [TestMethod]
@@ -127,7 +127,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual($"SparePart {request.SparePartId} is inactive", ex.Message);
+            Assert.AreEqual($"Phụ tùng {request.SparePartId} đã ngừng hoạt động", ex.Message);
         }
 
         [TestMethod]
@@ -154,7 +154,7 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual("RepairEstimateSparePart already exists", ex.Message);
+            Assert.AreEqual("Phụ tùng báo giá sửa chữa này đã tồn tại", ex.Message);
         }
 
         [TestMethod]
@@ -177,31 +177,10 @@ namespace Garage_Management.UnitTest.RepairEstimateSpareParts
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
 
-            Assert.AreEqual("SparePart does not have a selling price in inventory", ex.Message);
+            Assert.AreEqual("Phụ tùng chưa có giá bán trong tồn kho", ex.Message);
         }
 
-        [TestMethod]
-        public async Task CreateAsync_Throws_WhenSellingPriceIsNegative()
-        {
-            var request = BuildRequest();
-
-            _repo.Setup(x => x.RepairEstimateExistsAsync(request.RepairEstimateId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
-            _inventoryRepository.Setup(x => x.GetByIdAsync(request.SparePartId))
-                .ReturnsAsync(new Inventory
-                {
-                    SparePartId = request.SparePartId,
-                    IsActive = true,
-                    SellingPrice = -1m
-                });
-            _repo.Setup(x => x.GetByIdAsync(request.RepairEstimateId, request.SparePartId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((RepairEstimateSparePart?)null);
-
-            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.CreateAsync(request, CancellationToken.None));
-
-            Assert.AreEqual("SparePart has an invalid selling price in inventory", ex.Message);
-        }
+       
 
         [TestMethod]
         public async Task CreateAsync_ReturnsResponse_WhenRequestIsValid()

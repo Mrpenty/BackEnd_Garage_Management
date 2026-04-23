@@ -36,6 +36,10 @@ namespace Garage_Management.Application.Services.JobCards
 
         public async Task<List<JobCardSparePartResponse>> GetByJobCardIdAsync(int jobCardId, CancellationToken cancellationToken)
         {
+            var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
+            if (jobCard == null)
+                throw new KeyNotFoundException($"JobCard {jobCardId} khong ton tai");
+
             var entities = await _jobCardSparePartRepository.GetByJobCardIdAsync(jobCardId, cancellationToken);
             return entities.Select(Map).ToList();
         }

@@ -70,38 +70,41 @@ namespace Garage_Management.UnitTest.JobCards
         }
 
         [TestMethod]
-        public async Task UpdateStatusAsync_UpdatesStatus_WhenJobCardExists()
+        public async Task UpdateStatusAsync_UpdatesStatus_AndUsesProvidedCancellationToken()
         {
             var entity = new JobCardEntity
             {
                 JobCardId = 10,
                 Status = JobCardStatus.Created
             };
+            using var cts = new CancellationTokenSource();
 
             _jobCardRepo
                 .Setup(x => x.GetByIdAsync(10))
                 .ReturnsAsync(entity);
             _jobCardRepo
-                .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                .Setup(x => x.SaveAsync(cts.Token))
                 .ReturnsAsync(1);
 
-            var result = await _service.UpdateStatusAsync(10, JobCardStatus.InProgress, CancellationToken.None);
+            var result = await _service.UpdateStatusAsync(10, JobCardStatus.InProgress, cts.Token);
 
             Assert.IsTrue(result);
             Assert.AreEqual(JobCardStatus.InProgress, entity.Status);
             Assert.IsNull(entity.EndDate);
             _jobCardRepo.Verify(x => x.Update(entity), Times.Once);
-            _jobCardRepo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
+            _jobCardRepo.Verify(x => x.SaveAsync(cts.Token), Times.Once);
         }
 
         [TestMethod]
-        public async Task UpdateStatusAsync_SetsEndDate_WhenCompleted()
+        public async Task UpdateStatusAsync_SetsEndDateInSeAsiaTimeZone_WhenCompleted()
         {
             var entity = new JobCardEntity
             {
                 JobCardId = 11,
                 Status = JobCardStatus.InProgress
             };
+            var expectedTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var beforeUpdate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, expectedTimeZone);
 
             _jobCardRepo
                 .Setup(x => x.GetByIdAsync(11))
@@ -112,12 +115,90 @@ namespace Garage_Management.UnitTest.JobCards
 
             var result = await _service.UpdateStatusAsync(11, JobCardStatus.Completed, CancellationToken.None);
 
+            var afterUpdate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, expectedTimeZone);
+
             Assert.IsTrue(result);
             Assert.AreEqual(JobCardStatus.Completed, entity.Status);
             Assert.IsNotNull(entity.EndDate);
-            Assert.IsTrue(entity.EndDate <= DateTime.UtcNow);
+            Assert.IsTrue(entity.EndDate >= beforeUpdate);
+            Assert.IsTrue(entity.EndDate <= afterUpdate);
             _jobCardRepo.Verify(x => x.Update(entity), Times.Once);
             _jobCardRepo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [TestMethod]
+        public async Task UpdateStatusAsync_OverwritesExistingEndDate_WhenCompleted()
+        {
+            var originalEndDate = new DateTime(2025, 1, 1, 8, 0, 0);
+            var entity = new JobCardEntity
+            {
+                JobCardId = 12,
+                Status = JobCardStatus.InProgress,
+                EndDate = originalEndDate
+            };
+
+            _jobCardRepo
+                .Setup(x => x.GetByIdAsync(12))
+                .ReturnsAsync(entity);
+            _jobCardRepo
+                .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            var result = await _service.UpdateStatusAsync(12, JobCardStatus.Completed, CancellationToken.None);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(JobCardStatus.Completed, entity.Status);
+            Assert.AreNotEqual(originalEndDate, entity.EndDate);
+        }
+
+        [TestMethod]
+        public async Task UpdateStatusAsync_DoesNotChangeExistingEndDate_WhenStatusIsNotCompleted()
+        {
+            var originalEndDate = new DateTime(2025, 1, 1, 8, 0, 0);
+            var entity = new JobCardEntity
+            {
+                JobCardId = 13,
+                Status = JobCardStatus.Completed,
+                EndDate = originalEndDate
+            };
+
+            _jobCardRepo
+                .Setup(x => x.GetByIdAsync(13))
+                .ReturnsAsync(entity);
+            _jobCardRepo
+                .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            var result = await _service.UpdateStatusAsync(13, JobCardStatus.WaitingPickup, CancellationToken.None);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(JobCardStatus.WaitingPickup, entity.Status);
+            Assert.AreEqual(originalEndDate, entity.EndDate);
+        }
+
+        [TestMethod]
+        public async Task UpdateStatusAsync_ReturnsTrue_WhenSaveReturnsZero()
+        {
+            var entity = new JobCardEntity
+            {
+                JobCardId = 14,
+                Status = JobCardStatus.Created
+            };
+
+            _jobCardRepo
+                .Setup(x => x.GetByIdAsync(14))
+                .ReturnsAsync(entity);
+            _jobCardRepo
+                .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(0);
+
+            var result = await _service.UpdateStatusAsync(14, JobCardStatus.InProgress, CancellationToken.None);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(JobCardStatus.InProgress, entity.Status);
+            _jobCardRepo.Verify(x => x.Update(entity), Times.Once);
+            _jobCardRepo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
     }
 }
