@@ -10,6 +10,7 @@ using Garage_Management.Base.Entities.Services;
 using Garage_Management.UnitTest.Helper;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using System.Security.Claims;
 using JobCardEntity = Garage_Management.Base.Entities.JobCards.JobCard;
 using JobCardServiceApp = Garage_Management.Application.Services.JobCards.JobCardService;
 using JobCardServiceEntity = Garage_Management.Base.Entities.JobCards.JobCardService;
@@ -169,6 +170,13 @@ namespace Garage_Management.UnitTest.JobCards
                 VehicleId = 3,
                 Note = "walk-in"
             };
+
+            var ctx = new DefaultHttpContext();
+            ctx.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim("BranchId", "1")
+            }, "Test"));
+            _httpContextAccessor.Setup(x => x.HttpContext).Returns(ctx);
 
             JobCardEntity? captured = null;
 

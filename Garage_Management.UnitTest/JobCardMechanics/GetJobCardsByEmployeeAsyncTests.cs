@@ -19,6 +19,7 @@ namespace Garage_Management.UnitTest.JobCardMechanics
     public class GetJobCardsByEmployeeAsyncTests
     {
         private Mock<IJobCardMechanicRepository> _repositoryMock;
+        private Mock<IJobCardRepository> _jobCardRepositoryMock;
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private JobCardMechanicService _service;
 
@@ -26,8 +27,9 @@ namespace Garage_Management.UnitTest.JobCardMechanics
         public void Setup()
         {
             _repositoryMock = new Mock<IJobCardMechanicRepository>();
+            _jobCardRepositoryMock = new Mock<IJobCardRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _service = new JobCardMechanicService(_repositoryMock.Object, _httpContextAccessorMock.Object);
+            _service = new JobCardMechanicService(_repositoryMock.Object, _jobCardRepositoryMock.Object, _httpContextAccessorMock.Object);
         }
 
         [TestMethod]

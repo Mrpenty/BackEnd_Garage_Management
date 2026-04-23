@@ -122,5 +122,79 @@ namespace Garage_Management.UnitTest.Inventories
 
             Assert.IsNull(result);
         }
+
+        /// <summary>
+        /// UTCID04 - Abnormal: Id = 0 (boundary dưới) → repo trả null
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID04_GetByIdAsync_IdZero_ReturnsNull()
+        {
+            _repo.Setup(x => x.GetByIdWithDetailsAsync(0, It.IsAny<CancellationToken>())).ReturnsAsync((Inventory?)null);
+
+            var result = await _service.GetByIdAsync(0);
+
+            Assert.IsNull(result);
+        }
+
+        /// <summary>
+        /// UTCID05 - Abnormal: Id âm → repo trả null
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID05_GetByIdAsync_NegativeId_ReturnsNull()
+        {
+            _repo.Setup(x => x.GetByIdWithDetailsAsync(-1, It.IsAny<CancellationToken>())).ReturnsAsync((Inventory?)null);
+
+            var result = await _service.GetByIdAsync(-1);
+
+            Assert.IsNull(result);
+        }
+
+        /// <summary>
+        /// UTCID06 - Abnormal: Staff BranchId=1 truy cập phụ tùng thuộc BranchId=2 → throw UnauthorizedAccessException
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID06_GetByIdAsync_CrossBranchAccess_ThrowsUnauthorized()
+        {
+            var entity = new Inventory
+            {
+                SparePartId = 5,
+                BranchId = 2, // Chi nhánh khác
+                PartName = "Phụ tùng của chi nhánh 2"
+            };
+            _repo.Setup(x => x.GetByIdWithDetailsAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+
+            // _service được tạo với MockCurrentUser.AsStaff() → BranchId=1
+            var ex = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
+                () => _service.GetByIdAsync(5));
+            Assert.AreEqual("Không có quyền truy cập phụ tùng của chi nhánh khác", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID07 - Normal: Admin truy cập phụ tùng của bất kỳ chi nhánh nào → success
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID07_GetByIdAsync_AdminAccessesAnyBranch_ReturnsResponse()
+        {
+            // Tạo service mới với AsAdmin để override setup default
+            var adminService = new InventoryService(
+                _repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsAdmin());
+
+            var entity = new Inventory
+            {
+                SparePartId = 5,
+                BranchId = 2, // Chi nhánh bất kỳ, khác chi nhánh caller
+                PartCode = "SP-005",
+                PartName = "Phụ tùng admin xem được",
+                Quantity = 15,
+                IsActive = true
+            };
+            _repo.Setup(x => x.GetByIdWithDetailsAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+
+            var result = await adminService.GetByIdAsync(5);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(5, result.SparePartId);
+            Assert.AreEqual("SP-005", result.PartCode);
+        }
     }
 }
