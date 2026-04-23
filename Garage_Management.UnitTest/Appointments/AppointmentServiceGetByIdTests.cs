@@ -80,6 +80,15 @@ namespace Garage_Management.UnitTest.Appointments
             var entity = new Appointment
             {
                 AppointmentId = 1,
+                FirstName = "Nguyễn",
+                LastName = "Văn Minh",
+                Phone = "+84912345678",
+                CustomVehicleBrand = "Toyota",
+                CustomVehicleModel = "Vios",
+                LicensePlate = "29A-12345",
+                AppointmentDateTime = new DateTime(2026, 4, 20, 9, 0, 0, DateTimeKind.Utc),
+                Status = Base.Common.Enums.AppointmentStatus.Pending,
+                Description = "Xe có tiếng kêu lạ khi vào số",
                 Services = new List<Garage_Management.Base.Entities.Accounts.AppointmentService>(),
                 SpareParts = new List<AppointmentSparePart>()
             };

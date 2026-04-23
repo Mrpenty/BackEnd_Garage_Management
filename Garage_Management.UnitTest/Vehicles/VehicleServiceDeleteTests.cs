@@ -35,6 +35,8 @@ namespace Garage_Management.UnitTest.Vehicles
             var result = await _service.DeleteAsync(1, CancellationToken.None);
 
             Assert.IsFalse(result);
+            _repo.Verify(x => x.Delete(It.IsAny<Vehicle>()), Times.Never);
+            _repo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
@@ -43,8 +45,12 @@ namespace Garage_Management.UnitTest.Vehicles
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Vehicle { VehicleId = 1 });
             _repo.Setup(x => x.HasAppointmentsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-            await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
+            var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
                 _service.DeleteAsync(1, CancellationToken.None));
+
+            Assert.AreEqual("Không thể xóa vì đang có xe liên kết", ex.Message);
+            _repo.Verify(x => x.Delete(It.IsAny<Vehicle>()), Times.Never);
+            _repo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
@@ -57,6 +63,21 @@ namespace Garage_Management.UnitTest.Vehicles
             var result = await _service.DeleteAsync(1, CancellationToken.None);
 
             Assert.IsTrue(result);
+            _repo.Verify(x => x.GetByIdAsync(1), Times.Once);
+            _repo.Verify(x => x.Delete(It.IsAny<Vehicle>()), Times.Once);
+            _repo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task DeleteAsync_SaveFails_Throws()
+        {
+            _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Vehicle { VehicleId = 1 });
+            _repo.Setup(x => x.HasAppointmentsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+            _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new System.Exception("db error"));
+
+            await Assert.ThrowsExceptionAsync<System.Exception>(() =>
+                _service.DeleteAsync(1, CancellationToken.None));
+
             _repo.Verify(x => x.Delete(It.IsAny<Vehicle>()), Times.Once);
             _repo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
         }

@@ -36,8 +36,36 @@ namespace Garage_Management.Application.Services.Accounts
         private readonly IConfiguration _configuration;
         private readonly IMemoryCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly AppDbContext? _dbContext;
 
 
+
+        public AuthService(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            RoleManager<IdentityRole<int>> roleManager,
+            IGenerateToken tokenGenerator,
+            ITokenCookieService tokenCookieService,
+            ISmsService smsService,
+            IConfiguration configuration,
+            IUserRepository userRepository,
+            ICustomerRepository customerRepository,
+            IHttpContextAccessor httpContextAccessor,
+            AppDbContext dbContext
+            )
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _roleManager = roleManager;
+            _tokenGenerator = tokenGenerator;
+            _tokenCookieService = tokenCookieService;
+            _smsService = smsService;
+            _dbContext = dbContext;
+            _configuration = configuration;
+            _userRepository = userRepository;
+            _customerRepository = customerRepository;
+            _httpContextAccessor = httpContextAccessor;
+        }
 
         public AuthService(
             UserManager<User> userManager,
@@ -58,6 +86,7 @@ namespace Garage_Management.Application.Services.Accounts
             _tokenGenerator = tokenGenerator;
             _tokenCookieService = tokenCookieService;
             _smsService = smsService;
+            _dbContext = null;
             _configuration = configuration;
             _userRepository = userRepository;
             _customerRepository = customerRepository;
@@ -231,6 +260,13 @@ namespace Garage_Management.Application.Services.Accounts
                 RefreshToken = refreshToken
             }, _httpContextAccessor.HttpContext!);
 
+            var employeeBranch = _dbContext == null
+                ? null
+                : await _dbContext.Employees
+                    .Where(e => e.UserId == user.Id)
+                    .Select(e => new { e.BranchId, BranchName = e.Branch.Name })
+                    .FirstOrDefaultAsync(cancellationToken);
+
             return ApiResponse<LoginResponse>.SuccessResponse(new LoginResponse
             {
                 UserId = user.Id,
@@ -239,6 +275,8 @@ namespace Garage_Management.Application.Services.Accounts
                 Email = user.Email,
                 FullName = user.UserName ?? "",
                 Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Staff",
+                BranchId = employeeBranch?.BranchId,
+                BranchName = employeeBranch?.BranchName,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
             }, "Đăng nhập thành công");

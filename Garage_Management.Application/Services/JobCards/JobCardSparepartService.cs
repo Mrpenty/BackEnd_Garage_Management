@@ -71,6 +71,9 @@ namespace Garage_Management.Application.Services.JobCards
                 if (inventory == null)
                     throw new InvalidOperationException($"Không tìm thấy phụ tùng {item.SparePartId}");
 
+                if (inventory.BranchId != jobCard.BranchId)
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} không thuộc chi nhánh của JobCard");
+
                 ValidateInventoryForSparePart(item, inventory);
 
                 if (inventory.Quantity < item.Quantity)

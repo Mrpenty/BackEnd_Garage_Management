@@ -29,5 +29,11 @@ namespace Garage_Management.Application.DTOs.Appointments
         [MaxLength(500)]
         public string? Description { get; set; }
         public int? CreateBy { get; set; }
+
+        /// <summary>
+        /// Chi nhánh khách chọn đặt lịch (bắt buộc).
+        /// </summary>
+        [Required]
+        public int BranchId { get; set; }
     }
 }

@@ -44,13 +44,54 @@ namespace Garage_Management.UnitTest.Vehicles
         }
 
         [TestMethod]
+        public async Task UpdateAsync_ModelIdLessThanOrEqualZero_Throws()
+        {
+            _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Vehicle { VehicleId = 1, BrandId = 1, ModelId = 1 });
+
+            var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
+                _service.UpdateAsync(1, new VehicleUpdateRequest { ModelId = 0 }, CancellationToken.None));
+            Assert.AreEqual("ModelId không hợp lệ", ex.Message);
+        }
+
+        [TestMethod]
         public async Task UpdateAsync_ModelNotFound_Throws()
         {
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Vehicle { VehicleId = 1, BrandId = 1, ModelId = 1 });
             _modelRepo.Setup(x => x.GetByIdAsync(999)).ReturnsAsync((VehicleModel?)null);
 
-            await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
+            var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
                 _service.UpdateAsync(1, new VehicleUpdateRequest { ModelId = 999 }, CancellationToken.None));
+            Assert.AreEqual("ModelId không tồn tại", ex.Message);
+        }
+
+        [TestMethod]
+        public async Task UpdateAsync_WithoutModelId_UpdatesFieldsAndSetsUpdatedAt()
+        {
+            var entity = new Vehicle
+            {
+                VehicleId = 1,
+                CustomerId = 1,
+                BrandId = 1,
+                ModelId = 1,
+                LicensePlate = "29A11111"
+            };
+            _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
+            _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+            var result = await _service.UpdateAsync(1, new VehicleUpdateRequest
+            {
+                LicensePlate = "29A22222",
+                Year = 2024,
+                Vin = "VIN-002",
+                UpdatedBy = 12
+            }, CancellationToken.None);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("29A22222", result.LicensePlate);
+            Assert.AreEqual(12, result.UpdatedBy);
+            Assert.IsTrue(entity.UpdatedAt.HasValue);
+            _repo.Verify(x => x.Update(It.IsAny<Vehicle>()), Times.Once);
+            _repo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
@@ -86,4 +127,3 @@ namespace Garage_Management.UnitTest.Vehicles
         }
     }
 }
-

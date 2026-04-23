@@ -192,6 +192,8 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .Include(x => x.Customer)
                 .ThenInclude(x => x.User)
                 .Include(x => x.Vehicle)
+                 .ThenInclude(v => v.Brand)
+                 .ThenInclude(m => m.Models)
                 .Include(x => x.Supervisor)
                 .ThenInclude(s => s.User)
                 .Include(x => x.Mechanics)

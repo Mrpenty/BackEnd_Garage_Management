@@ -109,5 +109,37 @@ namespace Garage_Management.UnitTest.SparePartCategories
             Assert.AreEqual("Lọc gió", result.CategoryName);
             Assert.AreEqual("Mới", result.Description);
         }
+
+        /// <summary>
+        /// UTCID06 - Normal: Không có spareparts + giữ nguyên CategoryName + đổi Description
+        /// → service skip duplicate check, chỉ update Description
+        /// </summary>
+        [TestMethod]
+        public async Task UpdateAsync_NoChildren_SameName_UpdatesDescriptionOnly()
+        {
+            var repo = new Mock<ISparePartCategoryRepository>();
+            var service = new SparePartCategoryService(repo.Object);
+            var entity = new SparePartCategory
+            {
+                CategoryId = 1,
+                CategoryName = "Phanh",
+                Description = "Cũ"
+            };
+            repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
+            repo.Setup(x => x.HasSparePartsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+            repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+            var result = await service.UpdateAsync(1, new SparePartCategoryUpdateRequest
+            {
+                CategoryName = "Phanh",
+                Description = "Mới"
+            });
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Phanh", result.CategoryName);
+            Assert.AreEqual("Mới", result.Description);
+            // Không gọi duplicate check khi name không đổi
+            repo.Verify(x => x.HasExistAsync(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
     }
 }

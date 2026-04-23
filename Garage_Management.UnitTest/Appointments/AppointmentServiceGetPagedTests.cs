@@ -67,7 +67,20 @@ namespace Garage_Management.UnitTest.Appointments
                 Total = 1,
                 PageData = new List<Appointment>
                 {
-                    new Appointment { AppointmentId = 1, Services = new List < Garage_Management.Base.Entities.Accounts.AppointmentService >(), SpareParts = new List < AppointmentSparePart >() }
+                    new Appointment
+                    {
+                        AppointmentId = 1,
+                        FirstName = "Nguyễn",
+                        LastName = "Văn Minh",
+                        Phone = "+84987654321",
+                        CustomVehicleBrand = "Toyota",
+                        CustomVehicleModel = "Vios",
+                        LicensePlate = "29A-12345",
+                        AppointmentDateTime = new DateTime(2026, 4, 20, 9, 0, 0, DateTimeKind.Utc),
+                        Status = Base.Common.Enums.AppointmentStatus.Pending,
+                        Services = new List<Garage_Management.Base.Entities.Accounts.AppointmentService>(),
+                        SpareParts = new List<AppointmentSparePart>()
+                    }
                 }
             };
             _appointmentRepo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<CancellationToken>()))
@@ -126,6 +139,15 @@ namespace Garage_Management.UnitTest.Appointments
             var entity = new Appointment
             {
                 AppointmentId = 10,
+                FirstName = "Trần",
+                LastName = "Quốc Bảo",
+                Phone = "+84356789012",
+                CustomVehicleBrand = "Honda",
+                CustomVehicleModel = "City",
+                LicensePlate = "51G-67890",
+                AppointmentDateTime = new DateTime(2026, 4, 22, 14, 30, 0, DateTimeKind.Utc),
+                Status = Base.Common.Enums.AppointmentStatus.Confirmed,
+                Description = "Rửa xe và kiểm tra lọc gió",
                 Services = new List<Garage_Management.Base.Entities.Accounts.AppointmentService>
                 {
                     new Garage_Management.Base.Entities.Accounts.AppointmentService
@@ -134,11 +156,11 @@ namespace Garage_Management.UnitTest.Appointments
                         Service = new Service
                         {
                             ServiceId = 2,
-                            ServiceName = "Rua xe",
+                            ServiceName = "Rửa xe",
                             ServiceTasks = new List<ServiceTask>
                             {
-                                new ServiceTask { ServiceTaskId = 1, ServiceId = 2, TaskName = "A", TaskOrder = 1, EstimateMinute = 5 },
-                                new ServiceTask { ServiceTaskId = 2, ServiceId = 2, TaskName = "B", TaskOrder = 2, EstimateMinute = 10 }
+                                new ServiceTask { ServiceTaskId = 1, ServiceId = 2, TaskName = "Xịt nước áp lực", TaskOrder = 1, EstimateMinute = 5 },
+                                new ServiceTask { ServiceTaskId = 2, ServiceId = 2, TaskName = "Lau khô và đánh bóng", TaskOrder = 2, EstimateMinute = 10 }
                             }
                         }
                     }
@@ -151,7 +173,7 @@ namespace Garage_Management.UnitTest.Appointments
                         Inventory = new Inventory
                         {
                             SparePartId = 7,
-                            PartName = "Loc gio"
+                            PartName = "Lọc gió động cơ"
                         }
                     }
                 }

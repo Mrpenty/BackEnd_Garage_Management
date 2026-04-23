@@ -39,6 +39,9 @@ namespace Garage_Management.Application.Services.Inventories
             if (string.IsNullOrWhiteSpace(name))
                 throw new InvalidOperationException("Phải nhập tên cho nhà cung cấp");
 
+            if (!Enum.IsDefined(typeof(Base.Common.Enums.SupplierType), request.SupplierType))
+                throw new InvalidOperationException("SupplierType không hợp lệ");
+
             if (await _repo.HasExistAsync(name, null, ct))
                 throw new InvalidOperationException("Nhà cung cấp đã tồn tại");
 

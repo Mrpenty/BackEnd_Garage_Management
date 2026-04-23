@@ -4,6 +4,8 @@ using Garage_Management.Application.DTOs.Workbays;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.Auth;
+using Garage_Management.Application.Services.Auth;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.JobCards;
@@ -20,13 +22,45 @@ namespace Garage_Management.Application.Services.Workbays
     {
         private readonly IWorkBayRepository _workBayRepository;
         private readonly IJobCardRepository _jobCardRepository;
+        private readonly ICurrentUserService _currentUser;
+
+        public WorkBayService(
+            IWorkBayRepository workBayRepository,
+            IJobCardRepository jobCardRepository,
+            ICurrentUserService currentUser)
+        {
+            _workBayRepository = workBayRepository;
+            _jobCardRepository = jobCardRepository;
+            _currentUser = currentUser;
+        }
 
         public WorkBayService(
             IWorkBayRepository workBayRepository,
             IJobCardRepository jobCardRepository)
+            : this(workBayRepository, jobCardRepository, new NullCurrentUserService())
         {
-            _workBayRepository = workBayRepository;
-            _jobCardRepository = jobCardRepository;
+        }
+
+        private int ResolveBranchIdForCreate(int? requestedBranchId)
+        {
+            if (_currentUser.IsAdmin())
+            {
+                if (requestedBranchId is not { } b || b <= 0)
+                    throw new InvalidOperationException("Admin phải chỉ định BranchId khi tạo khoang sửa chữa");
+                return b;
+            }
+            var scoped = _currentUser.GetCurrentBranchId();
+            if (!scoped.HasValue)
+                throw new UnauthorizedAccessException("Không xác định được chi nhánh từ tài khoản hiện tại");
+            return scoped.Value;
+        }
+
+        private void EnsureCanAccess(int branchId)
+        {
+            if (_currentUser.IsAdmin()) return;
+            var scoped = _currentUser.GetCurrentBranchId();
+            if (scoped.HasValue && scoped.Value == branchId) return;
+            throw new UnauthorizedAccessException("Không có quyền truy cập khoang của chi nhánh khác");
         }
 
         public async Task<List<WorkBayDto>> GetListAsync(
@@ -168,8 +202,10 @@ namespace Garage_Management.Application.Services.Workbays
             {
                 return ApiResponse<WorkBayDto>.ErrorResponse("Tên khoang sửa chữa không được để trống");
             }
+            var branchId = ResolveBranchIdForCreate(request.BranchId);
             var workBay = new WorkBay
             {
+                BranchId = branchId,
                 Name = request.Name,
                 Note = request.Note,
                 Status = WorkBayStatus.Available,
@@ -180,6 +216,7 @@ namespace Garage_Management.Application.Services.Workbays
             return ApiResponse<WorkBayDto>.SuccessResponse(new WorkBayDto
             {
                 Id = workBay.Id,
+                BranchId = workBay.BranchId,
                 Name = workBay.Name,
                 Note = workBay.Note,
                 Status = workBay.Status,
@@ -197,6 +234,7 @@ namespace Garage_Management.Application.Services.Workbays
             {
                 return ApiResponse<WorkBayDto>.ErrorResponse("Khoang sửa chữa không tồn tại");
             }
+            EnsureCanAccess(workBay.BranchId);
             workBay.Name = request.Name;
             workBay.Note = request.Note;
             workBay.Status = request.Status;
@@ -216,6 +254,7 @@ namespace Garage_Management.Application.Services.Workbays
             return ApiResponse<WorkBayDto>.SuccessResponse(new WorkBayDto
             {
                 Id = workBay.Id,
+                BranchId = workBay.BranchId,
                 Name = workBay.Name,
                 Note = workBay.Note,
                 Status = workBay.Status,

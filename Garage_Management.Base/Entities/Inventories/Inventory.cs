@@ -1,5 +1,6 @@
 using Garage_Management.Base.Common.Base;
 using Garage_Management.Base.Entities.Accounts;
+using Garage_Management.Base.Entities.Branches;
 using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.RepairEstimaties;
 using Garage_Management.Base.Entities.Warranties;
@@ -14,6 +15,13 @@ namespace Garage_Management.Base.Entities.Inventories
     public class Inventory : AuditableEntity
     {
         public int SparePartId { get; set; }
+
+        /// <summary>
+        /// Chi nhánh sở hữu phụ tùng này
+        /// </summary>
+        public int BranchId { get; set; }
+        public Branch Branch { get; set; } = null!;
+
         /// <summary>
         /// Mã phụ tùng
         /// </summary>

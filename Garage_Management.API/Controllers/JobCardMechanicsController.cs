@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -8,6 +9,7 @@ namespace Garage_Management.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class JobCardMechanicsController : ControllerBase
     {
         private readonly IJobCardMechanicService _service;
@@ -36,6 +38,15 @@ namespace Garage_Management.API.Controllers
         public async Task<IActionResult> UpdateMechanicStatus(int jobCardId, [FromBody] UpdateJobCardMechanicStatusDto dto)
         {
             var response = await _service.UpdateStatusAsync(jobCardId, dto);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPost("startInspection")]
+        public async Task<IActionResult> StartInspection([FromBody] StartInspectionDto dto, CancellationToken ct)
+        {
+            var response = await _service.StartInspectionAsync(dto, ct);
             if (response.Success)
                 return Ok(response);
             return BadRequest(response);

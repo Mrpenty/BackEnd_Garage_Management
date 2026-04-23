@@ -3,6 +3,7 @@ using Garage_Management.Application.DTOs.JobCardMechanics;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.DTOs.JobCardServices;
 using Garage_Management.Application.DTOs.Services;
+using Garage_Management.Application.DTOs.User;
 using Garage_Management.Application.DTOs.Vehicles;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Appointments;
@@ -18,9 +19,9 @@ using Garage_Management.Base.Entities.Accounts;
 using Garage_Management.Base.Entities.JobCards;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -104,6 +105,15 @@ namespace Garage_Management.Application.Services.JobCards
         }
 
 
+        private int ResolveBranchIdFromContext()
+        {
+            var ctx = _httpContextAccessor.HttpContext;
+            var branchClaim = ctx?.User?.FindFirst("BranchId")?.Value;
+            if (int.TryParse(branchClaim, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var branchId) && branchId > 0)
+                return branchId;
+            throw new InvalidOperationException("Không xác định được chi nhánh cho JobCard (thiếu claim BranchId).");
+        }
+
         public async Task<JobCardDto?> CreateAsync(CreateJobCardDto dto, int currentUserId, CancellationToken cancellationToken)
         {
            // ❗ CHECK 1: Appointment đã có JobCard chưa
@@ -151,8 +161,11 @@ namespace Garage_Management.Application.Services.JobCards
                     throw new Exception($"Lịch hẹn đã quá giờ tiếp nhận {AppointmentLateCreationGraceMinutes} phút. Vui lòng tạo lịch hẹn mới hoặc tiếp nhận dưới dạng walk-in.");
                 }
             }
+            var resolvedBranchId = app?.BranchId ?? ResolveBranchIdFromContext();
+
             var entity = new JobCard
            {
+               BranchId = resolvedBranchId,
                AppointmentId = dto.AppointmentId,
                CustomerId = dto.CustomerId,
                VehicleId = dto.VehicleId,
@@ -216,10 +229,18 @@ namespace Garage_Management.Application.Services.JobCards
                 JobCardId = entity.JobCardId,
                 AppointmentId = entity.AppointmentId,
                 CustomerId = entity.CustomerId,
-                CustomerName = entity.Customer != null
-    ? $"{entity.Customer.FirstName} {entity.Customer.LastName}".Trim()
-    : null,
+                CustomerName = entity.Customer != null? $"{entity.Customer.LastName} {entity.Customer.FirstName}".Trim(): null,
                 VehicleId = entity.VehicleId,
+                CustomerPhone = entity.Customer?.User.PhoneNumber,
+                Vehicles = entity.Vehicle != null? new List<VehicleDto>{
+                new VehicleDto
+                {
+                    VehicleId = entity.Vehicle.VehicleId,
+                    LicensePlate = entity.Vehicle.LicensePlate ?? "",
+                    Brand = entity.Vehicle.Brand?.BrandName,
+                    Model = entity.Vehicle.Model?.ModelName,
+                    Year = entity.Vehicle.Year
+                }}: new List<VehicleDto>(),
                 WorkbayId = entity.WorkBay?.Id,
                 QueueOrder = entity.QueueOrder,
                 StartDate = entity.StartDate,
@@ -231,15 +252,13 @@ namespace Garage_Management.Application.Services.JobCards
                 Services = entity.Services.Where(s => s.DeletedAt == null).Select(MapJobCardService).ToList(),
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId,
-                SupervisorName = entity.Supervisor != null
-    ? $"{entity.Supervisor.FirstName} {entity.Supervisor.LastName}".Trim()
-    : null,
+                SupervisorName = entity.Supervisor != null ? $"{entity.Supervisor.LastName} {entity.Supervisor.FirstName}".Trim() : null,
                 CreatedByEmployeeId = entity.CreatedBy,
 
                 Mechanics = entity.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
-                    MechanicName = m.Employee != null ? $"{m.Employee.FirstName} {m.Employee.LastName}".Trim() : "Không rõ",
+                    MechanicName = m.Employee != null ? $"{m.Employee.LastName} {m.Employee.FirstName}".Trim() : "Không rõ",
                     AssignedAt = m.AssignedAt,
                     StartedAt = m.StartedAt,
                     CompletedAt = m.CompletedAt,

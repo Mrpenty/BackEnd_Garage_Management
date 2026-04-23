@@ -135,5 +135,33 @@ namespace Garage_Management.UnitTest.StockTransactions
                     UnitPrice = 10000
                 }));
         }
+
+        /// <summary>
+        /// UTCID07 - Boundary: Adjustment về 0 (biên min) - kho rỗng hoàn toàn
+        /// </summary>
+        [TestMethod]
+        public async Task CreateAsync_Adjustment_ZeroActualQuantity_UpdatesInventoryToZero()
+        {
+            var repo = new Mock<IStockTransactionRepository>();
+            var inventoryRepo = new Mock<IInventoryRepository>();
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var inventory = new Inventory { SparePartId = 1, Quantity = 20, PartName = "Bugi" };
+            inventoryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(inventory);
+            repo.Setup(x => x.AddAsync(It.IsAny<StockTransaction>(), It.IsAny<CancellationToken>()))
+                .Callback<StockTransaction, CancellationToken>((e, _) => e.StockTransactionId = 7)
+                .Returns(Task.CompletedTask);
+            repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            repo.Setup(x => x.GetByIdAsync(7, It.IsAny<CancellationToken>())).ReturnsAsync((StockTransaction?)null);
+
+            await service.CreateAsync(new StockTransactionCreateRequest
+            {
+                SparePartId = 1,
+                TransactionType = TransactionType.Adjustment,
+                QuantityChange = 0,
+                ActualQuantity = 0
+            });
+
+            Assert.AreEqual(0, inventory.Quantity);
+        }
     }
 }

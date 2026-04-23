@@ -8,7 +8,7 @@ namespace Garage_Management.Application.DTOs.Vehicles
         public int CustomerId { get; set; }
         [Required]
         public int ModelId { get; set; }
-        [MaxLength(10)]
+        [MaxLength(11)]
         public string? LicensePlate { get; set; }
         [Range(1900, 2100)]
         public int? Year { get; set; }

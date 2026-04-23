@@ -54,6 +54,10 @@ namespace Garage_Management.Application.Services.Accounts
             {
                 return ApiResponse<EmployeeDto>.ErrorResponse("Vui lòng nhập đầy đủ thông tin bắt buộc ");
             }
+            if (request.BranchId <= 0)
+            {
+                return ApiResponse<EmployeeDto>.ErrorResponse("Phải chọn chi nhánh cho nhân viên");
+            }
             if (await _userRepo.ExistsByEmailAsync(request.Email))
                 return ApiResponse<EmployeeDto>.ErrorResponse("Email đã tồn tại");
             if (await _userRepo.ExistsByPhoneNumberAsync(request.PhoneNumber))
@@ -98,6 +102,7 @@ namespace Garage_Management.Application.Services.Accounts
                 employee = new Employee
                 {
                     UserId = user.Id,
+                    BranchId = request.BranchId,
                     FirstName = request.FirstName,
                     LastName = request.LastName,
                     EmployeeCode = employeeCode,
@@ -126,6 +131,7 @@ namespace Garage_Management.Application.Services.Accounts
             {
                 EmployeeId = employee.EmployeeId,
                 UserId = employee.UserId,
+                BranchId = employee.BranchId,
                 FirstName = employee.FirstName,
                 LastName = employee.LastName,
                 FullName = employee.FullName,

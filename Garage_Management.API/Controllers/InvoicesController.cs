@@ -9,6 +9,7 @@ namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class InvoicesController : ControllerBase
     {
         private readonly IInvoiceService _service;

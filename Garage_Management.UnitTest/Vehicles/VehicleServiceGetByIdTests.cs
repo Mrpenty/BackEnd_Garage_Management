@@ -35,6 +35,7 @@ namespace Garage_Management.UnitTest.Vehicles
             var result = await _service.GetByIdAsync(1, CancellationToken.None);
 
             Assert.IsNull(result);
+            _repo.Verify(x => x.GetByIdAsync(1), Times.Once);
         }
 
         [TestMethod]
@@ -56,7 +57,27 @@ namespace Garage_Management.UnitTest.Vehicles
             Assert.AreEqual(5, result.CustomerId);
             Assert.AreEqual("Honda", result.BrandName);
             Assert.AreEqual("Vision", result.ModelName);
+            _repo.Verify(x => x.GetByIdAsync(1), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetByIdAsync_FoundWithNullBrandModel_MapsEmptyNames()
+        {
+            _repo.Setup(x => x.GetByIdAsync(2)).ReturnsAsync(new Vehicle
+            {
+                VehicleId = 2,
+                CustomerId = 6,
+                ModelId = 3,
+                Brand = null,
+                Model = null
+            });
+
+            var result = await _service.GetByIdAsync(2, CancellationToken.None);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(string.Empty, result.BrandName);
+            Assert.AreEqual(string.Empty, result.ModelName);
+            _repo.Verify(x => x.GetByIdAsync(2), Times.Once);
         }
     }
 }
-

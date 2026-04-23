@@ -17,6 +17,7 @@ namespace Garage_Management.Application.Interfaces.Services.JobCard
         /// </summary>
         Task<ApiResponse<PagedResult<JobCardMechanicDto>>> GetJobCardsByEmployeeAsync(ParamQuery param, CancellationToken ct);
         Task<ApiResponse<JobCardMechanicDto>> UpdateStatusAsync(int jobCardId, UpdateJobCardMechanicStatusDto dto);
+        Task<ApiResponse<JobCardMechanicDto>> StartInspectionAsync(StartInspectionDto dto, CancellationToken ct);
 
     }
 }
