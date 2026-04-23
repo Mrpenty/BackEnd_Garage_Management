@@ -55,5 +55,51 @@ namespace Garage_Management.UnitTest.SparePartCategories
             Assert.AreEqual("Phanh", result.CategoryName);
             Assert.IsTrue(result.IsActive);
         }
+
+        /// <summary>
+        /// UTCID04 - Normal: Tạo category "Lọc" chưa tồn tại → success, CategoryId auto-generated
+        /// </summary>
+        [TestMethod]
+        public async Task CreateAsync_Valid_AnotherCategory_ReturnsResponse()
+        {
+            var repo = new Mock<ISparePartCategoryRepository>();
+            var service = new SparePartCategoryService(repo.Object);
+            repo.Setup(x => x.HasExistAsync("Lọc", null, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+            repo.Setup(x => x.AddAsync(It.IsAny<SparePartCategory>(), It.IsAny<CancellationToken>()))
+                .Callback<SparePartCategory, CancellationToken>((e, _) => e.CategoryId = 6)
+                .Returns(Task.CompletedTask);
+            repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+            var result = await service.CreateAsync(new SparePartCategoryCreateRequest
+            {
+                CategoryName = "Lọc",
+                Description = "Lọc gió",
+                IsActive = true
+            });
+
+            Assert.AreEqual(6, result.CategoryId);
+            Assert.AreEqual("Lọc", result.CategoryName);
+            Assert.AreEqual("Lọc gió", result.Description);
+            Assert.IsTrue(result.IsActive);
+        }
+
+        /// <summary>
+        /// UTCID05 - Abnormal: CategoryName = null → throw "Phải nhập tên cho nhóm phụ tùng"
+        /// </summary>
+        [TestMethod]
+        public async Task CreateAsync_NullName_Throws()
+        {
+            var repo = new Mock<ISparePartCategoryRepository>();
+            var service = new SparePartCategoryService(repo.Object);
+
+            var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
+                service.CreateAsync(new SparePartCategoryCreateRequest
+                {
+                    CategoryName = null!,
+                    Description = null,
+                    IsActive = false
+                }));
+            Assert.AreEqual("Phải nhập tên cho nhóm phụ tùng", ex.Message);
+        }
     }
 }
