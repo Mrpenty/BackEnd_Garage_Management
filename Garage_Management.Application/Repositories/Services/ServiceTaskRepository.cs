@@ -1,6 +1,7 @@
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Data;
+using Garage_Management.Base.Entities.JobCards;
 using Garage_Management.Base.Entities.Services;
 using Garage_Management.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,11 @@ namespace Garage_Management.Application.Repositories.Services
                 .ToListAsync(ct);
         }
 
-
+        public Task<bool> HasDependenciesAsync(int serviceTaskId, CancellationToken ct = default)
+        {
+            return _context.Set<JobCardServiceTask>()
+                .AsNoTracking()
+                .AnyAsync(x => x.ServiceTaskId == serviceTaskId, ct);
+        }
     }
 }

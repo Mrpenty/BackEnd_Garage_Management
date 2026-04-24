@@ -1,6 +1,7 @@
 using Garage_Management.Application.DTOs.ServiceTasks;
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
@@ -9,6 +10,8 @@ namespace Garage_Management.API.Controllers
     [Route("api/[controller]")]
     public class ServiceTasksController : ControllerBase
     {
+        private const string ManagerRoles = "Supervisor,Accountant";
+
         private readonly IServiceTaskService _service;
 
         public ServiceTasksController(IServiceTaskService service)
@@ -32,8 +35,8 @@ namespace Garage_Management.API.Controllers
             {
                 var data = await _service.GetByIdAsync(id, ct);
                 if (data == null)
-                    return NotFound(ApiResponse<ServiceTaskResponse>.ErrorResponse("tác v? d?ch v? không tìm th?y"));
-                return Ok(ApiResponse<ServiceTaskResponse>.SuccessResponse(data, "L?y tác v? d?ch v? thành công"));
+                    return NotFound(ApiResponse<ServiceTaskResponse>.ErrorResponse("tï¿½c v? d?ch v? khï¿½ng tï¿½m th?y"));
+                return Ok(ApiResponse<ServiceTaskResponse>.SuccessResponse(data, "L?y tï¿½c v? d?ch v? thï¿½nh cï¿½ng"));
             }
             catch (InvalidOperationException ex)
             {
@@ -56,6 +59,7 @@ namespace Garage_Management.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<ServiceTaskResponse>>> Create(
             [FromBody] ServiceTaskCreateRequest request,
             CancellationToken ct = default)
@@ -63,7 +67,7 @@ namespace Garage_Management.API.Controllers
             try
             {
                 var data = await _service.CreateAsync(request, ct);
-                return CreatedAtAction(nameof(GetById), new { id = data.ServiceTaskId }, ApiResponse<ServiceTaskResponse>.SuccessResponse(data, "T?o tác v? d?ch v? thành công"));
+                return CreatedAtAction(nameof(GetById), new { id = data.ServiceTaskId }, ApiResponse<ServiceTaskResponse>.SuccessResponse(data, "T?o tï¿½c v? d?ch v? thï¿½nh cï¿½ng"));
             }
             catch (InvalidOperationException ex)
             {
@@ -72,6 +76,7 @@ namespace Garage_Management.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<ServiceTaskResponse>>> Update(
             int id,
             [FromBody] ServiceTaskUpdateRequest request,
@@ -81,9 +86,9 @@ namespace Garage_Management.API.Controllers
             {
                 var data = await _service.UpdateAsync(id, request, ct);
                 if (data == null)
-                    return NotFound(ApiResponse<ServiceTaskResponse>.ErrorResponse("Tác v? d?ch v? không tìm th?y"));
+                    return NotFound(ApiResponse<ServiceTaskResponse>.ErrorResponse("Tï¿½c v? d?ch v? khï¿½ng tï¿½m th?y"));
 
-                return Ok(ApiResponse<ServiceTaskResponse>.SuccessResponse(data, "C?p nh?t tác v? d?ch v? thành công"));
+                return Ok(ApiResponse<ServiceTaskResponse>.SuccessResponse(data, "C?p nh?t tï¿½c v? d?ch v? thï¿½nh cï¿½ng"));
             }
             catch (InvalidOperationException ex)
             {
@@ -91,14 +96,5 @@ namespace Garage_Management.API.Controllers
             }
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
-        {
-            var ok = await _service.DeleteAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("ServiceTask not found"));
-
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
-        }
     }
 }

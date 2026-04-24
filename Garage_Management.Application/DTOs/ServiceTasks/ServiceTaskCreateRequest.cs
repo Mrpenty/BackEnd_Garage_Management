@@ -12,7 +12,7 @@ namespace Garage_Management.Application.DTOs.ServiceTasks
         public string TaskName { get; set; } = string.Empty;
 
         [Range(1, int.MaxValue, ErrorMessage = "TaskOrder must be greater than 0")]
-        public int TaskOrder { get; set; } = 0;
+        public int TaskOrder { get; set; } = 1;
 
         [Range(0, int.MaxValue, ErrorMessage = "EstimateMinute must be >= 0")]
         public int EstimateMinute { get; set; }
