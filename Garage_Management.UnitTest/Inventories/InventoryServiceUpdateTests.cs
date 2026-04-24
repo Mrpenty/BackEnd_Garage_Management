@@ -180,24 +180,48 @@ namespace Garage_Management.UnitTest.Inventories
         }
 
         /// <summary>
-        /// UTCID08 - Abnormal: PartCode trùng với phụ tùng khác
+        /// UTCID08 - Abnormal: PartCode trùng với phụ tùng khác trong CÙNG chi nhánh (per-branch unique)
         /// </summary>
         [TestMethod]
-        public async Task UTCID08_UpdateAsync_WithDuplicatePartCode_Throws()
+        public async Task UTCID08_UpdateAsync_WithDuplicatePartCodeSameBranch_Throws()
         {
             var entity = MakeEntity();
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
 
-            // Có 1 phụ tùng khác (id=99) đã dùng PartCode "DUP-001"
+            // Có 1 phụ tùng khác (id=99) đã dùng PartCode "DUP-001" trong cùng Branch 1
             var existing = new List<Inventory>
             {
-                new Inventory { SparePartId = 99, PartCode = "DUP-001", PartName = "Phụ tùng khác" }
+                new Inventory { SparePartId = 99, BranchId = 1, PartCode = "DUP-001", PartName = "Phụ tùng khác" }
             }.AsQueryable();
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(existing));
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.UpdateAsync(1, new InventoryUpdateRequest { PartCode = "DUP-001" }));
             Assert.AreEqual("PartCode đã tồn tại", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID11 - Normal: PartCode trùng nhưng KHÁC chi nhánh → cho phép update (per-branch unique scope)
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID11_UpdateAsync_WithSamePartCodeOtherBranch_Succeeds()
+        {
+            var entity = MakeEntity(); // BranchId = 1, PartCode = "BG-001"
+            _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
+            _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+
+            // Phụ tùng (id=99) đã dùng PartCode "DUP-001" nhưng ở Branch 2
+            var existing = new List<Inventory>
+            {
+                new Inventory { SparePartId = 99, BranchId = 2, PartCode = "DUP-001", PartName = "Phụ tùng chi nhánh 2" }
+            }.AsQueryable();
+            _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(existing));
+
+            var result = await _service.UpdateAsync(1, new InventoryUpdateRequest { PartCode = "DUP-001" });
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("DUP-001", entity.PartCode);
         }
 
         /// <summary>

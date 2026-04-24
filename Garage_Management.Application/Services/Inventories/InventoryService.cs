@@ -157,18 +157,18 @@ namespace Garage_Management.Application.Services.Inventories
                     throw new InvalidOperationException("SparePartBrandId không tồn tại");
             }
 
-            // Validation PartCode duy nhất (nếu có)
+            var branchId = ResolveBranchIdForCreate(request.BranchId);
+
+            // Validation PartCode duy nhất trong phạm vi chi nhánh (nếu có)
             var partCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim();
             if (partCode != null)
             {
                 var duplicate = await _repo.Query()
                     .AsNoTracking()
-                    .AnyAsync(x => x.PartCode == partCode, ct);
+                    .AnyAsync(x => x.PartCode == partCode && x.BranchId == branchId, ct);
                 if (duplicate)
                     throw new InvalidOperationException("PartCode đã tồn tại");
             }
-
-            var branchId = ResolveBranchIdForCreate(request.BranchId);
 
             var entity = new Inventory
             {
@@ -218,13 +218,53 @@ namespace Garage_Management.Application.Services.Inventories
         public async Task<InventoryResponse?> UpdateAsync(int id, InventoryUpdateRequest request, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return null;
+            if (entity == null)
+                throw new InvalidOperationException("Id không tồn tại");
             EnsureCanAccess(entity.BranchId);
 
-            if (!string.IsNullOrWhiteSpace(request.PartName)) entity.PartName = request.PartName.Trim();
-            if (request.Unit != null) entity.Unit = request.Unit.Trim();
-            if (request.CategoryId.HasValue) entity.CategoryId = request.CategoryId;
-            if (request.SparePartBrandId.HasValue) entity.SparePartBrandId = request.SparePartBrandId;
+            if (request.PartName != null)
+            {
+                if (string.IsNullOrWhiteSpace(request.PartName))
+                    throw new InvalidOperationException("PartName không hợp lệ");
+                entity.PartName = request.PartName.Trim();
+            }
+
+            if (request.Unit != null)
+                entity.Unit = string.IsNullOrWhiteSpace(request.Unit) ? null : request.Unit.Trim();
+
+            if (request.CategoryId.HasValue)
+            {
+                var category = await _categoryRepo.GetByIdAsync(request.CategoryId.Value);
+                if (category == null)
+                    throw new InvalidOperationException("CategoryId không tồn tại");
+                entity.CategoryId = request.CategoryId;
+            }
+
+            if (request.SparePartBrandId.HasValue)
+            {
+                var brand = await _brandRepo.GetByIdAsync(request.SparePartBrandId.Value);
+                if (brand == null)
+                    throw new InvalidOperationException("SparePartBrandId không tồn tại");
+                entity.SparePartBrandId = request.SparePartBrandId;
+            }
+
+            if (request.PartCode != null)
+            {
+                var newCode = request.PartCode.Trim();
+                if (newCode.Length == 0)
+                {
+                    entity.PartCode = null;
+                }
+                else if (newCode != entity.PartCode)
+                {
+                    var duplicate = await _repo.Query()
+                        .AsNoTracking()
+                        .AnyAsync(x => x.PartCode == newCode && x.BranchId == entity.BranchId && x.SparePartId != entity.SparePartId, ct);
+                    if (duplicate)
+                        throw new InvalidOperationException("PartCode đã tồn tại");
+                    entity.PartCode = newCode;
+                }
+            }
 
             if (request.MinQuantity.HasValue)
             {
@@ -253,7 +293,8 @@ namespace Garage_Management.Application.Services.Inventories
         public async Task<InventoryResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return null;
+            if (entity == null)
+                throw new InvalidOperationException("Id không tồn tại");
             EnsureCanAccess(entity.BranchId);
 
             if (entity.IsActive == isActive)
