@@ -54,14 +54,22 @@ namespace Garage_Management.Application.Services.Branches
             if (string.IsNullOrWhiteSpace(code))
                 throw new InvalidOperationException("Phải nhập mã chi nhánh");
 
+            var name = (request.Name ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(name))
+                throw new InvalidOperationException("Phải nhập tên chi nhánh");
+
+            var address = (request.Address ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(address))
+                throw new InvalidOperationException("Phải nhập địa chỉ chi nhánh");
+
             if (await _repo.CodeExistsAsync(code, null, ct))
                 throw new InvalidOperationException("Mã chi nhánh đã tồn tại");
 
             var entity = new Branch
             {
                 BranchCode = code,
-                Name = request.Name.Trim(),
-                Address = request.Address.Trim(),
+                Name = name,
+                Address = address,
                 Phone = request.Phone,
                 Email = request.Email,
                 ManagerEmployeeId = request.ManagerEmployeeId,
@@ -79,11 +87,19 @@ namespace Garage_Management.Application.Services.Branches
             if (!_currentUser.IsAdmin())
                 throw new UnauthorizedAccessException("Chỉ Admin được cập nhật chi nhánh");
 
+            var name = (request.Name ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(name))
+                throw new InvalidOperationException("Phải nhập tên chi nhánh");
+
+            var address = (request.Address ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(address))
+                throw new InvalidOperationException("Phải nhập địa chỉ chi nhánh");
+
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null || entity.DeletedAt != null) return null;
 
-            entity.Name = request.Name.Trim();
-            entity.Address = request.Address.Trim();
+            entity.Name = name;
+            entity.Address = address;
             entity.Phone = request.Phone;
             entity.Email = request.Email;
             entity.ManagerEmployeeId = request.ManagerEmployeeId;

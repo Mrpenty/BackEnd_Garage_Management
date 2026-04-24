@@ -82,7 +82,33 @@ namespace Garage_Management.UnitTest.Branches
         }
 
         /// <summary>
-        /// UTCID04 - Abnormal: Chi nhánh đã soft-deleted → trả null
+        /// UTCID04 - Abnormal: Name rỗng / whitespace
+        /// </summary>
+        [TestMethod]
+        public async Task UpdateAsync_EmptyName_Throws()
+        {
+            var service = new BranchService(_repo.Object, MockCurrentUser.AsAdmin());
+
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
+                service.UpdateAsync(1, new BranchUpdateRequest { Name = "  ", Address = "Y" }));
+            Assert.AreEqual("Phải nhập tên chi nhánh", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID05 - Abnormal: Address rỗng / whitespace
+        /// </summary>
+        [TestMethod]
+        public async Task UpdateAsync_EmptyAddress_Throws()
+        {
+            var service = new BranchService(_repo.Object, MockCurrentUser.AsAdmin());
+
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
+                service.UpdateAsync(1, new BranchUpdateRequest { Name = "X", Address = " " }));
+            Assert.AreEqual("Phải nhập địa chỉ chi nhánh", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID06 - Abnormal: Chi nhánh đã soft-deleted → trả null
         /// </summary>
         [TestMethod]
         public async Task UpdateAsync_SoftDeleted_ReturnsNull()
