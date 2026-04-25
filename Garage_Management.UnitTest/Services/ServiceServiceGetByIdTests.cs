@@ -23,8 +23,11 @@ namespace Garage_Management.UnitTest.Services
             _service = new ServiceService(_repo.Object);
         }
 
+        /// <summary>
+        /// UTCID01 - Abnormal: Id không tồn tại trong DB → trả null
+        /// </summary>
         [TestMethod]
-        public async Task GetByIdAsync_NotFound_ReturnsNull()
+        public async Task UTCID01_GetByIdAsync_NotFound_ReturnsNull()
         {
             _repo.Setup(x => x.GetByIdAsync(100)).ReturnsAsync((Service?)null);
 
@@ -33,8 +36,11 @@ namespace Garage_Management.UnitTest.Services
             Assert.IsNull(result);
         }
 
+        /// <summary>
+        /// UTCID02 - Normal: Tìm thấy service với 2 ServiceTasks → map đầy đủ kèm TotalEstimateMinute = sum
+        /// </summary>
         [TestMethod]
-        public async Task GetByIdAsync_Found_ReturnsMappedResponse()
+        public async Task UTCID02_GetByIdAsync_Found_ReturnsMappedResponse()
         {
             var entity = new Service
             {
@@ -57,6 +63,56 @@ namespace Garage_Management.UnitTest.Services
             Assert.AreEqual(1, result.ServiceId);
             Assert.AreEqual(15L, result.TotalEstimateMinute);
             Assert.AreEqual(2, result.ServiceTasks.Count);
+        }
+
+        /// <summary>
+        /// UTCID03 - Boundary: id = 0 → fail-fast, không gọi repo, trả null
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID03_GetByIdAsync_IdZero_ReturnsNullWithoutCallingRepo()
+        {
+            var result = await _service.GetByIdAsync(0, CancellationToken.None);
+
+            Assert.IsNull(result);
+            _repo.Verify(x => x.GetByIdAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// UTCID04 - Abnormal: id âm → fail-fast, không gọi repo, trả null
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID04_GetByIdAsync_NegativeId_ReturnsNullWithoutCallingRepo()
+        {
+            var result = await _service.GetByIdAsync(-1, CancellationToken.None);
+
+            Assert.IsNull(result);
+            _repo.Verify(x => x.GetByIdAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// UTCID05 - Boundary: Entity có ServiceTasks = null (edge case) → Map không NRE, trả TotalEstimateMinute=0, ServiceTasks rỗng
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID05_GetByIdAsync_EntityWithNullServiceTasks_ReturnsEmptyTasks()
+        {
+            var entity = new Service
+            {
+                ServiceId = 7,
+                ServiceName = "Service không có task",
+                BasePrice = 50000m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                ServiceTasks = null!
+            };
+            _repo.Setup(x => x.GetByIdAsync(7)).ReturnsAsync(entity);
+
+            var result = await _service.GetByIdAsync(7, CancellationToken.None);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(7, result.ServiceId);
+            Assert.AreEqual(0L, result.TotalEstimateMinute);
+            Assert.IsNotNull(result.ServiceTasks);
+            Assert.AreEqual(0, result.ServiceTasks.Count);
         }
     }
 }

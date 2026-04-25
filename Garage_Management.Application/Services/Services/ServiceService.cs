@@ -32,6 +32,7 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceResponse?> GetByIdAsync(int id, CancellationToken ct = default)
         {
+            if (id <= 0) return null;
             var entity = await _repo.GetByIdAsync(id);
             return entity == null ? null : Map(entity);
         }
@@ -153,14 +154,15 @@ namespace Garage_Management.Application.Services.Services
 
         private static ServiceResponse Map(Service entity)
         {
+            var tasks = entity.ServiceTasks ?? new List<ServiceTask>();
             return new ServiceResponse
             {
                 ServiceId = entity.ServiceId,
                 ServiceName = entity.ServiceName,
                 BasePrice = entity.BasePrice,
                 Description = entity.Description,
-                TotalEstimateMinute = entity.ServiceTasks.Sum(x => (long)x.EstimateMinute),
-                ServiceTasks = entity.ServiceTasks
+                TotalEstimateMinute = tasks.Sum(x => (long)x.EstimateMinute),
+                ServiceTasks = tasks
                     .OrderBy(x => x.TaskOrder)
                     .Select(x => new ServiceTaskResponse
                     {

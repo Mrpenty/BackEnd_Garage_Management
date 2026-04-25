@@ -23,6 +23,9 @@ namespace Garage_Management.Base.Data.Configurations.Inventories
                 .WithOne(i => i.SparePartBrand)
                 .HasForeignKey(i => i.SparePartBrandId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Soft delete: ẩn row đã xóa mềm khỏi mọi query mặc định
+            builder.HasQueryFilter(sb => sb.DeletedAt == null);
         }
     }
 }
