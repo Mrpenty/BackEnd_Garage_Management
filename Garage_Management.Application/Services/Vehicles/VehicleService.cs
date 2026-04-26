@@ -65,7 +65,7 @@ namespace Garage_Management.Application.Services.Vehicles
             {
                 return ApiResponse<PagedResult<VehicleResponse>>.ErrorResponse("khách hàng chỉ có thể xem danh sách xe máy cá nhân");
             }
-            var customer = await _customerRepo.GetAll().FirstAsync(c => c.UserId == currentUserId, ct);
+            var customer = await _customerRepo.GetAll().FirstOrDefaultAsync(c => c.UserId == currentUserId, ct);
 
             if (customer == null)
             {

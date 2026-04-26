@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.Inventories.SparePartCategories;
 using Garage_Management.Application.Interfaces.Services.Inventories;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
@@ -9,6 +10,8 @@ namespace Garage_Management.API.Controllers
     [Route("api/[controller]")]
     public class SparePartCategoriesController : ControllerBase
     {
+        private const string ManagerRoles = "Supervisor";
+
         private readonly ISparePartCategoryService _service;
 
         public SparePartCategoriesController(ISparePartCategoryService service)
@@ -51,6 +54,7 @@ namespace Garage_Management.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<SparePartCategoryResponse>>> Create([FromBody] SparePartCategoryCreateRequest request, CancellationToken ct = default)
         {
             var data = await _service.CreateAsync(request, ct);
@@ -64,6 +68,7 @@ namespace Garage_Management.API.Controllers
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<SparePartCategoryResponse>>> Update(int id, [FromBody] SparePartCategoryUpdateRequest request, CancellationToken ct = default)
         {
             var data = await _service.UpdateAsync(id, request, ct);
@@ -73,16 +78,8 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<SparePartCategoryResponse>.SuccessResponse(data, "Updated"));
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
-        {
-            var ok = await _service.DeleteAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("SparePartCategory not found"));
-
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
-        }
         [HttpPatch("{id:int}")]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<SparePartCategoryResponse>>> UpdateStatus(int id, [FromBody] SparePartUpdateStatusRequest request, CancellationToken ct = default)
         {
             var ok = await _service.UpdateStatusAsync(id, request.IsActive,ct);

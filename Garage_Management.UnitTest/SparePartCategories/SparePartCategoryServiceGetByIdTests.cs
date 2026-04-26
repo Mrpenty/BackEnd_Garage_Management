@@ -69,33 +69,33 @@ namespace Garage_Management.UnitTest.SparePartCategories
         }
 
         /// <summary>
-        /// UTCID04 - Boundary: Id = 0 → repo trả null
+        /// UTCID04 - Boundary: Id = 0 → service short-circuit (fail-fast), KHÔNG gọi repo
         /// </summary>
         [TestMethod]
-        public async Task GetByIdAsync_ZeroId_ReturnsNull()
+        public async Task GetByIdAsync_ZeroId_ReturnsNullWithoutCallingRepo()
         {
             var repo = new Mock<ISparePartCategoryRepository>();
             var service = new SparePartCategoryService(repo.Object);
-            repo.Setup(x => x.GetByIdAsync(0)).ReturnsAsync((SparePartCategory?)null);
 
             var result = await service.GetByIdAsync(0);
 
             Assert.IsNull(result);
+            repo.Verify(x => x.GetByIdAsync(It.IsAny<int>()), Times.Never);
         }
 
         /// <summary>
-        /// UTCID05 - Abnormal: Id âm → repo trả null
+        /// UTCID05 - Abnormal: Id âm → service short-circuit (fail-fast), KHÔNG gọi repo
         /// </summary>
         [TestMethod]
-        public async Task GetByIdAsync_NegativeId_ReturnsNull()
+        public async Task GetByIdAsync_NegativeId_ReturnsNullWithoutCallingRepo()
         {
             var repo = new Mock<ISparePartCategoryRepository>();
             var service = new SparePartCategoryService(repo.Object);
-            repo.Setup(x => x.GetByIdAsync(-1)).ReturnsAsync((SparePartCategory?)null);
 
             var result = await service.GetByIdAsync(-1);
 
             Assert.IsNull(result);
+            repo.Verify(x => x.GetByIdAsync(It.IsAny<int>()), Times.Never);
         }
     }
 }

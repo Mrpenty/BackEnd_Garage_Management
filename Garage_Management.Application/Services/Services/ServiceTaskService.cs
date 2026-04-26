@@ -61,7 +61,7 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceTaskResponse> CreateAsync(ServiceTaskCreateRequest request, CancellationToken ct = default)
         {
-            if (!(_currentUser.IsAdmin() || _currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
+            if (!(_currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
                 throw new UnauthorizedAccessException("Chỉ Supervisor hoặc Accountant được tạo công việc dịch vụ");
 
             if (request.ServiceId <= 0)
@@ -101,7 +101,7 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceTaskResponse?> UpdateAsync(int id, ServiceTaskUpdateRequest request, CancellationToken ct = default)
         {
-            if (!(_currentUser.IsAdmin() || _currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
+            if (!(_currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
                 throw new UnauthorizedAccessException("Chỉ Supervisor hoặc Accountant được cập nhật công việc dịch vụ");
 
             var entity = await _repo.GetByIdAsync(id);

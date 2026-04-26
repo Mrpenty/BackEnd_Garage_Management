@@ -75,18 +75,5 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<InvoiceResponse>.SuccessResponse(data, "Updated"));
         }
 
-        /// <summary>
-        /// Xoa hoa don
-        /// </summary>
-        [HttpDelete("{id:int}")]
-        [Authorize]
-        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
-        {
-            var ok = await _service.DeleteAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("Invoice not found"));
-
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
-        }
     }
 }

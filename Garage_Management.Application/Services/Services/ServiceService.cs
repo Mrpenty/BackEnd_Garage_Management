@@ -51,7 +51,7 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceResponse> CreateAsync(ServiceCreateRequest request, CancellationToken ct = default)
         {
-            if (!(_currentUser.IsAdmin() || _currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
+            if (!(_currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
                 throw new UnauthorizedAccessException("Chỉ Supervisor hoặc Accountant được tạo dịch vụ");
 
             if (string.IsNullOrWhiteSpace(request.ServiceName))
@@ -77,7 +77,7 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceResponse?> UpdatePriceAsync(int id, ServicePriceUpdateRequest request, CancellationToken ct = default)
         {
-            if (!(_currentUser.IsAdmin() || _currentUser.IsInRole("Accountant")))
+            if (!_currentUser.IsInRole("Accountant"))
                 throw new UnauthorizedAccessException("Chỉ Accountant được cập nhật giá dịch vụ");
 
             var entity = await _repo.GetByIdAsync(id);
@@ -97,7 +97,7 @@ namespace Garage_Management.Application.Services.Services
 
         public async Task<ServiceResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
         {
-            if (!(_currentUser.IsAdmin() || _currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
+            if (!(_currentUser.IsInRole("Supervisor") || _currentUser.IsInRole("Accountant")))
                 throw new UnauthorizedAccessException("Chỉ Supervisor hoặc Accountant được đổi trạng thái dịch vụ");
 
             var entity = await _repo.GetByIdAsync(id);

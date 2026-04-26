@@ -1,8 +1,10 @@
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Services.Auth;
 using Garage_Management.Application.Services.Inventories;
 using Garage_Management.Base.Entities.Inventories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -103,6 +105,24 @@ namespace Garage_Management.UnitTest.SparePartCategories
             var result = await service.UpdateStatusAsync(99, false);
 
             Assert.IsNull(result);
+        }
+
+        /// <summary>
+        /// UTCID05 - Abnormal: User không có quyền (không phải Admin/Supervisor) → throw UnauthorizedAccessException
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID05_UpdateStatusAsync_UnauthorizedRole_Throws()
+        {
+            var repo = new Mock<ISparePartCategoryRepository>();
+            var currentUser = new Mock<ICurrentUserService>();
+            currentUser.Setup(x => x.IsAdmin()).Returns(false);
+            currentUser.Setup(x => x.IsInRole(It.IsAny<string>())).Returns(false);
+            currentUser.Setup(x => x.GetCurrentUserId()).Returns(7);
+            var service = new SparePartCategoryService(repo.Object, currentUser.Object);
+
+            var ex = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(() =>
+                service.UpdateStatusAsync(1, false));
+            Assert.AreEqual("Chỉ Supervisor được đổi trạng thái nhóm phụ tùng", ex.Message);
         }
     }
 }
