@@ -99,19 +99,6 @@ namespace Garage_Management.Application.Services.Inventories
             return Map(entity);
         }
 
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
-        {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return false;
-
-            if (await _repo.HasStockTransactionsAsync(id, ct))
-                throw new InvalidOperationException("Không thể xóa nhà cung cấp vì đã phát sinh giao dịch kho");
-
-            _repo.Delete(entity);
-            await _repo.SaveAsync(ct);
-            return true;
-        }
-
         private static SupplierResponse Map(Supplier entity)
         {
             return new SupplierResponse

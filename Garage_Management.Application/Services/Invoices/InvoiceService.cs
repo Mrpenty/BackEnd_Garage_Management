@@ -128,19 +128,6 @@ namespace Garage_Management.Application.Services.Invoices
             return MapToResponse(updated!);
         }
 
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
-        {
-            var invoice = await _invoiceRepository.GetByIdAsync(id);
-            if (invoice == null || invoice.DeletedAt != null) return false;
-            EnsureCanAccess(invoice.BranchId);
-
-            invoice.DeletedAt = DateTime.UtcNow;
-            invoice.DeletedBy = _currentUser.GetCurrentUserId();
-            _invoiceRepository.Update(invoice);
-            await _invoiceRepository.SaveAsync(ct);
-            return true;
-        }
-
         private static InvoiceResponse MapToResponse(Invoice invoice)
         {
             string? customerName = null;

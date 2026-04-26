@@ -10,6 +10,5 @@ namespace Garage_Management.Application.Interfaces.Services.Invoices
         Task<PagedResult<InvoiceResponse>> GetPagedAsync(InvoiceQuery query, CancellationToken ct = default);
         Task<InvoiceResponse> CreateAsync(InvoiceCreateRequest request, CancellationToken ct = default);
         Task<InvoiceResponse?> UpdateAsync(int id, InvoiceUpdateRequest request, CancellationToken ct = default);
-        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
     }
 }

@@ -10,6 +10,5 @@ namespace Garage_Management.Application.Interfaces.Services.Inventories
         Task<SupplierResponse> CreateAsync(SupplierCreateRequest request, CancellationToken ct = default);
         Task<SupplierResponse?> UpdateAsync(int id, SupplierUpdateRequest request, CancellationToken ct = default);
         Task<SupplierResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default);
-        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
     }
 }
