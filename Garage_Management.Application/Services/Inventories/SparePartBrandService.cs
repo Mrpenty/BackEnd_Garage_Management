@@ -48,7 +48,7 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<SparePartBrandResponse> CreateAsync(SparePartBrandCreateRequest request, CancellationToken ct = default)
         {
-            if (!(_currentUser.IsAdmin() || _currentUser.IsInRole("Supervisor")))
+            if (!_currentUser.IsInRole("Supervisor"))
                 throw new UnauthorizedAccessException("Chỉ Supervisor được tạo hãng phụ tùng");
 
             if (string.IsNullOrWhiteSpace(request.BrandName))
@@ -79,7 +79,7 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<SparePartBrandResponse?> UpdateAsync(int id, SparePartBrandUpdateRequest request, CancellationToken ct = default)
         {
-            if (!(_currentUser.IsAdmin() || _currentUser.IsInRole("Supervisor")))
+            if (!_currentUser.IsInRole("Supervisor"))
                 throw new UnauthorizedAccessException("Chỉ Supervisor được cập nhật hãng phụ tùng");
 
             var entity = await _repo.GetByIdAsync(id);
@@ -120,8 +120,8 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
-            if (!_currentUser.IsAdmin())
-                throw new UnauthorizedAccessException("Chỉ Admin được xóa hãng phụ tùng");
+            if (!_currentUser.IsInRole("Supervisor"))
+                throw new UnauthorizedAccessException("Chỉ Supervisor được xóa hãng phụ tùng");
 
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null || entity.DeletedAt != null) return false;

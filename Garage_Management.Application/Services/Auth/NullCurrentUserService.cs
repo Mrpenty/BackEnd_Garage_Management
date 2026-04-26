@@ -3,7 +3,7 @@ using Garage_Management.Application.Interfaces.Services.Auth;
 namespace Garage_Management.Application.Services.Auth
 {
     /// <summary>
-    /// Fallback implementation dùng cho unit test: hành xử như Admin (không filter branch).
+    /// Fallback implementation dùng cho unit test: "god mode" — bypass mọi role check (IsAdmin=true + IsInRole=true).
     /// Không đăng ký vào DI — chỉ dùng trong overloaded constructor.
     /// </summary>
     public class NullCurrentUserService : ICurrentUserService
@@ -13,6 +13,6 @@ namespace Garage_Management.Application.Services.Auth
         public int? GetCurrentCustomerId() => null;
         public int? GetCurrentBranchId() => null;
         public bool IsAdmin() => true;
-        public bool IsInRole(string role) => false;
+        public bool IsInRole(string role) => true;
     }
 }

@@ -87,7 +87,7 @@ namespace Garage_Management.UnitTest.Vehicles
         }
 
         [TestMethod]
-        public async Task GetMyVehicle_CustomerNotFound_Throws()
+        public async Task GetMyVehicle_CustomerNotFound_ReturnsEmptyWithFriendlyMessage()
         {
             var claims = new List<Claim>
             {
@@ -99,8 +99,13 @@ namespace Garage_Management.UnitTest.Vehicles
 
             _customerRepo.Setup(x => x.GetAll()).Returns(new TestAsyncEnumerable<Customer>(new List<Customer>().AsQueryable()));
 
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
-                _service.GetMyVehicle(1, 10, CancellationToken.None));
+            var result = await _service.GetMyVehicle(1, 10, CancellationToken.None);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual("Bạn chưa có thông tin khách hàng nào trong hệ thống", result.Message);
+            Assert.IsNotNull(result.Data);
+            Assert.AreEqual(0, result.Data.Total);
+            Assert.AreEqual(0, result.Data.PageData.Count());
         }
 
         [TestMethod]

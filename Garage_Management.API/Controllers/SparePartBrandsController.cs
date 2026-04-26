@@ -11,7 +11,6 @@ namespace Garage_Management.API.Controllers
     public class SparePartBrandsController : ControllerBase
     {
         private const string ManagerRoles = "Supervisor";
-        private const string AdminOnly = "Admin";
 
         private readonly ISparePartBrandService _service;
 
@@ -91,7 +90,7 @@ namespace Garage_Management.API.Controllers
         /// Xóa hãng phụ tùng
         /// </summary>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = AdminOnly)]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {
             var ok = await _service.DeleteAsync(id, ct);
