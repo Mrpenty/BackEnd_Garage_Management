@@ -164,7 +164,7 @@ namespace Garage_Management.UnitTest.Appointments
             Assert.AreEqual(1, result.AppointmentId);
             Assert.AreEqual("Khánh", result.FirstName);
             Assert.AreEqual("Đỗ", result.LastName);
-            Assert.AreEqual("+84912345678", result.Phone);
+            Assert.AreEqual("0912345678", result.Phone);
             Assert.AreEqual("Honda", result.CustomVehicleBrand);
             Assert.AreEqual("Vision", result.CustomVehicleModel);
             Assert.AreEqual("29A-12345", result.LicensePlate);
@@ -195,7 +195,7 @@ namespace Garage_Management.UnitTest.Appointments
             _customerRepo.Setup(x => x.GetByIdAsync(99)).ReturnsAsync((Customer?)null);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
-            Assert.AreEqual("CustomerId không tồn tại", ex.Message);
+            Assert.AreEqual("Mã khách hàng không tồn tại", ex.Message);
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Garage_Management.UnitTest.Appointments
             _inventoryRepo.Setup(x => x.Query()).Returns(asyncInventories);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
-            Assert.AreEqual("SparePartsIds không hợp lệ", ex.Message);
+            Assert.AreEqual("Danh sách phụ tùng không hợp lệ", ex.Message);
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace Garage_Management.UnitTest.Appointments
             _serviceRepo.Setup(x => x.GetAll()).Returns(asyncServices);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
-            Assert.AreEqual("ServiceIds không hợp lệ", ex.Message);
+            Assert.AreEqual("Danh sách dịch vụ không hợp lệ", ex.Message);
         }
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace Garage_Management.UnitTest.Appointments
             };
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request));
-            Assert.AreEqual("khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống", ex.Message);
+            Assert.AreEqual("Khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống", ex.Message);
         }
 
         /// <summary>
@@ -411,7 +411,7 @@ namespace Garage_Management.UnitTest.Appointments
             Assert.IsNull(result.CustomerId);
             Assert.AreEqual("Lý", result.FirstName);
             Assert.AreEqual("Quang Huy", result.LastName);
-            Assert.AreEqual("+84901234567", result.Phone);
+            Assert.AreEqual("0901234567", result.Phone);
             Assert.IsNull(result.VehicleId);
             Assert.AreEqual(1, result.VehicleModelId);
             Assert.AreEqual("29A-12345", result.LicensePlate);
@@ -454,7 +454,7 @@ namespace Garage_Management.UnitTest.Appointments
             Assert.IsNull(result.CustomerId);
             Assert.AreEqual("Trương", result.FirstName);
             Assert.AreEqual("Minh Khoa", result.LastName);
-            Assert.AreEqual("+84765432109", result.Phone);
+            Assert.AreEqual("0765432109", result.Phone);
             Assert.AreEqual(1, result.VehicleId);
             Assert.IsNull(result.VehicleModelId);
         }

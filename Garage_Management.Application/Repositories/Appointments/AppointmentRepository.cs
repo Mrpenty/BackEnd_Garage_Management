@@ -155,6 +155,8 @@ namespace Garage_Management.Application.Repositories.Appointments
             }
             if (query.CustomerId.HasValue)
                 q = q.Where(a => a.CustomerId == query.CustomerId);
+            if (query.BranchId.HasValue)
+                q = q.Where(a => a.BranchId == query.BranchId.Value);
             var orderBy = (query.OrderBy ?? "").Trim().ToLower();
             var desc = string.Equals(query.SortOrder, "DESC", StringComparison.OrdinalIgnoreCase);
 
