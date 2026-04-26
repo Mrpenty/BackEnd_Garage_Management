@@ -11,7 +11,7 @@ namespace Garage_Management.API.Controllers
     [Authorize]
     public class ReportsController : ControllerBase
     {
-        private const string BranchReportRoles = "Admin,Supervisor";
+        private const string BranchReportRoles = "Admin,Supervisor,Accountant";
         private const string AdminOnly = "Admin";
 
         private readonly IReportService _service;

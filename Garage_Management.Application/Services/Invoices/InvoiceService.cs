@@ -81,7 +81,8 @@ namespace Garage_Management.Application.Services.Invoices
                 SparePartTotal = request.SparePartTotal,
                 GrandTotal = request.ServiceTotal + request.SparePartTotal,
                 PaymentStatus = "Unpaid",
-                PaymentMethod = request.PaymentMethod
+                PaymentMethod = request.PaymentMethod,
+                CreatedBy = _currentUser.GetCurrentUserId()
             };
 
             await _invoiceRepository.AddAsync(invoice, ct);
@@ -117,6 +118,9 @@ namespace Garage_Management.Application.Services.Invoices
             if (request.PaymentMethod != null)
                 invoice.PaymentMethod = request.PaymentMethod;
 
+            invoice.UpdatedAt = DateTime.UtcNow;
+            invoice.UpdatedBy = _currentUser.GetCurrentUserId();
+
             _invoiceRepository.Update(invoice);
             await _invoiceRepository.SaveAsync(ct);
 
@@ -127,10 +131,12 @@ namespace Garage_Management.Application.Services.Invoices
         public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
             var invoice = await _invoiceRepository.GetByIdAsync(id);
-            if (invoice == null) return false;
+            if (invoice == null || invoice.DeletedAt != null) return false;
             EnsureCanAccess(invoice.BranchId);
 
-            _invoiceRepository.Delete(invoice);
+            invoice.DeletedAt = DateTime.UtcNow;
+            invoice.DeletedBy = _currentUser.GetCurrentUserId();
+            _invoiceRepository.Update(invoice);
             await _invoiceRepository.SaveAsync(ct);
             return true;
         }

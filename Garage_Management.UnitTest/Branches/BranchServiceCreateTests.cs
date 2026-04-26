@@ -108,7 +108,43 @@ namespace Garage_Management.UnitTest.Branches
         }
 
         /// <summary>
-        /// UTCID05 - Normal: Tạo với ManagerEmployeeId
+        /// UTCID05 - Abnormal: Name rỗng / whitespace
+        /// </summary>
+        [TestMethod]
+        public async Task CreateAsync_EmptyName_Throws()
+        {
+            var service = new BranchService(_repo.Object, MockCurrentUser.AsAdmin());
+
+            var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
+                service.CreateAsync(new BranchCreateRequest
+                {
+                    BranchCode = "HN-01",
+                    Name = "  ",
+                    Address = "123 Đường Láng"
+                }));
+            Assert.AreEqual("Phải nhập tên chi nhánh", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID06 - Abnormal: Address rỗng / whitespace
+        /// </summary>
+        [TestMethod]
+        public async Task CreateAsync_EmptyAddress_Throws()
+        {
+            var service = new BranchService(_repo.Object, MockCurrentUser.AsAdmin());
+
+            var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
+                service.CreateAsync(new BranchCreateRequest
+                {
+                    BranchCode = "HN-01",
+                    Name = "Chi nhánh Hà Nội",
+                    Address = " "
+                }));
+            Assert.AreEqual("Phải nhập địa chỉ chi nhánh", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID07 - Normal: Tạo với ManagerEmployeeId
         /// </summary>
         [TestMethod]
         public async Task CreateAsync_WithManagerEmployeeId_ReturnsResponseWithManager()

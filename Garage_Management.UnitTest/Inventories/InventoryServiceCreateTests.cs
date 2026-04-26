@@ -321,15 +321,15 @@ namespace Garage_Management.UnitTest.Inventories
         }
 
         /// <summary>
-        /// UTCID12 - Abnormal: PartCode đã tồn tại (trùng lặp)
+        /// UTCID12 - Abnormal: PartCode đã tồn tại trong CÙNG chi nhánh (per-branch unique)
         /// </summary>
         [TestMethod]
-        public async Task UTCID12_CreateAsync_WithDuplicatePartCode_Throws()
+        public async Task UTCID12_CreateAsync_WithDuplicatePartCodeSameBranch_Throws()
         {
             SetupValidCategoryAndBrand();
             var existing = new List<Inventory>
             {
-                new Inventory { SparePartId = 99, PartCode = "BG-001", PartName = "Bugi cũ" }
+                new Inventory { SparePartId = 99, BranchId = 1, PartCode = "BG-001", PartName = "Bugi cũ" }
             }.AsQueryable();
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(existing));
 
@@ -346,6 +346,42 @@ namespace Garage_Management.UnitTest.Inventories
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request));
             Assert.AreEqual("PartCode đã tồn tại", ex.Message);
+        }
+
+        /// <summary>
+        /// UTCID13 - Normal: PartCode trùng nhưng KHÁC chi nhánh → cho phép (per-branch unique scope)
+        /// </summary>
+        [TestMethod]
+        public async Task UTCID13_CreateAsync_WithSamePartCodeOtherBranch_Succeeds()
+        {
+            SetupValidCategoryAndBrand();
+            // Existing record cùng PartCode nhưng thuộc Branch 2 (Staff đang ở Branch 1)
+            var existing = new List<Inventory>
+            {
+                new Inventory { SparePartId = 99, BranchId = 2, PartCode = "BG-001", PartName = "Bugi của chi nhánh 2" }
+            }.AsQueryable();
+            _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(existing));
+            _repo.Setup(x => x.AddAsync(It.IsAny<Inventory>(), It.IsAny<CancellationToken>()))
+                .Callback<Inventory, CancellationToken>((e, _) => e.SparePartId = 5)
+                .Returns(Task.CompletedTask);
+            _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            _repo.Setup(x => x.GetByIdWithDetailsAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync((Inventory?)null);
+
+            var request = new InventoryCreateRequest
+            {
+                PartCode = "BG-001",
+                PartName = "Bugi NGK CR7HSA",
+                Quantity = 10,
+                CategoryId = 1,
+                SparePartBrandId = 1,
+                IsActive = true
+            };
+
+            var result = await _service.CreateAsync(request);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("BG-001", result.PartCode);
+            Assert.AreEqual(5, result.SparePartId);
         }
     }
 }

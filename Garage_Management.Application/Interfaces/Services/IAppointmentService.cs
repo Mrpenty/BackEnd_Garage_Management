@@ -62,22 +62,6 @@ namespace Garage_Management.Application.Interfaces.Services
         Task<AppointmentResponse> CreateAsync(AppointmentCreateRequest request, CancellationToken ct = default);
 
         /// Author: KhanhDV
-        /// Created Date: 13-2-2026
-        /// <summary>
-        /// Update 1 lịch đặt cũ
-        /// </summary>
-        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param> 
-        Task<AppointmentResponse?> UpdateAsync(int id, AppointmentUpdateRequest request, CancellationToken ct = default);
-
-        /// Author: KhanhDV
-        /// Created Date: 13-2-2026
-        /// <summary>
-        /// Xóa 1 lịch đặt đã tồn tại
-        /// </summary>
-        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param> 
-        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
-
-        /// Author: KhanhDV
         /// Created Date: 03-03-2026
         /// <summary>
         /// Cập nhật trạng thái lịch đặt

@@ -21,7 +21,7 @@ var connectionString = builder.Configuration.GetConnectionString("Mycnn")
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Add services 
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddInfrastructureDependency(connectionString);
