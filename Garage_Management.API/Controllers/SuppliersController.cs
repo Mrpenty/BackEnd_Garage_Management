@@ -60,14 +60,5 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<SupplierResponse>.SuccessResponse(data, "Updated status"));
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
-        {
-            var ok = await _service.DeleteAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("Supplier not found"));
-
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
-        }
     }
 }

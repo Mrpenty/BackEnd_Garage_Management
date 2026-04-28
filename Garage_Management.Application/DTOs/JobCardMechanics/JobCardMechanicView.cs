@@ -8,7 +8,7 @@ namespace Garage_Management.Application.DTOs.JobCardMechanics
 {
     public class JobCardMechanicView
     {
-        public int MechanicId { get; set; }
+        public int? MechanicId { get; set; }
         public string MechanicName { get; set; } = null!;
 
         public DateTime AssignedAt { get; set; }

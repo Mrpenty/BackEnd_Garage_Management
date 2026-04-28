@@ -40,5 +40,27 @@ namespace Garage_Management.UnitTest.JobCardServices
             Assert.IsFalse(result);
             _jobCardServiceRepo.Verify(x => x.Delete(It.IsAny<JobCardServiceEntity>()), Times.Never);
         }
+
+        [TestMethod]
+        public async Task DeleteAsync_ReturnsTrue_WhenEntityExists()
+        {
+            var entity = new JobCardServiceEntity
+            {
+                JobCardServiceId = 11
+            };
+
+            _jobCardServiceRepo.Setup(x => x.GetByIdAsync(11))
+                .ReturnsAsync(entity);
+
+            _jobCardServiceRepo
+                .Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            var result = await _service.DeleteAsync(11, CancellationToken.None);
+
+            Assert.IsTrue(result);
+            _jobCardServiceRepo.Verify(x => x.Delete(entity), Times.Once);
+            _jobCardServiceRepo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

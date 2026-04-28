@@ -26,6 +26,13 @@ namespace Garage_Management.API.Middlewares
                 var payload = ApiResponse<object>.ErrorResponse(ex.Message);
                 await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
             }
+            catch (KeyNotFoundException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                context.Response.ContentType = "application/json";
+                var payload = ApiResponse<object>.ErrorResponse(ex.Message);
+                await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+            }
             catch (Exception ex)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

@@ -1,12 +1,14 @@
 ﻿using Garage_Management.Application.DTOs.Iventories;
 using Garage_Management.Application.Interfaces.Services.Inventories;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class InventoriesController : ControllerBase
     {
         private readonly IInventoryService _service;
@@ -50,11 +52,17 @@ namespace Garage_Management.API.Controllers
             [FromBody] InventoryUpdateRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateAsync(id, request, ct);
-            if (data == null)
-                return NotFound(ApiResponse<InventoryResponse>.ErrorResponse("Inventory not found"));
-
-            return Ok(ApiResponse<InventoryResponse>.SuccessResponse(data, "Updated"));
+            try
+            {
+                var data = await _service.UpdateAsync(id, request, ct);
+                return Ok(ApiResponse<InventoryResponse>.SuccessResponse(data!, "Updated"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message == "Id không tồn tại")
+                    return NotFound(ApiResponse<InventoryResponse>.ErrorResponse(ex.Message));
+                return BadRequest(ApiResponse<InventoryResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpPatch("{id:int}/status")]
@@ -63,11 +71,17 @@ namespace Garage_Management.API.Controllers
             [FromBody] InventoryUpdateStatusRequest request,
             CancellationToken ct = default)
         {
-            var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
-            if (data == null)
-                return NotFound(ApiResponse<InventoryResponse>.ErrorResponse("Inventory not found"));
-
-            return Ok(ApiResponse<InventoryResponse>.SuccessResponse(data, "Updated status"));
+            try
+            {
+                var data = await _service.UpdateStatusAsync(id, request.IsActive, ct);
+                return Ok(ApiResponse<InventoryResponse>.SuccessResponse(data!, "Updated status"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message == "Id không tồn tại")
+                    return NotFound(ApiResponse<InventoryResponse>.ErrorResponse(ex.Message));
+                return BadRequest(ApiResponse<InventoryResponse>.ErrorResponse(ex.Message));
+            }
         }
 
         [HttpDelete("{id:int}")]

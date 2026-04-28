@@ -35,13 +35,6 @@ namespace Garage_Management.Application.Interfaces.Services
         Task<ServiceResponse?> UpdatePriceAsync(int id, ServicePriceUpdateRequest request, CancellationToken ct = default);
         Task<ServiceResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default);
 
-        /// Author: KhanhDV
-        /// Created Date: 13-2-2026
-        /// <summary>
-        /// Xóa 1 dịch vụ
-        /// </summary>
-        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
-
         /// <summary>
         /// Ngừng kích hoạt (deactivate) dịch vụ.
         /// </summary>

@@ -39,6 +39,9 @@ namespace Garage_Management.Application.Services.Inventories
             if (string.IsNullOrWhiteSpace(name))
                 throw new InvalidOperationException("Phải nhập tên cho nhà cung cấp");
 
+            if (!Enum.IsDefined(typeof(Base.Common.Enums.SupplierType), request.SupplierType))
+                throw new InvalidOperationException("SupplierType không hợp lệ");
+
             if (await _repo.HasExistAsync(name, null, ct))
                 throw new InvalidOperationException("Nhà cung cấp đã tồn tại");
 
@@ -94,19 +97,6 @@ namespace Garage_Management.Application.Services.Inventories
             }
 
             return Map(entity);
-        }
-
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
-        {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return false;
-
-            if (await _repo.HasStockTransactionsAsync(id, ct))
-                throw new InvalidOperationException("Không thể xóa nhà cung cấp vì đã phát sinh giao dịch kho");
-
-            _repo.Delete(entity);
-            await _repo.SaveAsync(ct);
-            return true;
         }
 
         private static SupplierResponse Map(Supplier entity)

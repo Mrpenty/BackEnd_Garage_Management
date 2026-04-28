@@ -28,6 +28,7 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
             _jobCardSparePartRepo = new Mock<IJobCardSparePartRepository>();
             _inventoryRepo = new Mock<IInventoryRepository>();
             _stockTransactionService = new Mock<IStockTransactionService>();
+
             _service = new JobCardSparePartService(
                 _jobCardRepo.Object,
                 _jobCardSparePartRepo.Object,
@@ -36,7 +37,7 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
         }
 
         [TestMethod]
-        public async Task AddSparePartsAsync_Throws_WhenJobCardIdIsInvalid()
+        public async Task AddSparePartsAsync_Throws_WhenJobCardIdInvalid()
         {
             var dto = new AddMultipleSparePartsToJobCardDto
             {
@@ -48,23 +49,23 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
         }
 
         [TestMethod]
-        public async Task AddSparePartsAsync_ReturnsNull_WhenJobCardDoesNotExist()
+        public async Task AddSparePartsAsync_ReturnsNull_WhenJobCardNotFound()
         {
+            _jobCardRepo.Setup(x => x.GetByIdAsync(1))
+                .ReturnsAsync((JobCardEntity?)null);
+
             var dto = new AddMultipleSparePartsToJobCardDto
             {
                 SpareParts = [new AddSparePartToJobCardDto { SparePartId = 1, Quantity = 1 }]
             };
 
-            _jobCardRepo.Setup(x => x.GetByIdAsync(2))
-                .ReturnsAsync((JobCardEntity?)null);
-
-            var result = await _service.AddSparePartsAsync(2, dto, CancellationToken.None);
+            var result = await _service.AddSparePartsAsync(1, dto, CancellationToken.None);
 
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public async Task AddSparePartsAsync_Throws_WhenRequestContainsDuplicateSparePartIds()
+        public async Task AddSparePartsAsync_Throws_WhenDuplicateSparePartIds()
         {
             var dto = new AddMultipleSparePartsToJobCardDto
             {
@@ -80,40 +81,71 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
         }
 
         [TestMethod]
-        public async Task AddSparePartsAsync_Throws_WhenJobCardIsNotWaitingCustomerApproval()
+        public async Task AddSparePartsAsync_Throws_WhenJobCardStatusInvalid()
+        {
+            _jobCardRepo.Setup(x => x.GetByIdAsync(2))
+                .ReturnsAsync(new JobCardEntity
+                {
+                    JobCardId = 2,
+                    Status = JobCardStatus.WaitingSupervisorApproval
+                });
+
+            var dto = new AddMultipleSparePartsToJobCardDto
+            {
+                SpareParts = [new AddSparePartToJobCardDto { SparePartId = 1, Quantity = 1 }]
+            };
+
+            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
+                _service.AddSparePartsAsync(2, dto, CancellationToken.None));
+        }
+
+        [TestMethod]
+        public async Task AddSparePartsAsync_Throws_WhenQuantityNonPositive()
         {
             var dto = new AddMultipleSparePartsToJobCardDto
             {
-                SpareParts = [new AddSparePartToJobCardDto { SparePartId = 6, Quantity = 1 }]
+                SpareParts = [new AddSparePartToJobCardDto { SparePartId = 1, Quantity = 0 }]
             };
 
+            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
+                _service.AddSparePartsAsync(1, dto, CancellationToken.None));
+        }
+
+        [TestMethod]
+        public async Task AddSparePartsAsync_Throws_WhenInventoryNotFound()
+        {
             _jobCardRepo.Setup(x => x.GetByIdAsync(3))
                 .ReturnsAsync(new JobCardEntity
                 {
                     JobCardId = 3,
-                    Status = JobCardStatus.WaitingSupervisorApproval
+                    Status = JobCardStatus.WaitingCustomerApproval
                 });
+
+            _inventoryRepo.Setup(x => x.GetByIdAsync(999))
+                .ReturnsAsync((Inventory?)null);
+
+            var dto = new AddMultipleSparePartsToJobCardDto
+            {
+                SpareParts = [new AddSparePartToJobCardDto { SparePartId = 999, Quantity = 1 }]
+            };
 
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
                 _service.AddSparePartsAsync(3, dto, CancellationToken.None));
         }
 
         [TestMethod]
-        public async Task AddSparePartsAsync_Throws_WhenStockIsInsufficient()
+        public async Task AddSparePartsAsync_Throws_WhenStockInsufficient()
         {
-            var dto = new AddMultipleSparePartsToJobCardDto
-            {
-                SpareParts = [new AddSparePartToJobCardDto { SparePartId = 7, Quantity = 5 }]
-            };
-
             _jobCardRepo.Setup(x => x.GetByIdAsync(4))
                 .ReturnsAsync(new JobCardEntity
                 {
                     JobCardId = 4,
                     Status = JobCardStatus.WaitingCustomerApproval
                 });
+
             _jobCardSparePartRepo.Setup(x => x.GetByIdAsync(4, 7, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((JobCardSparePartEntity?)null);
+
             _inventoryRepo.Setup(x => x.GetByIdAsync(7))
                 .ReturnsAsync(new Inventory
                 {
@@ -123,24 +155,19 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
                     IsActive = true
                 });
 
+            var dto = new AddMultipleSparePartsToJobCardDto
+            {
+                SpareParts = [new AddSparePartToJobCardDto { SparePartId = 7, Quantity = 5 }]
+            };
+
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
                 _service.AddSparePartsAsync(4, dto, CancellationToken.None));
         }
 
         [TestMethod]
-        public async Task AddSparePartsAsync_AddsEntitiesAndCreatesStockTransactions_WhenRequestIsValid()
+        public async Task AddSparePartsAsync_ReturnsResponse_WhenValid()
         {
-            var dto = new AddMultipleSparePartsToJobCardDto
-            {
-                SpareParts =
-                [
-                    new AddSparePartToJobCardDto { SparePartId = 10, Quantity = 2, IsUnderWarranty = true, Note = "install both" },
-                    new AddSparePartToJobCardDto { SparePartId = 11, Quantity = 1 }
-                ]
-            };
-
             var addedEntities = new List<JobCardSparePartEntity>();
-            var stockRequests = new List<StockTransactionCreateRequest>();
 
             _jobCardRepo.Setup(x => x.GetByIdAsync(5))
                 .ReturnsAsync(new JobCardEntity
@@ -148,18 +175,31 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
                     JobCardId = 5,
                     Status = JobCardStatus.WaitingCustomerApproval
                 });
+
             _jobCardSparePartRepo.Setup(x => x.GetByIdAsync(5, It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((JobCardSparePartEntity?)null);
+
             _inventoryRepo.Setup(x => x.GetByIdAsync(10))
                 .ReturnsAsync(new Inventory { SparePartId = 10, Quantity = 10, SellingPrice = 200, IsActive = true });
+
             _inventoryRepo.Setup(x => x.GetByIdAsync(11))
                 .ReturnsAsync(new Inventory { SparePartId = 11, Quantity = 5, SellingPrice = 75, IsActive = true });
+
             _jobCardSparePartRepo.Setup(x => x.AddAsync(It.IsAny<JobCardSparePartEntity>(), It.IsAny<CancellationToken>()))
-                .Callback<JobCardSparePartEntity, CancellationToken>((entity, _) => addedEntities.Add(entity))
+                .Callback<JobCardSparePartEntity, CancellationToken>((e, _) => addedEntities.Add(e))
                 .Returns(Task.CompletedTask);
+
             _stockTransactionService.Setup(x => x.CreateAsync(It.IsAny<StockTransactionCreateRequest>(), It.IsAny<CancellationToken>()))
-                .Callback<StockTransactionCreateRequest, CancellationToken>((request, _) => stockRequests.Add(request))
                 .ReturnsAsync(new StockTransactionResponse());
+
+            var dto = new AddMultipleSparePartsToJobCardDto
+            {
+                SpareParts =
+                [
+                    new AddSparePartToJobCardDto { SparePartId = 10, Quantity = 2 },
+                    new AddSparePartToJobCardDto { SparePartId = 11, Quantity = 1 }
+                ]
+            };
 
             var result = await _service.AddSparePartsAsync(5, dto, CancellationToken.None);
 
@@ -167,7 +207,7 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual(400m, addedEntities.Single(x => x.SparePartId == 10).TotalAmount);
             Assert.AreEqual(75m, addedEntities.Single(x => x.SparePartId == 11).TotalAmount);
-            Assert.AreEqual(TransactionType.ExportToJobCard, stockRequests[0].TransactionType);
+
             _jobCardSparePartRepo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }

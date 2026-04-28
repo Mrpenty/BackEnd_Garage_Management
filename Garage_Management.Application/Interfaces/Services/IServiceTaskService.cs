@@ -43,12 +43,5 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Cập nhật công việc của dịch vụ
         /// </summary>
         Task<ServiceTaskResponse?> UpdateAsync(int id, ServiceTaskUpdateRequest request, CancellationToken ct = default);
-
-        /// Author: KhanhDV
-        /// Created Date: 26-2-2026
-        /// <summary>
-        /// Xóa công việc của dịch vụ
-        /// </summary>
-        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
     }
 }

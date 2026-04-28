@@ -3,6 +3,7 @@ using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Services.Inventories;
 using Garage_Management.Application.Services.JobCards;
 using Moq;
+using System.Collections.Generic;
 
 namespace Garage_Management.UnitTest.JobCardSpareParts
 {
@@ -54,6 +55,9 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
         [TestMethod]
         public async Task GetByJobCardIdAsync_ReturnsMappedItems()
         {
+            _jobCardRepo.Setup(x => x.GetByIdAsync(5))
+                .ReturnsAsync(new Base.Entities.JobCards.JobCard { JobCardId = 5 });
+
             _jobCardSparePartRepo.Setup(x => x.GetByJobCardIdAsync(5, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(
                 [
@@ -71,6 +75,20 @@ namespace Garage_Management.UnitTest.JobCardSpareParts
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(10, result[0].SparePartId);
+        }
+
+        [TestMethod]
+        public async Task GetByJobCardIdAsync_ThrowsKeyNotFoundException_WhenJobCardDoesNotExist()
+        {
+            _jobCardRepo.Setup(x => x.GetByIdAsync(999))
+                .ReturnsAsync((Base.Entities.JobCards.JobCard?)null);
+
+            await Assert.ThrowsExceptionAsync<KeyNotFoundException>(
+                () => _service.GetByJobCardIdAsync(999, CancellationToken.None));
+
+            _jobCardSparePartRepo.Verify(
+                x => x.GetByJobCardIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
     }
 }

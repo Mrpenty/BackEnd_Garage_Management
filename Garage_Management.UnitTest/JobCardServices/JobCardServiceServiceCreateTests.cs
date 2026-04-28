@@ -54,6 +54,30 @@ namespace Garage_Management.UnitTest.JobCardServices
         }
 
         [TestMethod]
+        public async Task CreateAsync_ReturnsError_WhenServiceDoesNotExist()
+        {
+            var request = new JobCardServiceCreateRequest
+            {
+                JobCardId = 7,
+                ServiceId = 999
+            };
+
+            _jobCardRepo.Setup(x => x.GetByIdAsync(request.JobCardId))
+                .ReturnsAsync(new JobCardEntity { JobCardId = request.JobCardId });
+
+            _serviceRepo.Setup(x => x.GetByIdWithTasksAsync(request.ServiceId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Service?)null);
+
+            var result = await _service.CreateAsync(request, CancellationToken.None);
+
+            Assert.IsFalse(result.Success);
+            Assert.IsNull(result.Data);
+            StringAssert.Contains(result.Message, "ServiceId");
+            _jobCardServiceRepo.Verify(x => x.Add(It.IsAny<JobCardServiceEntity>()), Times.Never);
+            _jobCardServiceTaskRepo.Verify(x => x.AddRange(It.IsAny<IReadOnlyCollection<JobCardServiceTask>>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task CreateAsync_CreatesJobCardServiceAndTasks_WhenRequestIsValid()
         {
             var request = new JobCardServiceCreateRequest

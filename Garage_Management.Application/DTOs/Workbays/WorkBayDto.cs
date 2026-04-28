@@ -12,6 +12,8 @@ namespace Garage_Management.Application.DTOs.Workbays
     {
         public int Id { get; set; }
 
+        public int BranchId { get; set; }
+
         public string Name { get; set; }
 
         public string? Note { get; set; }
@@ -37,6 +39,11 @@ namespace Garage_Management.Application.DTOs.Workbays
         public string Name { get; set; }
 
         public string? Note { get; set; }
+
+        /// <summary>
+        /// Chi nhánh. Non-admin luôn lấy từ token, admin bắt buộc truyền.
+        /// </summary>
+        public int? BranchId { get; set; }
     }
 
     public class UpdateWorkBayRequest

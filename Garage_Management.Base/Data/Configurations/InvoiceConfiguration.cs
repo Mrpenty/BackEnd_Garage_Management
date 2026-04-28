@@ -29,6 +29,9 @@ namespace Garage_Management.Base.Data.Configurations
                 .WithOne(j => j.Invoice)
                 .HasForeignKey<Invoice>(i => i.JobCardId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Soft delete: ẩn row đã xóa mềm khỏi mọi query mặc định
+            builder.HasQueryFilter(i => i.DeletedAt == null);
         }
     }
 }

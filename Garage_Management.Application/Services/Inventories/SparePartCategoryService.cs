@@ -1,6 +1,8 @@
-﻿using Garage_Management.Application.DTOs.Inventories.SparePartCategories;
+using Garage_Management.Application.DTOs.Inventories.SparePartCategories;
 using Garage_Management.Application.Interfaces.Repositories;
+using Garage_Management.Application.Interfaces.Services.Auth;
 using Garage_Management.Application.Interfaces.Services.Inventories;
+using Garage_Management.Application.Services.Auth;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Inventories;
 
@@ -9,10 +11,18 @@ namespace Garage_Management.Application.Services.Inventories
     public class SparePartCategoryService : ISparePartCategoryService
     {
         private readonly ISparePartCategoryRepository _repo;
+        private readonly ICurrentUserService _currentUser;
+
+        public SparePartCategoryService(ISparePartCategoryRepository repo, ICurrentUserService currentUser)
+        {
+            _repo = repo;
+            _currentUser = currentUser;
+        }
 
         public SparePartCategoryService(ISparePartCategoryRepository repo)
         {
             _repo = repo;
+            _currentUser = new NullCurrentUserService();
         }
 
         public async Task<PagedResult<SparePartCategoryResponse>> GetPagedAsync(ParamQuery query, bool onlyActive = false, CancellationToken ct = default)
@@ -29,15 +39,25 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<SparePartCategoryResponse?> GetByIdAsync(int id, CancellationToken ct = default)
         {
+            if (id <= 0) return null;
             var entity = await _repo.GetByIdAsync(id);
             return entity == null ? null : Map(entity);
         }
 
         public async Task<SparePartCategoryResponse> CreateAsync(SparePartCategoryCreateRequest request, CancellationToken ct = default)
         {
+            if (!_currentUser.IsInRole("Supervisor"))
+                throw new UnauthorizedAccessException("Chỉ Supervisor được tạo nhóm phụ tùng");
+
             var name = (request.CategoryName ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(name))
                 throw new InvalidOperationException("Phải nhập tên cho nhóm phụ tùng");
+            if (name.Length > 100)
+                throw new InvalidOperationException("Tên nhóm phụ tùng không được vượt quá 100 ký tự");
+
+            var description = request.Description?.Trim();
+            if (description != null && description.Length > 255)
+                throw new InvalidOperationException("Mô tả không được vượt quá 255 ký tự");
 
             if (await _repo.HasExistAsync(name, null, ct))
                 throw new InvalidOperationException("Nhóm phụ tùng đã tồn tại");
@@ -45,8 +65,9 @@ namespace Garage_Management.Application.Services.Inventories
             var entity = new SparePartCategory
             {
                 CategoryName = name,
-                Description = request.Description,
-                IsActive = request.IsActive
+                Description = description,
+                IsActive = request.IsActive,
+                CreatedBy = _currentUser.GetCurrentUserId()
             };
 
             await _repo.AddAsync(entity, ct);
@@ -56,6 +77,9 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<SparePartCategoryResponse?> UpdateAsync(int id, SparePartCategoryUpdateRequest request, CancellationToken ct = default)
         {
+            if (!_currentUser.IsInRole("Supervisor"))
+                throw new UnauthorizedAccessException("Chỉ Supervisor được cập nhật nhóm phụ tùng");
+
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
@@ -63,6 +87,18 @@ namespace Garage_Management.Application.Services.Inventories
             var currentName = (entity.CategoryName ?? string.Empty).Trim();
             var isNameChanged = !string.Equals(inputName, currentName, StringComparison.OrdinalIgnoreCase);
             var hasChildren = await _repo.HasSparePartsAsync(id, ct);
+
+            if (!hasChildren)
+            {
+                if (string.IsNullOrWhiteSpace(inputName))
+                    throw new InvalidOperationException("Phải nhập tên cho nhóm phụ tùng");
+                if (inputName.Length > 100)
+                    throw new InvalidOperationException("Tên nhóm phụ tùng không được vượt quá 100 ký tự");
+            }
+
+            var description = request.Description?.Trim();
+            if (description != null && description.Length > 255)
+                throw new InvalidOperationException("Mô tả không được vượt quá 255 ký tự");
 
             if (hasChildren && isNameChanged)
                 throw new InvalidOperationException("Đã có dữ liệu liên quan, chỉ được cập nhật mô tả");
@@ -73,38 +109,34 @@ namespace Garage_Management.Application.Services.Inventories
             if (!hasChildren)
                 entity.CategoryName = inputName;
 
-            entity.Description = request.Description;
+            entity.Description = description;
+            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedBy = _currentUser.GetCurrentUserId();
 
             _repo.Update(entity);
             await _repo.SaveAsync(ct);
             return Map(entity);
         }
 
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+        public async Task<SparePartCategoryResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
         {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return false;
+            if (!_currentUser.IsInRole("Supervisor"))
+                throw new UnauthorizedAccessException("Chỉ Supervisor được đổi trạng thái nhóm phụ tùng");
 
-            if (await _repo.HasSparePartsAsync(id, ct))
-                throw new InvalidOperationException("Không thể xóa nhóm phụ tùng vì đang có phụ tùng liên kết");
-
-            _repo.Delete(entity);
-            await _repo.SaveAsync(ct);
-            return true;
-        }
-        public async Task<SparePartCategoryResponse> UpdateStatusAsync (int id, bool isActive, CancellationToken ct = default)
-        {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
 
             if (entity.IsActive != isActive)
             {
                 entity.IsActive = isActive;
+                entity.UpdatedAt = DateTime.UtcNow;
+                entity.UpdatedBy = _currentUser.GetCurrentUserId();
                 _repo.Update(entity);
                 await _repo.SaveAsync(ct);
             }
             return Map(entity);
         }
+
         private static SparePartCategoryResponse Map(SparePartCategory entity)
         {
             return new SparePartCategoryResponse

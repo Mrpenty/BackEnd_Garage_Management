@@ -61,7 +61,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
 
             var jobCard = await _jobCardRepository.GetByIdAsync(request.JobCardId);
             if (jobCard == null)
-                throw new InvalidOperationException("JobCard not found");
+                throw new InvalidOperationException("Không tìm thấy JobCard");
 
             ValidateDuplicates(request);
 
@@ -74,23 +74,23 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             foreach (var item in request.Services)
             {
                 if (item.ServiceId <= 0)
-                    throw new InvalidOperationException("ServiceId khong hop le");
+                    throw new InvalidOperationException("ServiceId không hợp lệ");
 
                 if (item.Quantity <= 0)
-                    throw new InvalidOperationException("Service quantity must be greater than 0");
+                    throw new InvalidOperationException("Số lượng dịch vụ phải lớn hơn 0");
 
                 var service = await _serviceRepository.GetByIdAsync(item.ServiceId);
                 if (service == null)
-                    throw new InvalidOperationException($"Service {item.ServiceId} not found");
+                    throw new InvalidOperationException($"Không tìm thấy dịch vụ {item.ServiceId}");
 
                 if (!service.IsActive)
-                    throw new InvalidOperationException($"Service {item.ServiceId} is inactive");
+                    throw new InvalidOperationException($"Dịch vụ {item.ServiceId} đã ngừng hoạt động");
 
                 if (!service.BasePrice.HasValue)
-                    throw new InvalidOperationException($"Service {item.ServiceId} does not have a base price");
+                    throw new InvalidOperationException($"Dịch vụ {item.ServiceId} chưa có giá cơ bản");
 
                 if (service.BasePrice.Value < 0)
-                    throw new InvalidOperationException($"Service {item.ServiceId} has an invalid base price");
+                    throw new InvalidOperationException($"Giá cơ bản của dịch vụ {item.ServiceId} không hợp lệ");
 
                 entity.Services.Add(new Base.Entities.RepairEstimaties.RepairEstimateService
                 {
@@ -105,23 +105,23 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             foreach (var item in request.SpareParts)
             {
                 if (item.SparePartId <= 0)
-                    throw new InvalidOperationException("SparePartId khong hop le");
+                    throw new InvalidOperationException("SparePartId không hợp lệ");
 
                 if (item.Quantity <= 0)
-                    throw new InvalidOperationException("SparePart quantity must be greater than 0");
+                    throw new InvalidOperationException("Số lượng phụ tùng phải lớn hơn 0");
 
                 var inventory = await _inventoryRepository.GetByIdAsync(item.SparePartId);
                 if (inventory == null)
-                    throw new InvalidOperationException($"SparePart {item.SparePartId} not found");
+                    throw new InvalidOperationException($"Không tìm thấy phụ tùng {item.SparePartId}");
 
                 if (!inventory.IsActive)
-                    throw new InvalidOperationException($"SparePart {item.SparePartId} is inactive");
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} đã ngừng hoạt động");
 
                 if (!inventory.SellingPrice.HasValue)
-                    throw new InvalidOperationException($"SparePart {item.SparePartId} does not have a selling price");
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} chưa có giá bán");
 
                 if (inventory.SellingPrice.Value < 0)
-                    throw new InvalidOperationException($"SparePart {item.SparePartId} has an invalid selling price");
+                    throw new InvalidOperationException($"Giá bán của phụ tùng {item.SparePartId} không hợp lệ");
 
                 entity.SpareParts.Add(new RepairEstimateSparePart
                 {
@@ -212,19 +212,19 @@ namespace Garage_Management.Application.Services.RepairEstimaties
         private static void ValidateStatus(RepairEstimateApprovalStatus status)
         {
             if (!Enum.IsDefined(typeof(RepairEstimateApprovalStatus), status))
-                throw new InvalidOperationException("Invalid repair estimate status");
+                throw new InvalidOperationException("Trạng thái báo giá sửa chữa không hợp lệ");
         }
 
         private static void ValidateRepairEstimateId(int repairEstimateId)
         {
             if (repairEstimateId <= 0)
-                throw new InvalidOperationException("RepairEstimateId must be greater than 0");
+                throw new InvalidOperationException("RepairEstimateId phải lớn hơn 0");
         }
 
         private static void ValidateJobCardId(int jobCardId)
         {
             if (jobCardId <= 0)
-                throw new InvalidOperationException("JobCardId must be greater than 0");
+                throw new InvalidOperationException("JobCardId phải lớn hơn 0");
         }
 
         private static void ValidateCreateRequest(RepairEstimateCreateRequest request)
@@ -232,42 +232,42 @@ namespace Garage_Management.Application.Services.RepairEstimaties
             ValidateJobCardId(request.JobCardId);
 
             if (request.Note != null && string.IsNullOrWhiteSpace(request.Note))
-                throw new InvalidOperationException("Note must not contain only whitespace");
+                throw new InvalidOperationException("Ghi chú không được chỉ chứa khoảng trắng");
 
             if (request.Note?.Length > 1000)
-                throw new InvalidOperationException("Note must not exceed 1000 characters");
+                throw new InvalidOperationException("Ghi chú không được vượt quá 1000 ký tự");
 
             if (request.Services == null)
-                throw new InvalidOperationException("Services list is required");
+                throw new InvalidOperationException("Danh sách dịch vụ là bắt buộc");
 
             if (request.SpareParts == null)
-                throw new InvalidOperationException("SpareParts list is required");
+                throw new InvalidOperationException("Danh sách phụ tùng là bắt buộc");
 
             if (request.Services.Count == 0 && request.SpareParts.Count == 0)
-                throw new InvalidOperationException("Repair estimate must contain at least one service or spare part");
+                throw new InvalidOperationException("Báo giá sửa chữa phải có ít nhất một dịch vụ hoặc một phụ tùng");
 
             foreach (var item in request.Services)
             {
                 if (item == null)
-                    throw new InvalidOperationException("Service item is invalid");
+                    throw new InvalidOperationException("Mục dịch vụ không hợp lệ");
 
                 if (item.ServiceId <= 0)
-                    throw new InvalidOperationException("ServiceId must be greater than 0");
+                    throw new InvalidOperationException("ServiceId phải lớn hơn 0");
 
                 if (item.Quantity <= 0)
-                    throw new InvalidOperationException($"Service quantity for service {item.ServiceId} must be greater than 0");
+                    throw new InvalidOperationException($"Số lượng dịch vụ của dịch vụ {item.ServiceId} phải lớn hơn 0");
             }
 
             foreach (var item in request.SpareParts)
             {
                 if (item == null)
-                    throw new InvalidOperationException("SparePart item is invalid");
+                    throw new InvalidOperationException("Mục phụ tùng không hợp lệ");
 
                 if (item.SparePartId <= 0)
-                    throw new InvalidOperationException("SparePartId must be greater than 0");
+                    throw new InvalidOperationException("SparePartId phải lớn hơn 0");
 
                 if (item.Quantity <= 0)
-                    throw new InvalidOperationException($"SparePart quantity for spare part {item.SparePartId} must be greater than 0");
+                    throw new InvalidOperationException($"Số lượng phụ tùng của phụ tùng {item.SparePartId} phải lớn hơn 0");
             }
         }
 
@@ -280,7 +280,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 .FirstOrDefault();
 
             if (duplicatedServiceId > 0)
-                throw new InvalidOperationException($"Service {duplicatedServiceId} is duplicated in request");
+                throw new InvalidOperationException($"Dịch vụ {duplicatedServiceId} bị trùng trong yêu cầu");
 
             var duplicatedSparePartId = request.SpareParts
                 .GroupBy(x => x.SparePartId)
@@ -289,7 +289,7 @@ namespace Garage_Management.Application.Services.RepairEstimaties
                 .FirstOrDefault();
 
             if (duplicatedSparePartId > 0)
-                throw new InvalidOperationException($"SparePart {duplicatedSparePartId} is duplicated in request");
+                throw new InvalidOperationException($"Phụ tùng {duplicatedSparePartId} bị trùng trong yêu cầu");
         }
     }
 }

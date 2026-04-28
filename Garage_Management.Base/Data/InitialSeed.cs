@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Base.Entities.Accounts;
+using Garage_Management.Base.Entities.Branches;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,21 @@ namespace Garage_Management.Base.Data
         public static void Seed(ModelBuilder modelBuilder)
         {
             var passwordHasher = new PasswordHasher<User>();
+
+            modelBuilder.Entity<Branch>().HasData(
+                new Branch
+                {
+                    BranchId = 1,
+                    BranchCode = "HQ-01",
+                    Name = "Chi nhánh chính",
+                    Address = "Trụ sở chính",
+                    Phone = null,
+                    Email = null,
+                    ManagerEmployeeId = null,
+                    IsActive = true,
+                    CreatedAt = new DateTime(2026, 3, 25, 7, 28, 5, 414, DateTimeKind.Utc)
+                }
+            );
 
             modelBuilder.Entity<IdentityRole<int>>().HasData(
                 new IdentityRole<int> { Id = 1, Name = "Customer", NormalizedName = "CUSTOMER" },
@@ -154,6 +170,7 @@ namespace Garage_Management.Base.Data
                 {
                     EmployeeId = 1,
                     UserId = 1, // admin
+                    BranchId = 1,
                     FirstName = "Nguyễn Văn",
                     LastName = "Admin",
                     EmployeeCode = "NV-ADMIN-001",
@@ -166,6 +183,7 @@ namespace Garage_Management.Base.Data
                 {
                     EmployeeId = 2,
                     UserId = 2, // manager
+                    BranchId = 1,
                     FirstName = "Trần Thị",
                     LastName = "Quản",
                     EmployeeCode = "QL-001",
@@ -178,6 +196,7 @@ namespace Garage_Management.Base.Data
                 {
                     EmployeeId = 3,
                     UserId = 3, // mechanic
+                    BranchId = 1,
                     FirstName = "Lê Văn",
                     LastName = "Hùng",
                     EmployeeCode = "KT-001",
@@ -190,6 +209,7 @@ namespace Garage_Management.Base.Data
                 {
                     EmployeeId = 4,
                     UserId = 4, // receptionist
+                    BranchId = 1,
                     FirstName = "Phạm Thị",
                     LastName = "Lan",
                     EmployeeCode = "LT-001",

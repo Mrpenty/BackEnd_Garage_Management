@@ -9,6 +9,8 @@ using Garage_Management.Application.Interfaces.Repositories.Appointments;
 using Garage_Management.Application.Interfaces.Repositories.Services;
 using Garage_Management.Application.Interfaces.Repositories.Vehiclies;
 using Garage_Management.Application.Interfaces.Services;
+using Garage_Management.Application.Interfaces.Services.Auth;
+using Garage_Management.Application.Services.Auth;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Common.Models.Appointments;
 using Garage_Management.Base.Entities.Accounts;
@@ -33,6 +35,7 @@ namespace Garage_Management.Application.Services.Appointments
         private readonly IServiceRepository _serviceRepo;
         private readonly IInventoryRepository _inventoryRepo;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICurrentUserService _currentUser;
 
         public AppointmentService(
             IAppointmentRepository repo,
@@ -42,7 +45,8 @@ namespace Garage_Management.Application.Services.Appointments
             IVehicleModelRepository vehicleModelRepo,
             IServiceRepository serviceRepo,
             IInventoryRepository inventoryRepo,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ICurrentUserService currentUser)
         {
             _repo = repo;
             _employeeRepo = employeeRepo;
@@ -52,6 +56,23 @@ namespace Garage_Management.Application.Services.Appointments
             _serviceRepo = serviceRepo;
             _inventoryRepo = inventoryRepo;
             _httpContextAccessor = httpContextAccessor;
+            _currentUser = currentUser;
+        }
+
+        // Backward-compat constructor cho các unit test cũ chưa truyền ICurrentUserService.
+        // NullCurrentUserService.IsAdmin() = true → bypass branch scoping.
+        public AppointmentService(
+            IAppointmentRepository repo,
+            IEmployeeRepository employeeRepo,
+            ICustomerRepository customerRepo,
+            IVehicleRepository vehicleRepo,
+            IVehicleModelRepository vehicleModelRepo,
+            IServiceRepository serviceRepo,
+            IInventoryRepository inventoryRepo,
+            IHttpContextAccessor httpContextAccessor)
+            : this(repo, employeeRepo, customerRepo, vehicleRepo, vehicleModelRepo,
+                   serviceRepo, inventoryRepo, httpContextAccessor, new NullCurrentUserService())
+        {
         }
 
         public async Task<AppointmentResponse?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -79,9 +100,9 @@ namespace Garage_Management.Application.Services.Appointments
 
             if (!userRoles.Contains("Customer"))
             {
-                return ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse("khách hàng chỉ có thể xem lịch hẹn cá nhân");
+                return ApiResponse<PagedResult<AppointmentResponse>>.ErrorResponse("Khách hàng chỉ có thể xem lịch hẹn cá nhân");
             }
-            var customer = await _customerRepo.GetAll().FirstAsync(c => c.UserId == currentUserId, ct);
+            var customer = await _customerRepo.GetAll().FirstOrDefaultAsync(c => c.UserId == currentUserId, ct);
 
             if (customer == null)
             {
@@ -125,7 +146,7 @@ namespace Garage_Management.Application.Services.Appointments
                 PageSize = pagedData.PageSize
             };
 
-            return ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse( result,$"Lấy danh sách lịch hẹn cá nhân thành công)"
+            return ApiResponse<PagedResult<AppointmentResponse>>.SuccessResponse( result,"Lấy danh sách lịch hẹn cá nhân thành công"
             );
         }
 
@@ -143,6 +164,15 @@ namespace Garage_Management.Application.Services.Appointments
 
         public async Task<PagedResult<AppointmentResponse>> GetPagedAsync(AppointmentQuery query, CancellationToken ct = default)
         {
+            // Branch scoping: non-Admin chỉ thấy appointment của branch mình.
+            // Override luôn để chống FE/client spoof BranchId từ query string.
+            if (!_currentUser.IsAdmin())
+            {
+                var branchId = _currentUser.GetCurrentBranchId();
+                if (branchId.HasValue)
+                    query.BranchId = branchId.Value;
+            }
+
             var paged = await _repo.GetPagedAsync(query, ct);
             return new PagedResult<AppointmentResponse>
             {
@@ -159,7 +189,7 @@ namespace Garage_Management.Application.Services.Appointments
             var effectiveCustomerId = request.CustomerId;
 
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
-                throw new InvalidOperationException("CustomerId không hợp lệ");
+                throw new InvalidOperationException("Mã khách hàng không hợp lệ");
 
             string? normalizedPhone = null;
             if (!string.IsNullOrWhiteSpace(request.Phone))
@@ -195,7 +225,7 @@ namespace Garage_Management.Application.Services.Appointments
             {
                 var customer = await _customerRepo.GetByIdAsync(effectiveCustomerId.Value);
                 if (customer == null)
-                    throw new InvalidOperationException("CustomerId không tồn tại");
+                    throw new InvalidOperationException("Mã khách hàng không tồn tại");
             }
 
             var hasVehicleId = request.VehicleId.HasValue;
@@ -219,7 +249,7 @@ namespace Garage_Management.Application.Services.Appointments
                     !string.IsNullOrWhiteSpace(request.CustomVehicleModel) ||
                     !string.IsNullOrWhiteSpace(request.LicensePlate))
                 {
-                    throw new InvalidOperationException("khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống");
+                    throw new InvalidOperationException("Khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống");
                 }
             }
 
@@ -269,7 +299,7 @@ namespace Garage_Management.Application.Services.Appointments
                     .AsNoTracking()
                     .CountAsync(x => serviceIds.Contains(x.ServiceId), ct);
                 if (count != serviceIds.Count)
-                    throw new InvalidOperationException("ServiceIds không hợp lệ");
+                    throw new InvalidOperationException("Danh sách dịch vụ không hợp lệ");
             }
 
             var sparePartIds = request.SparePartsIds?
@@ -283,7 +313,7 @@ namespace Garage_Management.Application.Services.Appointments
                     .AsNoTracking()
                     .CountAsync(x => sparePartIds.Contains(x.SparePartId), ct);
                 if (count != sparePartIds.Count)
-                    throw new InvalidOperationException("SparePartsIds không hợp lệ");
+                    throw new InvalidOperationException("Danh sách phụ tùng không hợp lệ");
             }
 
             int? createdBy = null;
@@ -294,12 +324,16 @@ namespace Garage_Management.Application.Services.Appointments
                 createdBy = employee?.EmployeeId;
             }
 
+            if (request.BranchId <= 0)
+                throw new InvalidOperationException("Phải chọn chi nhánh khi đặt lịch");
+
             var entity = new Appointment
             {
+                BranchId = request.BranchId,
                 CustomerId = effectiveCustomerId,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Phone = normalizedPhone,
+                Phone = request.Phone,
                 VehicleId = request.VehicleId,
                 VehicleModelId = request.VehicleModelId,
                 CustomVehicleBrand = request.CustomVehicleBrand,
@@ -337,86 +371,6 @@ namespace Garage_Management.Application.Services.Appointments
 
             var detail = await _repo.GetByIdWithDetailsAsync(entity.AppointmentId, ct);
             return detail == null ? Map(entity) : Map(detail);
-        }
-
-        public async Task<AppointmentResponse?> UpdateAsync(int id, AppointmentUpdateRequest request, CancellationToken ct = default)
-        {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return null;
-
-            if (request.CustomerId.HasValue)
-            {
-                if (request.CustomerId.Value <= 0)
-                    throw new InvalidOperationException("CustomerId không hợp lệ");
-                var customer = await _customerRepo.GetByIdAsync(request.CustomerId.Value);
-                if (customer == null)
-                    throw new InvalidOperationException("CustomerId không tồn tại");
-                entity.CustomerId = request.CustomerId.Value;
-            }
-            if (request.FirstName != null)
-            {
-                if (string.IsNullOrWhiteSpace(request.FirstName))
-                    throw new InvalidOperationException("FirstName không hợp lệ");
-                if (request.CustomerId.HasValue)
-                    throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName");
-                entity.FirstName = request.FirstName;
-            }
-            if (request.LastName != null)
-            {
-                if (string.IsNullOrWhiteSpace(request.LastName))
-                    throw new InvalidOperationException("LastName không hợp lệ");
-                if (request.CustomerId.HasValue)
-                    throw new InvalidOperationException("Có CustomerId thì không được nhập LastName");
-                entity.LastName = request.LastName;
-            }
-            if (request.Phone != null)
-            {
-                if (string.IsNullOrWhiteSpace(request.Phone))
-                    throw new InvalidOperationException("Phone không hợp lệ");
-                if (request.CustomerId.HasValue)
-                    throw new InvalidOperationException("Có CustomerId thì không được nhập Phone");
-                entity.Phone = request.Phone;
-            }
-            if (!request.CustomerId.HasValue)
-            {
-                if (string.IsNullOrWhiteSpace(entity.FirstName) ||
-                    string.IsNullOrWhiteSpace(entity.LastName) ||
-                    string.IsNullOrWhiteSpace(entity.Phone))
-                {
-                    throw new InvalidOperationException("Khách vãng lai cần FirstName, LastName và Phone");
-                }
-            }
-            if (request.VehicleId.HasValue)
-            {
-                var vehicle = await _vehicleRepo.GetByIdAsync(request.VehicleId.Value);
-                if (vehicle == null)
-                    throw new InvalidOperationException("VehicleId không tồn tại");
-                entity.VehicleId = request.VehicleId.Value;
-            }
-            if (request.VehicleModelId.HasValue)
-                entity.VehicleModelId = request.VehicleModelId.Value;
-
-            if (request.AppointmentDateTime.HasValue) entity.AppointmentDateTime = request.AppointmentDateTime.Value;
-            if (request.Status.HasValue) entity.Status = request.Status.Value;
-            if (request.Description != null) entity.Description = request.Description;
-            if (request.UpdatedBy.HasValue) entity.UpdatedBy = request.UpdatedBy.Value;
-            entity.UpdatedAt = DateTime.UtcNow;
-
-            _repo.Update(entity);
-            await _repo.SaveAsync(ct);
-
-            var detail = await _repo.GetByIdWithDetailsAsync(id, ct);
-            return detail == null ? Map(entity) : Map(detail);
-        }
-
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
-        {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return false;
-
-            _repo.Delete(entity);
-            await _repo.SaveAsync(ct);
-            return true;
         }
 
         public async Task<AppointmentResponse?> UpdateStatusAsync(int id, AppointmentStatus status, CancellationToken ct = default)

@@ -56,16 +56,16 @@ namespace Garage_Management.UnitTest.JobCards
         [TestMethod]
         public async Task ReorderWorkBayQueueAsync_MovesJobToTop_UsingMinMinus1000()
         {
-            var target = BuildJobCard(3, 3000m, 5);
+            var target = BuildJobCard(3, 3000m, 1);
             var jobs = new List<JobCardEntity>
             {
-                BuildJobCard(1, 1000m, 5),
-                BuildJobCard(2, 2000m, 5),
+                BuildJobCard(1, 1000m, 1),
+                BuildJobCard(2, 2000m, 1),
                 target
             };
 
             _jobCardRepo.Setup(x => x.GetByIdAsync(3)).ReturnsAsync(target);
-            _jobCardRepo.Setup(x => x.GetTrackedByWorkBayIdAsync(5, It.IsAny<CancellationToken>()))
+            _jobCardRepo.Setup(x => x.GetTrackedByWorkBayIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(jobs);
             _jobCardRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
@@ -74,7 +74,7 @@ namespace Garage_Management.UnitTest.JobCards
                 new ReorderJobCardQueueDto
                 {
                     JobCardId = 3,
-                    WorkBayId = 5,
+                    WorkBayId = 1,
                     NextJobCardId = 1
                 },
                 CancellationToken.None);
@@ -89,19 +89,19 @@ namespace Garage_Management.UnitTest.JobCards
         [TestMethod]
         public async Task ReorderWorkBayQueueAsync_MovesJobBetweenTwoJobs_UsingAverage()
         {
-            var target = BuildJobCard(4, 4000m, 8);
-            var previous = BuildJobCard(1, 1000m, 8);
-            var next = BuildJobCard(2, 2000m, 8);
+            var target = BuildJobCard(4, 4000m, 2);
+            var previous = BuildJobCard(1, 1000m, 2);
+            var next = BuildJobCard(2, 2000m, 2);
             var jobs = new List<JobCardEntity>
             {
                 previous,
                 next,
-                BuildJobCard(3, 3000m, 8),
+                BuildJobCard(3, 3000m, 2),
                 target
             };
 
             _jobCardRepo.Setup(x => x.GetByIdAsync(4)).ReturnsAsync(target);
-            _jobCardRepo.Setup(x => x.GetTrackedByWorkBayIdAsync(8, It.IsAny<CancellationToken>()))
+            _jobCardRepo.Setup(x => x.GetTrackedByWorkBayIdAsync(2, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(jobs);
             _jobCardRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
@@ -110,7 +110,7 @@ namespace Garage_Management.UnitTest.JobCards
                 new ReorderJobCardQueueDto
                 {
                     JobCardId = 4,
-                    WorkBayId = 8,
+                    WorkBayId = 2,
                     PreviousJobCardId = 1,
                     NextJobCardId = 2
                 },
@@ -126,16 +126,16 @@ namespace Garage_Management.UnitTest.JobCards
         [TestMethod]
         public async Task ReorderWorkBayQueueAsync_MovesJobToBottom_UsingMaxPlus1000()
         {
-            var target = BuildJobCard(1, 1000m, 9);
+            var target = BuildJobCard(1, 1000m, 3);
             var jobs = new List<JobCardEntity>
             {
                 target,
-                BuildJobCard(2, 2000m, 9),
-                BuildJobCard(3, 3000m, 9)
+                BuildJobCard(2, 2000m, 3),
+                BuildJobCard(3, 3000m, 3)
             };
 
             _jobCardRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(target);
-            _jobCardRepo.Setup(x => x.GetTrackedByWorkBayIdAsync(9, It.IsAny<CancellationToken>()))
+            _jobCardRepo.Setup(x => x.GetTrackedByWorkBayIdAsync(3, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(jobs);
             _jobCardRepo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
@@ -144,7 +144,7 @@ namespace Garage_Management.UnitTest.JobCards
                 new ReorderJobCardQueueDto
                 {
                     JobCardId = 1,
-                    WorkBayId = 9,
+                    WorkBayId = 3,
                     PreviousJobCardId = 3
                 },
                 CancellationToken.None);
@@ -155,22 +155,23 @@ namespace Garage_Management.UnitTest.JobCards
         }
 
         [TestMethod]
-        public async Task ReorderWorkBayQueueAsync_ReturnsFalse_WhenJobCardNotInWorkBay()
+        public async Task ReorderWorkBayQueueAsync_Throws_WhenJobCardNotInWorkBay()
         {
             var target = BuildJobCard(10, 1000m, 3);
 
             _jobCardRepo.Setup(x => x.GetByIdAsync(10)).ReturnsAsync(target);
 
-            var result = await _service.ReorderWorkBayQueueAsync(
-                new ReorderJobCardQueueDto
-                {
-                    JobCardId = 10,
-                    WorkBayId = 4,
-                    NextJobCardId = 11
-                },
-                CancellationToken.None);
+            var ex = await Assert.ThrowsExceptionAsync<Exception>(() =>
+                _service.ReorderWorkBayQueueAsync(
+                    new ReorderJobCardQueueDto
+                    {
+                        JobCardId = 10,
+                        WorkBayId = 4,
+                        NextJobCardId = 11
+                    },
+                    CancellationToken.None));
 
-            Assert.IsFalse(result);
+            Assert.AreEqual("JobCard không thuộc WorkBay này.", ex.Message);
             _jobCardRepo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 

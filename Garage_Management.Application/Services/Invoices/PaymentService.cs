@@ -1,5 +1,6 @@
 ﻿using Garage_Management.Application.DTOs.Invoices;
 using Garage_Management.Application.Interfaces.Repositories.Invoices;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Services.Invoices;
 using Garage_Management.Base.Common.Enums;
 using Microsoft.AspNetCore.Http;
@@ -15,12 +16,14 @@ namespace Garage_Management.Application.Services.Invoices
         private readonly IVnpayClient _vnpayClient;
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly IConfiguration _configuration;
+        private readonly IJobCardRepository _jobCardRepository;
 
-        public PaymentService(IVnpayClient vnpayClient, IInvoiceRepository invoiceRepository, IConfiguration configuration)
+        public PaymentService(IVnpayClient vnpayClient, IInvoiceRepository invoiceRepository, IConfiguration configuration, IJobCardRepository jobCardRepository)
         {
             _vnpayClient = vnpayClient;
             _invoiceRepository = invoiceRepository;
             _configuration = configuration;
+            _jobCardRepository = jobCardRepository;
         }
 
         public async Task<PaymentResponse> CreatePaymentUrlAsync(CreatePaymentRequest request, CancellationToken ct = default)
@@ -58,19 +61,18 @@ namespace Garage_Management.Application.Services.Invoices
             {
                 var paymentResult = _vnpayClient.GetPaymentResult(httpRequest);
 
-                // Parse InvoiceId tu Description (format: "Thanh toán hóa đơn #<InvoiceId>")
                 var description = paymentResult.Description ?? "";
                 var hashIndex = description.LastIndexOf('#');
                 var invoiceIdStr = hashIndex >= 0 ? description[(hashIndex + 1)..].Trim() : "";
 
                 if (!int.TryParse(invoiceIdStr, out var invoiceId))
                     throw new InvalidOperationException(
-                        $"Cannot parse InvoiceId. PaymentId={paymentResult.PaymentId}, Description='{description}'");
+                        $"Không tìm thấy phiếu thanh toán. PaymentId={paymentResult.PaymentId}, Description='{description}'");
 
                 var invoice = await _invoiceRepository.GetByIdWithDetailsAsync(invoiceId);
                 if (invoice == null)
                     throw new InvalidOperationException(
-                        $"Invoice not found. Parsed InvoiceId={invoiceId}, PaymentId={paymentResult.PaymentId}, Description='{description}'");
+                        $"Không tìm thấy hóa đơn. Parsed InvoiceId={invoiceId}, PaymentId={paymentResult.PaymentId}, Description='{description}'");
 
                 invoice.PaymentStatus = PaymentStatus.Paid.ToString();
                 invoice.PaymentMethod = $"VNPAY - {paymentResult.CardType}";
@@ -91,7 +93,7 @@ namespace Garage_Management.Application.Services.Invoices
                     PaymentStatus = invoice.PaymentStatus,
                     Amount = invoice.GrandTotal,
                     TransactionId = paymentResult.VnpayTransactionId.ToString(),
-                    Message = "Payment successful"
+                    Message = "Thanh toán thành công"
                 };
             }
             catch (VnpayException)
@@ -100,7 +102,7 @@ namespace Garage_Management.Application.Services.Invoices
                 return new PaymentResponse
                 {
                     PaymentStatus = PaymentStatus.Failed.ToString(),
-                    Message = "Payment failed"
+                    Message = "Thanh toán thất bại"
                 };
             }
         }
@@ -167,6 +169,43 @@ namespace Garage_Management.Application.Services.Invoices
             await _invoiceRepository.SaveAsync(ct);
 
             return true;
+        }
+        /// <summary>
+        /// Cập nhật trạng thái Invoice và JobCard khi thanh toán thành công
+        /// Chỉ cần đổi PaymentStatus = Paid thì JobCard tự động chuyển sang Completed
+        /// </summary>
+        public async Task<bool> UpdateAfterPaymentSuccessAsync(int invoiceId, CancellationToken ct = default)
+        {
+            // Lấy Invoice theo InvoiceId
+            var invoice = await _invoiceRepository.GetByIdAsync(invoiceId);   
+            if (invoice == null)
+                return false;
+
+            var jobCard = await _jobCardRepository.GetByIdAsync(invoice.JobCardId);
+            if (jobCard == null)
+                return false;
+
+            try
+            {
+                // 1. Cập nhật Invoice
+                invoice.PaymentStatus = PaymentStatus.Paid.ToString();
+                invoice.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+
+                // 2. Cập nhật JobCard thành Completed
+                jobCard.Status = JobCardStatus.Completed;
+                
+
+                _invoiceRepository.Update(invoice);
+                _jobCardRepository.Update(jobCard);
+
+                await _invoiceRepository.SaveAsync(ct);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }

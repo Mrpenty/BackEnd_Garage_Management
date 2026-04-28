@@ -10,8 +10,8 @@ namespace Garage_Management.API.Controllers
     [Route("api/[controller]")]
     public class ServicesController : ControllerBase
     {
-        private const string ManagerRoles = "Supervisor,Admin";
-        private const string AccountantRoles = "Admin";
+        private const string ManagerRoles = "Supervisor,Accountant";
+        private const string AccountantRoles = "Accountant";
 
         private readonly IServiceService _service;
 
@@ -162,22 +162,6 @@ namespace Garage_Management.API.Controllers
             {
                 return StatusCode(500, ApiResponse<ServiceResponse>.ErrorResponse(ex.Message));
             }
-        }
-
-        ///Author: KhanhDV
-        ///Created Date: 13-2-2026
-        /// <summary>
-        /// Xóa 1 dịch vụ
-        /// </summary>
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
-        {
-
-            var ok = await _service.DeleteAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("Service not found"));
-
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
         }
 
         /// <summary>

@@ -32,7 +32,6 @@ namespace Garage_Management.Application.Interfaces.Services.Inventories
         /// <param name="isActive"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<SparePartCategoryResponse> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default);
-        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
+        Task<SparePartCategoryResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default);
     }
 }

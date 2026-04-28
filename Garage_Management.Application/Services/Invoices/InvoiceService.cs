@@ -1,6 +1,9 @@
 using Garage_Management.Application.DTOs.Invoices;
+using Garage_Management.Application.Interfaces.Repositories.JobCards;
 using Garage_Management.Application.Interfaces.Repositories.Invoices;
+using Garage_Management.Application.Interfaces.Services.Auth;
 using Garage_Management.Application.Interfaces.Services.Invoices;
+using Garage_Management.Application.Services.Auth;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Common.Models.Invoices;
 using Garage_Management.Base.Entities;
@@ -10,10 +13,32 @@ namespace Garage_Management.Application.Services.Invoices
     public class InvoiceService : IInvoiceService
     {
         private readonly IInvoiceRepository _invoiceRepository;
+        private readonly IJobCardRepository? _jobCardRepository;
+        private readonly ICurrentUserService _currentUser;
+
+        public InvoiceService(
+            IInvoiceRepository invoiceRepository,
+            IJobCardRepository jobCardRepository,
+            ICurrentUserService currentUser)
+        {
+            _invoiceRepository = invoiceRepository;
+            _jobCardRepository = jobCardRepository;
+            _currentUser = currentUser;
+        }
 
         public InvoiceService(IInvoiceRepository invoiceRepository)
         {
             _invoiceRepository = invoiceRepository;
+            _jobCardRepository = null;
+            _currentUser = new NullCurrentUserService();
+        }
+
+        private void EnsureCanAccess(int branchId)
+        {
+            if (_currentUser.IsAdmin()) return;
+            var scoped = _currentUser.GetCurrentBranchId();
+            if (scoped.HasValue && scoped.Value == branchId) return;
+            throw new UnauthorizedAccessException("Không có quyền truy cập hóa đơn của chi nhánh khác");
         }
 
         public async Task<InvoiceResponse?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -42,15 +67,22 @@ namespace Garage_Management.Application.Services.Invoices
             if (existing != null)
                 throw new InvalidOperationException("JobCard already has an invoice.");
 
+            var jobCard = await _jobCardRepository.GetByIdAsync(request.JobCardId);
+            if (jobCard == null)
+                throw new InvalidOperationException("Không tìm thấy JobCard");
+            EnsureCanAccess(jobCard.BranchId);
+
             var invoice = new Invoice
             {
+                BranchId = jobCard.BranchId,
                 JobCardId = request.JobCardId,
                 InvoiceDate = request.InvoiceDate ?? DateTime.UtcNow,
                 ServiceTotal = request.ServiceTotal,
                 SparePartTotal = request.SparePartTotal,
                 GrandTotal = request.ServiceTotal + request.SparePartTotal,
                 PaymentStatus = "Unpaid",
-                PaymentMethod = request.PaymentMethod
+                PaymentMethod = request.PaymentMethod,
+                CreatedBy = _currentUser.GetCurrentUserId()
             };
 
             await _invoiceRepository.AddAsync(invoice, ct);
@@ -65,6 +97,7 @@ namespace Garage_Management.Application.Services.Invoices
         {
             var invoice = await _invoiceRepository.GetByIdWithDetailsAsync(id, ct);
             if (invoice == null) return null;
+            EnsureCanAccess(invoice.BranchId);
 
             if (request.InvoiceDate.HasValue)
                 invoice.InvoiceDate = request.InvoiceDate.Value;
@@ -85,21 +118,14 @@ namespace Garage_Management.Application.Services.Invoices
             if (request.PaymentMethod != null)
                 invoice.PaymentMethod = request.PaymentMethod;
 
+            invoice.UpdatedAt = DateTime.UtcNow;
+            invoice.UpdatedBy = _currentUser.GetCurrentUserId();
+
             _invoiceRepository.Update(invoice);
             await _invoiceRepository.SaveAsync(ct);
 
             var updated = await _invoiceRepository.GetByIdWithDetailsAsync(id, ct);
             return MapToResponse(updated!);
-        }
-
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
-        {
-            var invoice = await _invoiceRepository.GetByIdAsync(id);
-            if (invoice == null) return false;
-
-            _invoiceRepository.Delete(invoice);
-            await _invoiceRepository.SaveAsync(ct);
-            return true;
         }
 
         private static InvoiceResponse MapToResponse(Invoice invoice)

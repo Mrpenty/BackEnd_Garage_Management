@@ -40,9 +40,7 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
 
             var request = new RepairEstimateServiceUpdateRequest
             {
-                UnitPrice = 200,
-                Quantity = 3,
-                TotalAmount = 600
+                Quantity = 3
             };
 
             _repo.Setup(x => x.GetByIdAsync(1, 2, It.IsAny<CancellationToken>()))
@@ -51,14 +49,14 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             var result = await _service.UpdateAsync(1, 2, request, CancellationToken.None);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(200m, entity.UnitPrice);
+            Assert.AreEqual(100m, entity.UnitPrice);
             Assert.AreEqual(3, entity.Quantity);
-            Assert.AreEqual(600m, entity.TotalAmount);
+            Assert.AreEqual(300m, entity.TotalAmount);
             _repo.Verify(x => x.UpdateAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
-        public async Task UpdateAsync_WhenTotalAmountMissing_UsesCalculatedValue()
+        public async Task UpdateAsync_WhenQuantityChanges_UsesCalculatedValue()
         {
             var entity = new RepairEstimateServiceEntity
             {
@@ -71,7 +69,6 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
 
             var request = new RepairEstimateServiceUpdateRequest
             {
-                UnitPrice = 150,
                 Quantity = 3
             };
 
@@ -81,8 +78,8 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             var result = await _service.UpdateAsync(1, 2, request, CancellationToken.None);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(450m, result.TotalAmount);
-            Assert.AreEqual(450m, entity.TotalAmount);
+            Assert.AreEqual(300m, result.TotalAmount);
+            Assert.AreEqual(300m, entity.TotalAmount);
         }
 
         [TestMethod]
@@ -94,34 +91,6 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             var result = await _service.UpdateAsync(1, 2, new RepairEstimateServiceUpdateRequest(), CancellationToken.None);
 
             Assert.IsNull(result);
-        }
-
-        [TestMethod]
-        public async Task UpdateAsync_WhenTotalAmountDoesNotMatch_Throws()
-        {
-            var entity = new RepairEstimateServiceEntity
-            {
-                RepairEstimateId = 1,
-                ServiceId = 2,
-                UnitPrice = 100,
-                Quantity = 1,
-                TotalAmount = 100
-            };
-
-            _repo.Setup(x => x.GetByIdAsync(1, 2, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(entity);
-
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(
-                    1,
-                    2,
-                    new RepairEstimateServiceUpdateRequest
-                    {
-                        UnitPrice = 150,
-                        Quantity = 2,
-                        TotalAmount = 100
-                    },
-                    CancellationToken.None));
         }
 
         [TestMethod]

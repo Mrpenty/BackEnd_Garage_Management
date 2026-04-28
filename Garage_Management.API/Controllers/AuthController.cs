@@ -36,14 +36,23 @@ namespace Garage_Management.API.Controllers
         [HttpPost("customer/login")]
         public async Task<IActionResult> LoginCustomer([FromBody] CustomerLoginRequest request)
         {
-            var result = await _authService.LoginCustomerAsync(request);
-
-            if (result.Success)
+            try
             {
+                var result = await _authService.LoginCustomerAsync(request);
                 return Ok(result);
             }
-
-            return BadRequest(result);
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ApiResponse<LoginResponse>.ErrorResponse(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<LoginResponse>.ErrorResponse(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResponse<LoginResponse>.ErrorResponse("Lỗi hệ thống"));
+            }
         }
 
         /// <summary>
@@ -55,14 +64,19 @@ namespace Garage_Management.API.Controllers
         [HttpPost("send-otp-Forlogin")]
         public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request)
         {
-            var result = await _authService.SendOtpLoginAsync(request.PhoneOrEmail);
-
-            if (result.Success)
+            try
             {
+                var result = await _authService.SendOtpLoginAsync(request.PhoneOrEmail);
                 return Ok(result);
             }
-
-            return BadRequest(result);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống"));
+            }
         }
         /// <summary>
         /// Đăng ký tài khoản khách hàng mới (self-registration)
@@ -73,14 +87,19 @@ namespace Garage_Management.API.Controllers
         [HttpPost("customer/register")]
         public async Task<IActionResult> RegisterCustomer([FromBody] CustomerRegisterRequest request)
         {
-            var result = await _authService.RegisterCustomerAsync(request);
-
-            if (result.Success)
+            try
             {
+                var result = await _authService.RegisterCustomerAsync(request);
                 return Ok(result);
             }
-
-            return BadRequest(result);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<User>.ErrorResponse(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResponse<User>.ErrorResponse("Lỗi hệ thống"));
+            }
         }
         /// <summary>
         /// Xác thực OTP và kích hoạt tài khoản khách hàng (sau khi đăng ký hoặc khi số điện thoại chưa verify)
@@ -95,12 +114,19 @@ namespace Garage_Management.API.Controllers
         [HttpPost("customer/verifyPhonenumber")]
         public async Task<IActionResult> VerifyCustomerAccount([FromBody] VerifyOtpRequest request)
         {
-            var result = await _authService.VerifyOtpAndActivateAsync(request);
-            if (result.Success)
+            try
             {
+                var result = await _authService.VerifyOtpAndActivateAsync(request);
                 return Ok(result);
             }
-            return BadRequest(result);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống"));
+            }
         }
         /// <summary>
         /// Gửi lại mã OTP cho khách hàng (dùng khi không nhận được hoặc OTP hết hạn)
@@ -108,13 +134,21 @@ namespace Garage_Management.API.Controllers
         [HttpPost("customer/resend-otp")]
         public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequest request)
         {
-            var result = await _authService.ResendOtpAsync(request);
-            if (result.Success)
+            try
             {
+                var result = await _authService.ResendOtpAsync(request);
                 return Ok(result);
             }
-            return BadRequest(result);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống"));
+            }
         }
+        
         /// <summary>
         /// Đăng nhập cho nhân viên gara (email + password)
         /// </summary>
@@ -125,13 +159,23 @@ namespace Garage_Management.API.Controllers
         [HttpPost("staff/login")]
         public async Task<IActionResult> LoginStaff([FromBody] StaffLoginRequest request)
         {
-            var result = await _authService.LoginStaffAsync(request);
-
-            if (result.Success)
+            try
             {
+                var result = await _authService.LoginStaffAsync(request);
                 return Ok(result);
             }
-            return BadRequest(result);
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ApiResponse<LoginResponse>.ErrorResponse(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<LoginResponse>.ErrorResponse(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResponse<LoginResponse>.ErrorResponse("Lỗi hệ thống"));
+            }
         }
 
         /// <summary>

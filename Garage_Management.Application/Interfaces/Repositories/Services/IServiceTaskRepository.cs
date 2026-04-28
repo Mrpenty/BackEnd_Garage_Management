@@ -35,5 +35,10 @@ namespace Garage_Management.Application.Interfaces.Repositories.Services
         /// <param name="serviceId">ID dịch vụ cần kiểm tra.</param>
         /// <param name="ct">Token để hủy truy vấn.</param>
         Task<List<ServiceTask>> GetByServiceIdAsync(int serviceId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Kiểm tra ServiceTask đã phát sinh dữ liệu liên quan (JobCardServiceTask) hay chưa.
+        /// </summary>
+        Task<bool> HasDependenciesAsync(int serviceTaskId, CancellationToken ct = default);
     }
 }

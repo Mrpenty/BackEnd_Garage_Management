@@ -1,6 +1,7 @@
 using Garage_Management.Application.DTOs.Inventories.SparePartBrands;
 using Garage_Management.Application.Interfaces.Services.Inventories;
 using Garage_Management.Base.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
@@ -9,6 +10,8 @@ namespace Garage_Management.API.Controllers
     [Route("api/[controller]")]
     public class SparePartBrandsController : ControllerBase
     {
+        private const string ManagerRoles = "Supervisor";
+
         private readonly ISparePartBrandService _service;
 
         public SparePartBrandsController(ISparePartBrandService service)
@@ -57,6 +60,7 @@ namespace Garage_Management.API.Controllers
         /// Tạo hãng phụ tùng
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<SparePartBrandResponse>>> Create(
             [FromBody] SparePartBrandCreateRequest request,
             CancellationToken ct = default)
@@ -69,6 +73,7 @@ namespace Garage_Management.API.Controllers
         /// Cập nhật hãng phụ tùng
         /// </summary>
         [HttpPut("{id:int}")]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<SparePartBrandResponse>>> Update(
             int id,
             [FromBody] SparePartBrandUpdateRequest request,
@@ -85,6 +90,7 @@ namespace Garage_Management.API.Controllers
         /// Xóa hãng phụ tùng
         /// </summary>
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = ManagerRoles)]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {
             var ok = await _service.DeleteAsync(id, ct);

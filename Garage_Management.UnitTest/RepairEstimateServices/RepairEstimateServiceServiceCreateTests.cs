@@ -35,9 +35,7 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             {
                 RepairEstimateId = 1,
                 ServiceId = 2,
-                UnitPrice = 250,
-                Quantity = 2,
-                TotalAmount = 500
+                Quantity = 2
             };
 
             RepairEstimateServiceEntity? captured = null;
@@ -45,7 +43,7 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             _repairEstimateRepo.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new RepairEstimate { RepairEstimateId = 1 });
             _serviceRepo.Setup(x => x.GetByIdAsync(2))
-                .ReturnsAsync(new Service { ServiceId = 2, IsActive = true });
+                .ReturnsAsync(new Service { ServiceId = 2, IsActive = true, BasePrice = 250 });
             _repo.Setup(x => x.GetByIdAsync(1, 2, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((RepairEstimateServiceEntity?)null);
             _repo.Setup(x => x.AddAsync(It.IsAny<RepairEstimateServiceEntity>(), It.IsAny<CancellationToken>()))
@@ -56,6 +54,7 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
 
             Assert.IsNotNull(captured);
             Assert.AreEqual(RepairEstimateApprovalStatus.WaitingApproval, captured.Status);
+            Assert.AreEqual(250m, captured.UnitPrice);
             Assert.AreEqual(500m, captured.TotalAmount);
             Assert.AreEqual(1, result.RepairEstimateId);
             Assert.AreEqual(2, result.ServiceId);
@@ -71,9 +70,7 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             {
                 RepairEstimateId = 1,
                 ServiceId = 2,
-                UnitPrice = 100,
-                Quantity = 1,
-                TotalAmount = 100
+                Quantity = 1
             };
 
             _repairEstimateRepo.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
@@ -90,15 +87,13 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             {
                 RepairEstimateId = 1,
                 ServiceId = 2,
-                UnitPrice = 100,
-                Quantity = 1,
-                TotalAmount = 100
+                Quantity = 1
             };
 
             _repairEstimateRepo.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new RepairEstimate { RepairEstimateId = 1 });
             _serviceRepo.Setup(x => x.GetByIdAsync(2))
-                .ReturnsAsync(new Service { ServiceId = 2, IsActive = false });
+                .ReturnsAsync(new Service { ServiceId = 2, IsActive = false, BasePrice = 100 });
 
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));
@@ -111,15 +106,13 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
             {
                 RepairEstimateId = 1,
                 ServiceId = 2,
-                UnitPrice = 100,
-                Quantity = 1,
-                TotalAmount = 100
+                Quantity = 1
             };
 
             _repairEstimateRepo.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new RepairEstimate { RepairEstimateId = 1 });
             _serviceRepo.Setup(x => x.GetByIdAsync(2))
-                .ReturnsAsync(new Service { ServiceId = 2, IsActive = true });
+                .ReturnsAsync(new Service { ServiceId = 2, IsActive = true, BasePrice = 100 });
             _repo.Setup(x => x.GetByIdAsync(1, 2, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new RepairEstimateServiceEntity
                 {
@@ -132,16 +125,19 @@ namespace Garage_Management.UnitTest.RepairEstimateServices
         }
 
         [TestMethod]
-        public async Task CreateAsync_WhenTotalAmountDoesNotMatch_Throws()
+        public async Task CreateAsync_WhenServiceBasePriceMissing_Throws()
         {
             var request = new RepairEstimateServiceCreateRequest
             {
                 RepairEstimateId = 1,
                 ServiceId = 2,
-                UnitPrice = 100,
-                Quantity = 2,
-                TotalAmount = 150
+                Quantity = 2
             };
+
+            _repairEstimateRepo.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new RepairEstimate { RepairEstimateId = 1 });
+            _serviceRepo.Setup(x => x.GetByIdAsync(2))
+                .ReturnsAsync(new Service { ServiceId = 2, IsActive = true, BasePrice = null });
 
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.CreateAsync(request, CancellationToken.None));

@@ -33,6 +33,9 @@ namespace Garage_Management.Base.Migrations
                     b.Property<DateTime>("AppointmentDateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -95,6 +98,8 @@ namespace Garage_Management.Base.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("AppointmentId");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("CreatedBy");
 
@@ -221,6 +226,9 @@ namespace Garage_Management.Base.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeId"));
 
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -277,6 +285,8 @@ namespace Garage_Management.Base.Migrations
 
                     b.HasKey("EmployeeId");
 
+                    b.HasIndex("BranchId");
+
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("DeletedByUserId");
@@ -292,6 +302,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 1,
+                            BranchId = 1,
                             CreatedAt = new DateTime(2026, 3, 25, 7, 28, 5, 732, DateTimeKind.Utc),
                             EmployeeCode = "NV-ADMIN-001",
                             FirstName = "Nguyễn Văn",
@@ -305,6 +316,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 2,
+                            BranchId = 1,
                             CreatedAt = new DateTime(2026, 3, 25, 7, 28, 5, 732, DateTimeKind.Utc),
                             EmployeeCode = "QL-001",
                             FirstName = "Trần Thị",
@@ -318,6 +330,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 3,
+                            BranchId = 1,
                             CreatedAt = new DateTime(2026, 3, 25, 7, 28, 5, 732, DateTimeKind.Utc),
                             EmployeeCode = "KT-001",
                             FirstName = "Lê Văn",
@@ -331,6 +344,7 @@ namespace Garage_Management.Base.Migrations
                         new
                         {
                             EmployeeId = 4,
+                            BranchId = 1,
                             CreatedAt = new DateTime(2026, 3, 25, 7, 28, 5, 732, DateTimeKind.Utc),
                             EmployeeCode = "LT-001",
                             FirstName = "Phạm Thị",
@@ -473,7 +487,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GARAGE.VN",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAaD9+xf+0qNmdhJE6hhdT6vbKoPX1n4j4wry/ZVtD7jyOOvHdQ8I22oKmsCvxyScw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEH3kCHhrNtdEkpO7k6qjIqTtApj5oEBuYZs/O9r3Xj3Gmae9NWaXoPxgyodWfqaonA==",
                             PhoneNumber = "0909123456",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "5b6a4224-84dd-4305-b979-15b78c58c314",
@@ -492,7 +506,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER01@GARAGE.VN",
                             NormalizedUserName = "SUPERVISOR01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBLb9uzbGBOGMJcXnSUJ50SVGK2NE+YH4+aVcdlpoUUcYzrcd+EEEo/Onks35VdLlA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEVAYrR2s8Jgbq0xopDN19/3JIIfSkGvV9WIcxbXq8MeU1t4ArKxNl0KcJzZr7J/eg==",
                             PhoneNumber = "0912345678",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "c61a1880-b13b-4590-9482-753068f03897",
@@ -511,7 +525,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MECHANIC01@GARAGE.VN",
                             NormalizedUserName = "MECHANIC01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOikWEjgUYBjwczdEeuvssNgNdWseK3rTnqOhbIvUYvFQ/tVCdRdhtq63wXmBFld+g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPyKLa4rN2dd87cuDNEt5VguuJ3ePyW1SidxDGkqYMlzIoylLP5KY3Y8ycPK2/DvbA==",
                             PhoneNumber = "0987654321",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "cdc21a21-318b-4190-a35c-70e5df9ea56b",
@@ -530,7 +544,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "RECEPTION@GARAGE.VN",
                             NormalizedUserName = "RECEP01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEERbPXYcsKAapCufcFWL8A/R+SJnhKQCiBO8zWYCt7hoadCDEdcQvuWTGCRLZP9IhA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENmkZ7UPLYMmmbiY0kWGG+6NAQwUQ5gUJZVyKymtpxGmguc/xo8UuOl1Ua4MKXXzDA==",
                             PhoneNumber = "0978123456",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "01f26687-aac8-470a-ade0-17e00fc98446",
@@ -549,7 +563,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STOCKER@GARAGE.VN",
                             NormalizedUserName = "STOCKER01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEP1IXWUwljom+8olGOl7UCpHw9DK1XAPPlCSILLZdR6wvkLDXJrl7ZUesEPjZyb5wg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEO6L3sDk+m+zlE6EYb6MLzITTg63AS9IkvgzzY7ZrUgv2lJjRHW3SulM1/+4RacBtw==",
                             PhoneNumber = "0978123356",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "c346c74b-28bc-47a4-963a-1dfd9d20e698",
@@ -568,7 +582,7 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "NGUYEN.VAN.A@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG01",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDitILFevPcZOOIhDhotaq/bCa+AjVPYUb8muyOsZ7IdHrzU7LFKdXadHLyAVR437g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEBNIXFXh/fYiOxDSFYUkPzx/ab1qxq42qnZ9uHbKZqFJAeR0FFwzZZ3CLYmtfi6Qg==",
                             PhoneNumber = "0912345670",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "ed3d8b90-55be-46d9-ae4d-f10d46005c0a",
@@ -587,12 +601,88 @@ namespace Garage_Management.Base.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "TRAN.THI.B@GMAIL.COM",
                             NormalizedUserName = "KHACHHANG02",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIqM0MkxYztjZ7wIIMwUpwOv0wvhShtn0iGv5XkGCfez+RdR3/byPMyEG/Nw/Sw4dg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAm7e5ZcoUULaXy7QhRUtO7zMFy4FyAB8PSsFeq35baefjEXuXqrO5sf76M+eMKy9g==",
                             PhoneNumber = "0987654312",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "1250155f-2669-47ad-bb37-162d1ddac80e",
                             TwoFactorEnabled = false,
                             UserName = "khachhang02"
+                        });
+                });
+
+            modelBuilder.Entity("Garage_Management.Base.Entities.Branches.Branch", b =>
+                {
+                    b.Property<int>("BranchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BranchId"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("BranchCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ManagerEmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("BranchId");
+
+                    b.HasIndex("BranchCode")
+                        .IsUnique();
+
+                    b.HasIndex("ManagerEmployeeId");
+
+                    b.ToTable("Branches");
+
+                    b.HasData(
+                        new
+                        {
+                            BranchId = 1,
+                            Address = "Trụ sở chính",
+                            BranchCode = "HQ-01",
+                            CreatedAt = new DateTime(2026, 3, 25, 7, 28, 5, 414, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Chi nhánh chính"
                         });
                 });
 
@@ -603,6 +693,9 @@ namespace Garage_Management.Base.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SparePartId"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
@@ -659,6 +752,8 @@ namespace Garage_Management.Base.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("SparePartId");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("CategoryId");
 
@@ -780,6 +875,9 @@ namespace Garage_Management.Base.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StockTransactionId"));
 
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -834,6 +932,8 @@ namespace Garage_Management.Base.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("StockTransactionId");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("JobCardId");
 
@@ -906,6 +1006,9 @@ namespace Garage_Management.Base.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
 
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -952,6 +1055,8 @@ namespace Garage_Management.Base.Migrations
 
                     b.HasKey("InvoiceId");
 
+                    b.HasIndex("BranchId");
+
                     b.HasIndex("JobCardId")
                         .IsUnique();
 
@@ -967,6 +1072,9 @@ namespace Garage_Management.Base.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("JobCardId"));
 
                     b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BranchId")
                         .HasColumnType("int");
 
                     b.Property<string>("CompletedSteps")
@@ -1031,6 +1139,8 @@ namespace Garage_Management.Base.Migrations
                     b.HasKey("JobCardId");
 
                     b.HasIndex("AppointmentId");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("CreatedBy");
 
@@ -1273,6 +1383,9 @@ namespace Garage_Management.Base.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
 
@@ -1300,6 +1413,8 @@ namespace Garage_Management.Base.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("JobcardId");
 
@@ -2111,6 +2226,12 @@ namespace Garage_Management.Base.Migrations
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Accounts.Appointment", b =>
                 {
+                    b.HasOne("Garage_Management.Base.Entities.Branches.Branch", "Branch")
+                        .WithMany("Appointments")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Garage_Management.Base.Entities.Accounts.Employee", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedBy")
@@ -2138,6 +2259,8 @@ namespace Garage_Management.Base.Migrations
                     b.HasOne("Garage_Management.Base.Entities.Vehiclies.VehicleModel", "VehicleModel")
                         .WithMany()
                         .HasForeignKey("VehicleModelId");
+
+                    b.Navigation("Branch");
 
                     b.Navigation("CreatedByUser");
 
@@ -2200,6 +2323,12 @@ namespace Garage_Management.Base.Migrations
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Accounts.Employee", b =>
                 {
+                    b.HasOne("Garage_Management.Base.Entities.Branches.Branch", "Branch")
+                        .WithMany("Employees")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Garage_Management.Base.Entities.Accounts.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
@@ -2218,6 +2347,8 @@ namespace Garage_Management.Base.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Branch");
+
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("DeletedByUser");
@@ -2234,8 +2365,24 @@ namespace Garage_Management.Base.Migrations
                         .HasForeignKey("RoleId");
                 });
 
+            modelBuilder.Entity("Garage_Management.Base.Entities.Branches.Branch", b =>
+                {
+                    b.HasOne("Garage_Management.Base.Entities.Accounts.Employee", "ManagerEmployee")
+                        .WithMany()
+                        .HasForeignKey("ManagerEmployeeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ManagerEmployee");
+                });
+
             modelBuilder.Entity("Garage_Management.Base.Entities.Inventories.Inventory", b =>
                 {
+                    b.HasOne("Garage_Management.Base.Entities.Branches.Branch", "Branch")
+                        .WithMany("Inventories")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Garage_Management.Base.Entities.Inventories.SparePartCategory", "SparePartCategory")
                         .WithMany("SparePart")
                         .HasForeignKey("CategoryId")
@@ -2245,6 +2392,8 @@ namespace Garage_Management.Base.Migrations
                         .WithMany("SpareParts")
                         .HasForeignKey("SparePartBrandId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
 
                     b.Navigation("SparePartBrand");
 
@@ -2272,6 +2421,12 @@ namespace Garage_Management.Base.Migrations
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Inventories.StockTransaction", b =>
                 {
+                    b.HasOne("Garage_Management.Base.Entities.Branches.Branch", "Branch")
+                        .WithMany("StockTransactions")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Garage_Management.Base.Entities.JobCards.JobCard", "JobCard")
                         .WithMany()
                         .HasForeignKey("JobCardId")
@@ -2288,6 +2443,8 @@ namespace Garage_Management.Base.Migrations
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("Branch");
+
                     b.Navigation("Inventory");
 
                     b.Navigation("JobCard");
@@ -2297,11 +2454,19 @@ namespace Garage_Management.Base.Migrations
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Invoice", b =>
                 {
+                    b.HasOne("Garage_Management.Base.Entities.Branches.Branch", "Branch")
+                        .WithMany("Invoices")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Garage_Management.Base.Entities.JobCards.JobCard", "JobCard")
                         .WithOne("Invoice")
                         .HasForeignKey("Garage_Management.Base.Entities.Invoice", "JobCardId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Branch");
 
                     b.Navigation("JobCard");
                 });
@@ -2312,6 +2477,12 @@ namespace Garage_Management.Base.Migrations
                         .WithMany("GeneratedJobCards")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Garage_Management.Base.Entities.Branches.Branch", "Branch")
+                        .WithMany("JobCards")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Garage_Management.Base.Entities.Accounts.Employee", "CreatedByEmployee")
                         .WithMany()
@@ -2344,6 +2515,8 @@ namespace Garage_Management.Base.Migrations
                         .HasForeignKey("WorkBayId");
 
                     b.Navigation("Appointment");
+
+                    b.Navigation("Branch");
 
                     b.Navigation("CreatedByEmployee");
 
@@ -2476,10 +2649,18 @@ namespace Garage_Management.Base.Migrations
 
             modelBuilder.Entity("Garage_Management.Base.Entities.JobCards.WorkBay", b =>
                 {
+                    b.HasOne("Garage_Management.Base.Entities.Branches.Branch", "Branch")
+                        .WithMany("WorkBays")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Garage_Management.Base.Entities.JobCards.JobCard", "JobCard")
                         .WithMany()
                         .HasForeignKey("JobcardId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
 
                     b.Navigation("JobCard");
                 });
@@ -2756,6 +2937,23 @@ namespace Garage_Management.Base.Migrations
             modelBuilder.Entity("Garage_Management.Base.Entities.Accounts.User", b =>
                 {
                     b.Navigation("Notifications");
+                });
+
+            modelBuilder.Entity("Garage_Management.Base.Entities.Branches.Branch", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("Employees");
+
+                    b.Navigation("Inventories");
+
+                    b.Navigation("Invoices");
+
+                    b.Navigation("JobCards");
+
+                    b.Navigation("StockTransactions");
+
+                    b.Navigation("WorkBays");
                 });
 
             modelBuilder.Entity("Garage_Management.Base.Entities.Inventories.Inventory", b =>

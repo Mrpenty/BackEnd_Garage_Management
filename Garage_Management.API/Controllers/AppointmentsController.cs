@@ -2,12 +2,14 @@
 using Garage_Management.Application.Interfaces.Services;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Common.Models.Appointments;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AppointmentsController : ControllerBase
     {
         private readonly IAppointmentService _service;
@@ -98,30 +100,6 @@ namespace Garage_Management.API.Controllers
             }
         }
 
-        ///Author: KhanhDV
-        ///Created Date: 13-2-2026
-        /// <summary>
-        /// Cập nhật lịch đặt
-        /// </summary>
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<ApiResponse<AppointmentResponse>>> Update(
-            int id,
-            [FromBody] AppointmentUpdateRequest request,
-            CancellationToken ct = default)
-        {
-            try
-            {
-                var data = await _service.UpdateAsync(id, request, ct);
-                if (data == null)
-                    return NotFound(ApiResponse<AppointmentResponse>.ErrorResponse("Không tìm thấy lịch đặt"));
-                return Ok(ApiResponse<AppointmentResponse>.SuccessResponse(data, "Cập nhật lịch đặt thành công"));
-            }
-            catch (InvalidOperationException ex)
-            {
-                return StatusCode(500, ApiResponse<AppointmentResponse>.ErrorResponse(ex.Message));
-            }   
-        }
-
         /// <summary>
         /// Duyệt / đổi trạng thái lịch đặt
         /// </summary>
@@ -145,26 +123,5 @@ namespace Garage_Management.API.Controllers
             }
         }
 
-        ///Author: KhanhDV
-        ///Created Date: 13-2-2026
-        /// <summary>
-        /// Xóa lịch đặt được phân trang
-        /// </summary>
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
-        {
-            try
-            {
-                var ok = await _service.DeleteAsync(id, ct);
-                if (!ok)
-                    return NotFound(ApiResponse<object>.ErrorResponse("Không tìm thấy lịch đặt"));
-
-                return Ok(ApiResponse<object>.SuccessResponse(new { }, "Xóa lịch đặt thành công"));
-            }
-            catch (InvalidOperationException ex)
-            {
-                return StatusCode(500, ApiResponse<object>.ErrorResponse(ex.Message));
-            }
-        }
     }
 }
