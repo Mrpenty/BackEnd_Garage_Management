@@ -19,7 +19,14 @@ var connectionString = builder.Configuration.GetConnectionString("Mycnn")
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+        sqlOptions.CommandTimeout(60);
+    }));
 
 // Add services
 builder.Services.AddControllers();
@@ -75,5 +82,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Health check endpoint - verify deploy version
+app.MapGet("/api/version", () => Results.Ok(new
+{
+    version = Environment.GetEnvironmentVariable("APP_VERSION") ?? "1.0.0",
+    gitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT_SHA") ?? "unknown",
+    buildTime = Environment.GetEnvironmentVariable("BUILD_TIME") ?? "unknown",
+    environment = app.Environment.EnvironmentName,
+    serverTime = DateTime.UtcNow,
+    machineName = Environment.MachineName
+}));
+
+app.MapGet("/api/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 app.Run();

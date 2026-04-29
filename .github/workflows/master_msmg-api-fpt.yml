@@ -24,10 +24,10 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build Garage_Management.API/Garage_Management.API.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish Garage_Management.API/Garage_Management.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp --no-build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -62,4 +62,27 @@ jobs:
           app-name: 'msmg-api-fpt'
           slot-name: 'Production'
           package: .
+
+      - name: Set deployment metadata env vars
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'msmg-api-fpt'
+          app-settings-json: |
+            [
+              {
+                "name": "GIT_COMMIT_SHA",
+                "value": "${{ github.sha }}",
+                "slotSetting": false
+              },
+              {
+                "name": "BUILD_TIME",
+                "value": "${{ github.event.head_commit.timestamp }}",
+                "slotSetting": false
+              },
+              {
+                "name": "APP_VERSION",
+                "value": "${{ github.run_number }}",
+                "slotSetting": false
+              }
+            ]
           
