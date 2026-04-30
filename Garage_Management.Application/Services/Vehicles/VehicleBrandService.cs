@@ -49,6 +49,30 @@ namespace Garage_Management.Application.Services.Vehicles
             return Map(entity);
         }
 
+        public async Task<VehicleBrandResponse?> UpdateAsync(int id, VehicleBrandUpdate request, CancellationToken ct = default)
+        {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+            if (string.IsNullOrWhiteSpace(request.BrandName))
+                throw new InvalidOperationException("BrandName không hợp lệ");
+
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            if (await _repo.HasModelsAsync(id, ct) || await _repo.HasVehiclesAsync(id, ct))
+                throw new InvalidOperationException("Không thể cập nhật hãng xe vì đã có dữ liệu liên quan");
+
+            var newName = request.BrandName.Trim();
+            if (await _repo.HasExistAsync(newName, id, ct))
+                throw new InvalidOperationException("Hãng xe này đã tồn tại, nhập tên khác");
+
+            entity.BrandName = newName;
+            entity.IsActive = request.isActive;
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return Map(entity);
+        }
+
         public async Task<bool> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);
@@ -58,6 +82,20 @@ namespace Garage_Management.Application.Services.Vehicles
                 return true;
 
             entity.IsActive = isActive;
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> ToggleStatusAsync(int id, CancellationToken ct = default)
+        {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return false;
+
+            entity.IsActive = !entity.IsActive;
             _repo.Update(entity);
             await _repo.SaveAsync(ct);
             return true;

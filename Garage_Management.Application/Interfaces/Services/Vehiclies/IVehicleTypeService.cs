@@ -8,8 +8,10 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         Task<VehicleTypeResponse?> GetByIdAsync(int id, CancellationToken ct = default);
         Task<PagedResult<VehicleTypeResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
         Task<VehicleTypeResponse> CreateAsync(VehicleTypeCreateRequest request, CancellationToken ct = default);
+        Task<VehicleTypeResponse?> UpdateAsync(int id, VehicleTypeUpdate request, CancellationToken ct = default);
         Task<VehicleTypeResponse?> ActivateAsync(int id, CancellationToken ct = default);
         Task<VehicleTypeResponse?> DeactivateAsync(int id, CancellationToken ct = default);
+        Task<bool> ToggleStatusAsync(int id, CancellationToken ct = default);
         Task<bool> DeleteAsync(int id, CancellationToken ct = default);
     }
 }

@@ -35,12 +35,22 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         Task<VehicleBrandResponse> CreateAsync(VehicleBrandCreateRequest request, CancellationToken ct = default);
 
         /// <summary>
+        /// Cập nhật thông tin vehicle brand. Chỉ cho phép khi chưa có model/vehicle liên kết.
+        /// </summary>
+        Task<VehicleBrandResponse?> UpdateAsync(int id, VehicleBrandUpdate request, CancellationToken ct = default);
+
+        /// <summary>
         /// Cập nhật trạng thái isActive của vehicle brand.
         /// </summary>
         Task<bool> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default);
 
         /// <summary>
-        /// Xóa cứng vehicle brand.
+        /// Toggle trạng thái isActive (active ↔ deactive).
+        /// </summary>
+        Task<bool> ToggleStatusAsync(int id, CancellationToken ct = default);
+
+        /// <summary>
+        /// Xóa cứng vehicle brand. Chỉ cho phép khi chưa có model/vehicle liên kết.
         /// </summary>
         Task<bool> DeleteAsync(int id, CancellationToken ct = default);
 
@@ -49,7 +59,7 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         /// <summary>
         /// Xóa 1 lịch đặt
         /// </summary>
-        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>    
+        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<bool> DeActiveAsync(int id, CancellationToken ct = default);
     }
 }

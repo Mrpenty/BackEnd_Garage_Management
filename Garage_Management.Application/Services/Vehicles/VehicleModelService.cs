@@ -113,11 +113,24 @@ namespace Garage_Management.Application.Services.Vehicles
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
 
-            if (!entity.IsActive)
-                throw new InvalidOperationException("Model đã được vô hiệu hóa trước đó");
-
-            entity.IsActive = false;
+            entity.IsActive = !entity.IsActive;
             _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+        {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return false;
+
+            if (await _repo.HasVehiclesAsync(id, ct))
+                throw new InvalidOperationException("Không thể xóa model xe vì đã có xe liên kết");
+
+            _repo.Delete(entity);
             await _repo.SaveAsync(ct);
             return true;
         }

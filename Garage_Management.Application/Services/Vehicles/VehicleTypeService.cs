@@ -56,6 +56,45 @@ namespace Garage_Management.Application.Services.Vehicles
             return Map(entity);
         }
 
+        public async Task<VehicleTypeResponse?> UpdateAsync(int id, VehicleTypeUpdate request, CancellationToken ct = default)
+        {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+            if (string.IsNullOrWhiteSpace(request.TypeName))
+                throw new InvalidOperationException("TypeName không hợp lệ");
+
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            if (await _repo.HasModelsAsync(id, ct) || await _repo.HasServiceMappingsAsync(id, ct))
+                throw new InvalidOperationException("Không thể cập nhật loại xe vì đã phát sinh dữ liệu liên quan");
+
+            var newName = request.TypeName.Trim();
+            if (await _repo.ExistsByTypeNameAsync(newName, id, ct))
+                throw new InvalidOperationException("Loại xe này đã tồn tại, nhập tên khác");
+
+            entity.TypeName = newName;
+            entity.Description = request.Description?.Trim();
+            entity.IsActive = request.IsActive;
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return Map(entity);
+        }
+
+        public async Task<bool> ToggleStatusAsync(int id, CancellationToken ct = default)
+        {
+            if (id <= 0)
+                throw new InvalidOperationException("Id không hợp lệ");
+
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return false;
+
+            entity.IsActive = !entity.IsActive;
+            _repo.Update(entity);
+            await _repo.SaveAsync(ct);
+            return true;
+        }
+
         public async Task<VehicleTypeResponse?> DeactivateAsync(int id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id);

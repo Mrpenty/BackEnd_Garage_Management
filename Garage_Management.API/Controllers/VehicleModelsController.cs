@@ -101,16 +101,45 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Deactive 1 model xe máy
+        /// Toggle trạng thái IsActive của 1 model xe (active ↔ deactive)
         /// </summary>
         [HttpPatch("{id:int}")]
+        public async Task<ActionResult<ApiResponse<object>>> ToggleStatus(int id, CancellationToken ct = default)
+        {
+            try
+            {
+                var ok = await _service.DeActiveAsync(id, ct);
+                if (!ok)
+                    return NotFound(ApiResponse<object>.ErrorResponse("VehicleModel not found"));
+
+                return Ok(ApiResponse<object>.SuccessResponse(new { }, "Status updated"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(ex.Message));
+            }
+        }
+
+        ///Author: KhanhDV
+        ///Created Date: 13-2-2026
+        /// <summary>
+        /// Xóa cứng 1 model xe máy. Chỉ cho phép khi chưa có xe liên kết.
+        /// </summary>
+        [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
         {
-            var ok = await _service.DeActiveAsync(id, ct);
-            if (!ok)
-                return NotFound(ApiResponse<object>.ErrorResponse("VehicleModel not found"));
+            try
+            {
+                var ok = await _service.DeleteAsync(id, ct);
+                if (!ok)
+                    return NotFound(ApiResponse<object>.ErrorResponse("VehicleModel not found"));
 
-            return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deactivated"));
+                return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(ex.Message));
+            }
         }
     }
 }

@@ -46,9 +46,16 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>
-        /// Xóa 1 model xe máy đã tồn tại
+        /// Toggle trạng thái IsActive của 1 model xe máy (active ↔ deactive)
         /// </summary>
-        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>    
+        /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>
         Task<bool> DeActiveAsync(int id, CancellationToken ct = default);
+
+        /// Author: KhanhDV
+        /// Created Date: 13-2-2026
+        /// <summary>
+        /// Xóa cứng 1 model xe máy. Chỉ cho phép khi chưa có vehicle liên kết.
+        /// </summary>
+        Task<bool> DeleteAsync(int id, CancellationToken ct = default);
     }
 }
