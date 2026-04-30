@@ -138,7 +138,7 @@ namespace Garage_Management.Application.Services.Inventories
                 throw new InvalidOperationException("LastPurchasePrice không hợp lệ");
 
             // Validation giá bán
-            if (request.SellingPrice.HasValue && request.SellingPrice.Value < 0)
+            if (request.SellingPrice.HasValue && request.SellingPrice.Value <= 0)
                 throw new InvalidOperationException("SellingPrice không hợp lệ");
 
             // Validation CategoryId tồn tại (nếu có)
@@ -182,7 +182,7 @@ namespace Garage_Management.Application.Services.Inventories
                 MinQuantity = request.MinQuantity,
                 LastPurchasePrice = request.LastPurchasePrice,
                 SellingPrice = request.SellingPrice,
-                IsActive = request.IsActive,
+                IsActive = HasActiveSellingPrice(request.SellingPrice),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -278,8 +278,9 @@ namespace Garage_Management.Application.Services.Inventories
             }
             if (request.SellingPrice.HasValue)
             {
-                if (request.SellingPrice.Value < 0) throw new InvalidOperationException("Giá bán hiện tại không hợp lệ");
+                if (request.SellingPrice.Value <= 0) throw new InvalidOperationException("Giá bán hiện tại phải lớn hơn 0");
                 entity.SellingPrice = request.SellingPrice.Value;
+                entity.IsActive = true;
             }
 
             entity.UpdatedAt = DateTime.UtcNow;
@@ -296,6 +297,9 @@ namespace Garage_Management.Application.Services.Inventories
             if (entity == null)
                 throw new InvalidOperationException("Id không tồn tại");
             EnsureCanAccess(entity.BranchId);
+
+            if (isActive && !HasActiveSellingPrice(entity.SellingPrice))
+                throw new InvalidOperationException("Không thể kích hoạt phụ tùng chưa có giá bán (SellingPrice)");
 
             if (entity.IsActive == isActive)
                 return await GetByIdAsync(id, ct);
@@ -371,6 +375,11 @@ namespace Garage_Management.Application.Services.Inventories
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt
             };
+        }
+
+        private static bool HasActiveSellingPrice(decimal? sellingPrice)
+        {
+            return sellingPrice.HasValue && sellingPrice.Value > 0;
         }
     }
 }

@@ -261,5 +261,22 @@ namespace Garage_Management.UnitTest.Inventories
             Assert.IsNotNull(result);
             Assert.AreEqual(0, entity.MinQuantity);
         }
+
+        [TestMethod]
+        public async Task UTCID12_UpdateAsync_SetSellingPrice_ActivatesInventory()
+        {
+            var entity = MakeEntity();
+            entity.SellingPrice = null;
+            entity.IsActive = false;
+            _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
+            _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+
+            var result = await _service.UpdateAsync(1, new InventoryUpdateRequest { SellingPrice = 45000m });
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(45000m, entity.SellingPrice);
+            Assert.IsTrue(entity.IsActive);
+        }
     }
 }

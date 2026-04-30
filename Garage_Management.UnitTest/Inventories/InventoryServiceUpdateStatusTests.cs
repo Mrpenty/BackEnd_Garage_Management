@@ -35,6 +35,7 @@ namespace Garage_Management.UnitTest.Inventories
             PartName = "Bugi NGK CR7HSA",
             Unit = "Cái",
             Quantity = 20,
+            SellingPrice = 35000m,
             IsActive = isActive
         };
 
@@ -107,6 +108,21 @@ namespace Garage_Management.UnitTest.Inventories
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => _service.UpdateStatusAsync(999, true));
             Assert.AreEqual("Id không tồn tại", ex.Message);
+        }
+
+        [TestMethod]
+        public async Task UTCID05_UpdateStatusAsync_ActivateWithoutSellingPrice_Throws()
+        {
+            var entity = MakeEntity(isActive: false);
+            entity.SellingPrice = null;
+            _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
+
+            var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
+                () => _service.UpdateStatusAsync(1, true));
+
+            Assert.AreEqual("Không thể kích hoạt phụ tùng chưa có giá bán (SellingPrice)", ex.Message);
+            _repo.Verify(x => x.Update(It.IsAny<Inventory>()), Times.Never);
+            _repo.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

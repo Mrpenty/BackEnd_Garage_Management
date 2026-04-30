@@ -211,6 +211,7 @@ namespace Garage_Management.UnitTest.Inventories
             Assert.IsNull(result.CategoryId);
             Assert.IsNull(result.SparePartBrandId);
             Assert.AreEqual(10, result.Quantity);
+            Assert.IsFalse(result.IsActive);
         }
 
         /// <summary>

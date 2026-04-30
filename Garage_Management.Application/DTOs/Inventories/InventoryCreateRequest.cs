@@ -26,10 +26,10 @@ namespace Garage_Management.Application.DTOs.Iventories
         [Range(0, double.MaxValue)]
         public decimal? LastPurchasePrice { get; set; }
 
-        [Range(0, double.MaxValue)]
+        [Range(0.01, double.MaxValue)]
         public decimal? SellingPrice { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = false;
 
         /// <summary>
         /// Chi nhánh. Non-admin luôn lấy từ token, admin bắt buộc truyền.
