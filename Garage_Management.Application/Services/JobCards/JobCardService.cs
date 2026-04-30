@@ -312,6 +312,16 @@ namespace Garage_Management.Application.Services.JobCards
 
             entity.Status = status;
 
+            if (status == JobCardStatus.WaitingPickup)
+            {
+                var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+                foreach (var mechanic in entity.Mechanics.Where(x => x.Status != MechanicAssignmentStatus.Removed))
+                {
+                    mechanic.Status = MechanicAssignmentStatus.Completed;
+                    mechanic.CompletedAt ??= now;
+                }
+            }
+
             if (status == JobCardStatus.Completed)
                 entity.EndDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
