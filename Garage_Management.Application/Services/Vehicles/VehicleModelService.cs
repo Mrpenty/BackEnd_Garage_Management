@@ -27,9 +27,27 @@ namespace Garage_Management.Application.Services.Vehicles
             return entity == null ? null : Map(entity);
         }
 
-        public async Task<PagedResult<VehicleModelResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<VehicleModelResponse>> GetPagedAsync(int page, int pageSize, string? keyword = null, CancellationToken ct = default)
         {
-            var paged = await _repo.GetPagedAsync(page, pageSize, ct);
+            var paged = await _repo.GetPagedAsync(page, pageSize, keyword, ct);
+            return new PagedResult<VehicleModelResponse>
+            {
+                Page = paged.Page,
+                PageSize = paged.PageSize,
+                Total = paged.Total,
+                PageData = paged.PageData.Select(Map).ToList()
+            };
+        }
+
+        public async Task<PagedResult<VehicleModelResponse>?> GetByBrandIdAsync(int brandId, int page, int pageSize, string? keyword = null, CancellationToken ct = default)
+        {
+            if (brandId <= 0)
+                throw new InvalidOperationException("BrandId không hợp lệ");
+
+            var brand = await _brandRepo.GetByIdAsync(brandId);
+            if (brand == null) return null;
+
+            var paged = await _repo.GetByBrandIdAsync(brandId, page, pageSize, keyword, ct);
             return new PagedResult<VehicleModelResponse>
             {
                 Page = paged.Page,
@@ -76,9 +94,6 @@ namespace Garage_Management.Application.Services.Vehicles
 
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return null;
-
-            if (!entity.IsActive)
-                throw new InvalidOperationException("Không thể cập nhật model đã bị vô hiệu hóa");
 
             if (request.TypeId <= 0)
                 throw new InvalidOperationException("TypeId không hợp lệ");

@@ -20,12 +20,19 @@ namespace Garage_Management.Application.Repositories.Vehicles
             _context = context;
         }
 
-        public async Task<PagedResult<VehicleModel>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<VehicleModel>> GetPagedAsync(int page, int pageSize, string? keyword = null, CancellationToken ct = default)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 1;
 
             var query = GetAll().AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var k = keyword.Trim().ToLower();
+                query = query.Where(x => x.ModelName.ToLower().Contains(k));
+            }
+
             var total = await query.CountAsync(ct);
             var data = await query
                 .OrderByDescending(x => x.ModelId)
@@ -33,6 +40,35 @@ namespace Garage_Management.Application.Repositories.Vehicles
                 .Take(pageSize)
                 .ToListAsync(ct)
                 ;
+
+            return new PagedResult<VehicleModel>
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                PageData = data
+            };
+        }
+
+        public async Task<PagedResult<VehicleModel>> GetByBrandIdAsync(int brandId, int page, int pageSize, string? keyword = null, CancellationToken ct = default)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 1;
+
+            var query = GetAll().AsNoTracking().Where(x => x.BrandId == brandId);
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var k = keyword.Trim().ToLower();
+                query = query.Where(x => x.ModelName.ToLower().Contains(k));
+            }
+
+            var total = await query.CountAsync(ct);
+            var data = await query
+                .OrderByDescending(x => x.ModelId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
 
             return new PagedResult<VehicleModel>
             {

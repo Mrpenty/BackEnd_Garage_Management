@@ -65,7 +65,6 @@ namespace Garage_Management.API.Controllers
             return Ok(result);
         }
         [HttpPost("{id:int}/change-info")]
-
         public async Task<ActionResult<ApiResponse<WorkBayDto>>> ChangeStatus(int id, [FromBody] UpdateWorkBayRequest request,
             CancellationToken ct = default)
         {
@@ -73,7 +72,31 @@ namespace Garage_Management.API.Controllers
             if (!result.Success)
                 return BadRequest(result);
             return Ok(result);
+        }
 
+        /// <summary>
+        /// Cập nhật thông tin khoang sửa chữa (RESTful version, thay cho POST /change-info).
+        /// </summary>
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApiResponse<WorkBayDto>>> Update(int id, [FromBody] UpdateWorkBayRequest request,
+            CancellationToken ct = default)
+        {
+            var result = await _service.UpdateWorkBayAsync(id, request, ct);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Xóa cứng khoang sửa chữa. Chặn nếu đang Occupied hoặc đã có lịch sử jobcard.
+        /// </summary>
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken ct = default)
+        {
+            var result = await _service.DeleteWorkBayAsync(id, ct);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
         }
 
         [HttpPost("{id:int}/rebalance-queue")]

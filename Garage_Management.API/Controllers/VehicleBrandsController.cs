@@ -1,4 +1,5 @@
 ﻿using Garage_Management.Application.DTOs.Vehicles.VehicleBrand;
+using Garage_Management.Application.DTOs.Vehicles.VehicleModel;
 using Garage_Management.Application.Interfaces.Services.Vehiclies;
 using Garage_Management.Base.Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,12 @@ namespace Garage_Management.API.Controllers
     public class VehicleBrandsController : ControllerBase
     {
         private readonly IVehicleBrandService _service;
+        private readonly IVehicleModelService _modelService;
 
-        public VehicleBrandsController(IVehicleBrandService service)
+        public VehicleBrandsController(IVehicleBrandService service, IVehicleModelService modelService)
         {
             _service = service;
+            _modelService = modelService;
         }
 
         ///Author: KhanhDV
@@ -25,11 +28,12 @@ namespace Garage_Management.API.Controllers
         public async Task<ActionResult<ApiResponse<PagedResult<VehicleBrandResponse>>>> GetPaged(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
+            [FromQuery] string? keyword = null,
             CancellationToken ct = default)
         {
             try
             {
-                var data = await _service.GetPagedAsync(page, pageSize, ct);
+                var data = await _service.GetPagedAsync(page, pageSize, keyword, ct);
                 return Ok(ApiResponse<PagedResult<VehicleBrandResponse>>.SuccessResponse(data, "Lấy danh sách hãng xe máy thành công"));
             }
             catch (InvalidOperationException ex)
@@ -38,6 +42,33 @@ namespace Garage_Management.API.Controllers
 
             }
         }
+        ///Author: KhanhDV
+        ///Created Date: 30-4-2026
+        /// <summary>
+        /// Lấy danh sách model thuộc về 1 brand cụ thể (phân trang + search theo tên).
+        /// </summary>
+        [HttpGet("{id:int}/models")]
+        public async Task<ActionResult<ApiResponse<PagedResult<VehicleModelResponse>>>> GetModelsByBrand(
+            int id,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? keyword = null,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var data = await _modelService.GetByBrandIdAsync(id, page, pageSize, keyword, ct);
+                if (data == null)
+                    return NotFound(ApiResponse<PagedResult<VehicleModelResponse>>.ErrorResponse("Không tìm thấy hãng xe máy"));
+
+                return Ok(ApiResponse<PagedResult<VehicleModelResponse>>.SuccessResponse(data, "Lấy danh sách model theo hãng thành công"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ApiResponse<PagedResult<VehicleModelResponse>>.ErrorResponse(ex.Message));
+            }
+        }
+
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>

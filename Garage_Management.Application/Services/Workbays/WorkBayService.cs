@@ -227,6 +227,29 @@ namespace Garage_Management.Application.Services.Workbays
             }, "Tạo khoang sửa chữa thành công");
         }
 
+        public async Task<ApiResponse<object>> DeleteWorkBayAsync(int id, CancellationToken cancellationToken)
+        {
+            if (id <= 0)
+                return ApiResponse<object>.ErrorResponse("Id không hợp lệ");
+
+            var workBay = await _workBayRepository.GetByIdAsync(id);
+            if (workBay == null)
+                return ApiResponse<object>.ErrorResponse("Khoang sửa chữa không tồn tại");
+
+            EnsureCanAccess(workBay.BranchId);
+
+            if (workBay.Status == WorkBayStatus.Occupied || workBay.JobcardId.HasValue)
+                return ApiResponse<object>.ErrorResponse("Không thể xóa khoang đang có phiếu sửa chữa");
+
+            if (await _workBayRepository.HasJobCardsAsync(id, cancellationToken))
+                return ApiResponse<object>.ErrorResponse("Không thể xóa khoang đã có lịch sử phiếu sửa chữa");
+
+            _workBayRepository.Delete(workBay);
+            await _workBayRepository.SaveAsync(cancellationToken);
+
+            return ApiResponse<object>.SuccessResponse(new { }, "Xóa khoang sửa chữa thành công");
+        }
+
         public async Task<ApiResponse<WorkBayDto>> UpdateWorkBayAsync(int id, UpdateWorkBayRequest request, CancellationToken cancellationToken)
         {
             var workBay = await _workBayRepository.GetByIdAsync(id);

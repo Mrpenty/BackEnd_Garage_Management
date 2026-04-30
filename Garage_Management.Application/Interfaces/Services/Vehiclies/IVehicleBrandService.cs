@@ -25,7 +25,7 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
         /// <param name="pageSize">Tổng số trang</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>    
-        Task<PagedResult<VehicleBrandResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<PagedResult<VehicleBrandResponse>> GetPagedAsync(int page, int pageSize, string? keyword = null, CancellationToken ct = default);
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
         /// <summary>

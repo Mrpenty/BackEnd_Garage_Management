@@ -23,9 +23,9 @@ namespace Garage_Management.Application.Services.Vehicles
             return entity == null ? null : Map(entity);
         }
 
-        public async Task<PagedResult<VehicleBrandResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<VehicleBrandResponse>> GetPagedAsync(int page, int pageSize, string? keyword = null, CancellationToken ct = default)
         {
-            var paged = await _repo.GetPagedAsync(page, pageSize, ct);
+            var paged = await _repo.GetPagedAsync(page, pageSize, keyword, ct);
             return new PagedResult<VehicleBrandResponse>
             {
                 Page = paged.Page,

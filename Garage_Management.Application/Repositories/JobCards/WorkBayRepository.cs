@@ -37,7 +37,12 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .ToListAsync(cancellationToken);
         }
 
-        
+        public Task<bool> HasJobCardsAsync(int workBayId, CancellationToken ct = default)
+        {
+            return _context.JobCards
+                .AsNoTracking()
+                .AnyAsync(j => j.WorkBayId == workBayId, ct);
+        }
     }
     }
 

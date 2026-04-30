@@ -21,6 +21,10 @@ namespace Garage_Management.Application.Interfaces.Services
         /// Câp nhật thông tin khoang sửa chữa
         /// </summary>
         Task<ApiResponse<WorkBayDto>> UpdateWorkBayAsync(int id,UpdateWorkBayRequest request, CancellationToken cancellationToken);
+        /// <summary>
+        /// Xóa cứng khoang sửa chữa. Chỉ cho phép khi không Occupied và chưa từng có jobcard liên kết.
+        /// </summary>
+        Task<ApiResponse<object>> DeleteWorkBayAsync(int id, CancellationToken cancellationToken);
         Task<WorkBayDto?> GetByIdAsync(int workBayId, CancellationToken cancellationToken);
         Task<ApiResponse<RebalanceWorkBayQueueResponse>> RebalanceQueueAsync(int workBayId, CancellationToken cancellationToken);
     }

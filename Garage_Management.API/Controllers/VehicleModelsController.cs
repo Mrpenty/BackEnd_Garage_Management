@@ -25,9 +25,10 @@ namespace Garage_Management.API.Controllers
         public async Task<ActionResult<ApiResponse<PagedResult<VehicleModelResponse>>>> GetPaged(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
+            [FromQuery] string? keyword = null,
             CancellationToken ct = default)
         {
-            var data = await _service.GetPagedAsync(page, pageSize, ct);
+            var data = await _service.GetPagedAsync(page, pageSize, keyword, ct);
             return Ok(ApiResponse<PagedResult<VehicleModelResponse>>.SuccessResponse(data, "OK"));
         }
 

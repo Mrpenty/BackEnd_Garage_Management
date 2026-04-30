@@ -86,7 +86,7 @@ app.MapControllers();
 // Health check endpoint - verify deploy version
 app.MapGet("/api/version", () => Results.Ok(new
 {
-    version = Environment.GetEnvironmentVariable("APP_VERSION") ?? "2.0.0",
+    version = Environment.GetEnvironmentVariable("APP_VERSION") ?? "1.0.0",
     gitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT_SHA") ?? "unknown",
     buildTime = Environment.GetEnvironmentVariable("BUILD_TIME") ?? "unknown",
     environment = app.Environment.EnvironmentName,

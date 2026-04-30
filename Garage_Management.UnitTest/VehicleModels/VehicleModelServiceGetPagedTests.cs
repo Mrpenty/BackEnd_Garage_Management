@@ -21,7 +21,7 @@ namespace Garage_Management.UnitTest.VehicleModels
             var brandRepo = new Mock<IVehicleBrandRepository>();
             var service = new VehicleModelService(repo.Object, brandRepo.Object);
 
-            repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<CancellationToken>()))
+            repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PagedResult<VehicleModel>
                 {
                     Page = 1,
@@ -46,7 +46,7 @@ namespace Garage_Management.UnitTest.VehicleModels
             var brandRepo = new Mock<IVehicleBrandRepository>();
             var service = new VehicleModelService(repo.Object, brandRepo.Object);
 
-            repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<CancellationToken>()))
+            repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PagedResult<VehicleModel>
                 {
                     Page = 1,

@@ -20,7 +20,11 @@ namespace Garage_Management.Application.Interfaces.Repositories
 
             Task SaveAsync(CancellationToken cancellationToken);
             Task<List<WorkBay>> GetByStatusAsync( WorkBayStatus? status, CancellationToken cancellationToken);
-        
+
+        /// <summary>
+        /// Kiểm tra workbay đã từng có jobcard liên kết hay chưa (kể cả lịch sử) — chặn xóa khi trả về true.
+        /// </summary>
+        Task<bool> HasJobCardsAsync(int workBayId, CancellationToken ct = default);
     }
  }
 

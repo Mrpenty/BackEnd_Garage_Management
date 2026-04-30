@@ -27,7 +27,7 @@ namespace Garage_Management.UnitTest.VehicleBrands
         [TestMethod]
         public async Task GetPagedAsync_WithData_ReturnsMappedPagedResult()
         {
-            _repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<CancellationToken>()))
+            _repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PagedResult<VehicleBrand>
                 {
                     Page = 1,
@@ -40,7 +40,7 @@ namespace Garage_Management.UnitTest.VehicleBrands
                     }
                 });
 
-            var result = await _service.GetPagedAsync(1, 10, CancellationToken.None);
+            var result = await _service.GetPagedAsync(1, 10, ct: CancellationToken.None);
 
             Assert.AreEqual(1, result.Page);
             Assert.AreEqual(10, result.PageSize);
@@ -57,7 +57,7 @@ namespace Garage_Management.UnitTest.VehicleBrands
         [TestMethod]
         public async Task GetPagedAsync_Empty_ReturnsEmptyPagedResult()
         {
-            _repo.Setup(x => x.GetPagedAsync(2, 5, It.IsAny<CancellationToken>()))
+            _repo.Setup(x => x.GetPagedAsync(2, 5, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PagedResult<VehicleBrand>
                 {
                     Page = 2,
@@ -66,7 +66,7 @@ namespace Garage_Management.UnitTest.VehicleBrands
                     PageData = new List<VehicleBrand>()
                 });
 
-            var result = await _service.GetPagedAsync(2, 5, CancellationToken.None);
+            var result = await _service.GetPagedAsync(2, 5, ct: CancellationToken.None);
 
             Assert.AreEqual(2, result.Page);
             Assert.AreEqual(5, result.PageSize);

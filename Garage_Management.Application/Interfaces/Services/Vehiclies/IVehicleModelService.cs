@@ -25,7 +25,15 @@ namespace Garage_Management.Application.Interfaces.Services.Vehiclies
         /// <param name="page">Số trang hiện tại (bắt đầu từ 1)</param>
         /// <param name="pageSize">Tổng số trang</param>
         /// <param name="ct">Để dừng các query khi tắt page hoặc tắt app.</param>    
-        Task<PagedResult<VehicleModelResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default);
+        Task<PagedResult<VehicleModelResponse>> GetPagedAsync(int page, int pageSize, string? keyword = null, CancellationToken ct = default);
+
+        /// Author: KhanhDV
+        /// Created Date: 30-4-2026
+        /// <summary>
+        /// Lấy danh sách model thuộc về 1 brand cụ thể, có phân trang + search theo tên.
+        /// Trả null nếu brand không tồn tại.
+        /// </summary>
+        Task<PagedResult<VehicleModelResponse>?> GetByBrandIdAsync(int brandId, int page, int pageSize, string? keyword = null, CancellationToken ct = default);
 
         /// Author: KhanhDV
         /// Created Date: 13-2-2026
