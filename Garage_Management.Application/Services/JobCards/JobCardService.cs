@@ -231,6 +231,9 @@ namespace Garage_Management.Application.Services.JobCards
                 CustomerId = entity.CustomerId,
                 CustomerName = entity.Customer != null? $"{entity.Customer.LastName} {entity.Customer.FirstName}".Trim(): null,
                 VehicleId = entity.VehicleId,
+                LicensePlate = entity.Vehicle?.LicensePlate,
+                VehicleBrand = entity.Vehicle?.Brand?.BrandName,
+                VehicleModel = entity.Vehicle?.Model?.ModelName,
                 CustomerPhone = entity.Customer?.User.PhoneNumber,
                 Vehicles = entity.Vehicle != null? new List<VehicleDto>{
                 new VehicleDto

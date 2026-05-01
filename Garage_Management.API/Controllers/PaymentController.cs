@@ -68,7 +68,9 @@ namespace Garage_Management.API.Controllers
             [FromBody] SePayWebhookRequest request,
             CancellationToken ct = default)
         {
-            await _paymentService.ProcessSePayWebhookAsync(request, ct);
+            var ok = await _paymentService.ProcessSePayWebhookAsync(request, ct);
+            if (!ok)
+                return BadRequest(new { success = false, message = "Không khớp invoice từ nội dung chuyển khoản" });
             return Ok(new { success = true });
         }
         /// <summary>

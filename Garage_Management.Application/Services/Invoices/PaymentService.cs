@@ -5,6 +5,7 @@ using Garage_Management.Application.Interfaces.Services.Invoices;
 using Garage_Management.Base.Common.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 using VNPAY;
 using VNPAY.Models.Enums;
 using VNPAY.Models.Exceptions;
@@ -144,16 +145,29 @@ namespace Garage_Management.Application.Services.Invoices
         }
         public async Task<bool> ProcessSePayWebhookAsync(SePayWebhookRequest request, CancellationToken ct = default)
         {
-            // Noi dung chuyen khoan co dang: "TT HD {invoiceId}"
-            var content = request.Content ?? "";
-            var prefix = "SEVQR TT HD ";
-            var idx = content.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
-            if (idx < 0 || !int.TryParse(content[(idx + prefix.Length)..].Trim(), out var invoiceId))
+            // Noi dung chuyen khoan co dang: "SEVQR TT HD {invoiceId}".
+            // Bank/SePay co the chen them noise (vd "SEVQR TT HD 3 NHA", "SEVQR TT HD3", ...) → match linh hoat.
+            var content = request.Content ?? string.Empty;
+            Console.WriteLine($"[SePay Webhook] received: amount={request.TransferAmount}, content='{content}'");
+
+            var match = Regex.Match(content, @"SEVQR\s*TT\s*HD\s*(\d+)", RegexOptions.IgnoreCase);
+            if (!match.Success || !int.TryParse(match.Groups[1].Value, out var invoiceId))
+            {
+                Console.WriteLine($"[SePay Webhook] FAIL: cannot parse invoiceId from content");
                 return false;
+            }
 
             var invoice = await _invoiceRepository.GetByIdWithDetailsAsync(invoiceId);
-            if (invoice == null || invoice.PaymentStatus == PaymentStatus.Paid.ToString())
+            if (invoice == null)
+            {
+                Console.WriteLine($"[SePay Webhook] FAIL: invoice {invoiceId} not found in DB");
                 return false;
+            }
+            if (invoice.PaymentStatus == PaymentStatus.Paid.ToString())
+            {
+                Console.WriteLine($"[SePay Webhook] SKIP: invoice {invoiceId} already Paid");
+                return false;
+            }
 
             invoice.PaymentStatus = PaymentStatus.Paid.ToString();
             invoice.PaymentMethod = "BankTransfer";

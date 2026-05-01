@@ -12,6 +12,9 @@ namespace Garage_Management.Application.DTOs.JobCards
         public string? CustomerPhone { get; set; }
         public string? SupervisorName { get; set; }
         public int VehicleId { get; set; }
+        public string? LicensePlate { get; set; }
+        public string? VehicleBrand { get; set; }
+        public string? VehicleModel { get; set; }
         public int? AppointmentId { get; set; }
         public int? CustomerId { get; set; }
         public int? WorkbayId { get; set; }
