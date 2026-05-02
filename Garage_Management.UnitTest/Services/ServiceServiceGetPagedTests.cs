@@ -49,9 +49,14 @@ namespace Garage_Management.UnitTest.Services
                     }
                 }
             };
-            _repo.Setup(x => x.GetPagedAsync(1, 10, It.IsAny<CancellationToken>())).ReturnsAsync(paged);
+            _repo.Setup(x => x.GetPagedAsync(
+                1, 10,
+                It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<bool?>(),
+                It.IsAny<int?>(), It.IsAny<decimal?>(), It.IsAny<decimal?>(),
+                It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(paged);
 
-            var result = await _service.GetPagedAsync(1, 10, CancellationToken.None);
+            var result = await _service.GetPagedAsync(1, 10, ct: CancellationToken.None);
 
             Assert.AreEqual(1, result.Total);
             Assert.AreEqual(1, result.PageData.Count());
@@ -61,7 +66,11 @@ namespace Garage_Management.UnitTest.Services
         [TestMethod]
         public async Task GetPagedAsync_Empty_ReturnsEmptyPagedResult()
         {
-            _repo.Setup(x => x.GetPagedAsync(2, 5, It.IsAny<CancellationToken>()))
+            _repo.Setup(x => x.GetPagedAsync(
+                2, 5,
+                It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<bool?>(),
+                It.IsAny<int?>(), It.IsAny<decimal?>(), It.IsAny<decimal?>(),
+                It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PagedResult<Service>
                 {
                     Page = 2,
@@ -70,7 +79,7 @@ namespace Garage_Management.UnitTest.Services
                     PageData = new List<Service>()
                 });
 
-            var result = await _service.GetPagedAsync(2, 5, CancellationToken.None);
+            var result = await _service.GetPagedAsync(2, 5, ct: CancellationToken.None);
 
             Assert.AreEqual(2, result.Page);
             Assert.AreEqual(5, result.PageSize);

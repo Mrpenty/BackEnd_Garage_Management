@@ -17,7 +17,18 @@ namespace Garage_Management.Application.Repositories.Services
         }
         
 
-        public async Task<PagedResult<Service>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<Service>> GetPagedAsync(
+            int page,
+            int pageSize,
+            string? keyword = null,
+            bool? isActive = null,
+            bool? hasPrice = null,
+            int? vehicleTypeId = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            string? sortBy = null,
+            bool sortDesc = true,
+            CancellationToken ct = default)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
@@ -25,9 +36,44 @@ namespace Garage_Management.Application.Repositories.Services
             var query = _context.Services
                 .Include(x => x.ServiceTasks)
                 .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var k = keyword.Trim().ToLower();
+                query = query.Where(x =>
+                    x.ServiceName.ToLower().Contains(k)
+                    || (x.Description != null && x.Description.ToLower().Contains(k)));
+            }
+
+            if (isActive.HasValue)
+                query = query.Where(x => x.IsActive == isActive.Value);
+
+            if (hasPrice.HasValue)
+            {
+                query = hasPrice.Value
+                    ? query.Where(x => x.BasePrice != null && x.BasePrice > 0)
+                    : query.Where(x => x.BasePrice == null || x.BasePrice <= 0);
+            }
+
+            if (vehicleTypeId.HasValue && vehicleTypeId.Value > 0)
+                query = query.Where(x => x.ServiceVehicleTypes.Any(svt => svt.VehicleTypeId == vehicleTypeId.Value));
+
+            if (minPrice.HasValue)
+                query = query.Where(x => x.BasePrice != null && x.BasePrice >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                query = query.Where(x => x.BasePrice != null && x.BasePrice <= maxPrice.Value);
+
+            query = (sortBy?.Trim().ToLower()) switch
+            {
+                "name" => sortDesc ? query.OrderByDescending(x => x.ServiceName) : query.OrderBy(x => x.ServiceName),
+                "price" => sortDesc ? query.OrderByDescending(x => x.BasePrice) : query.OrderBy(x => x.BasePrice),
+                "createdat" => sortDesc ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt),
+                _ => sortDesc ? query.OrderByDescending(x => x.ServiceId) : query.OrderBy(x => x.ServiceId),
+            };
+
             var total = await query.CountAsync(ct);
             var data = await query
-                .OrderByDescending(x => x.ServiceId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(ct);

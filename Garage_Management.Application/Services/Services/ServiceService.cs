@@ -37,9 +37,20 @@ namespace Garage_Management.Application.Services.Services
             return entity == null ? null : Map(entity);
         }
 
-        public async Task<PagedResult<ServiceResponse>> GetPagedAsync(int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<ServiceResponse>> GetPagedAsync(
+            int page,
+            int pageSize,
+            string? keyword = null,
+            bool? isActive = null,
+            bool? hasPrice = null,
+            int? vehicleTypeId = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            string? sortBy = null,
+            bool sortDesc = true,
+            CancellationToken ct = default)
         {
-            var paged = await _repo.GetPagedAsync(page, pageSize, ct);
+            var paged = await _repo.GetPagedAsync(page, pageSize, keyword, isActive, hasPrice, vehicleTypeId, minPrice, maxPrice, sortBy, sortDesc, ct);
             return new PagedResult<ServiceResponse>
             {
                 Page = paged.Page,

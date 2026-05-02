@@ -29,11 +29,19 @@ namespace Garage_Management.API.Controllers
         public async Task<ActionResult<ApiResponse<PagedResult<ServiceResponse>>>> GetPaged(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
+            [FromQuery] string? keyword = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] bool? hasPrice = null,
+            [FromQuery] int? vehicleTypeId = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] bool sortDesc = true,
             CancellationToken ct = default)
         {
             try
             {
-                var data = await _service.GetPagedAsync(page, pageSize, ct);
+                var data = await _service.GetPagedAsync(page, pageSize, keyword, isActive, hasPrice, vehicleTypeId, minPrice, maxPrice, sortBy, sortDesc, ct);
                 return Ok(ApiResponse<PagedResult<ServiceResponse>>.SuccessResponse(data, "Lấy danh sách dịch vụ thành công"));
             }
             catch (InvalidOperationException ex)
