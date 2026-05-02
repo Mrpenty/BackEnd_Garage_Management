@@ -12,7 +12,6 @@ namespace Garage_Management.API.Controllers
     public class BranchesController : ControllerBase
     {
         private const string AdminOnly = "Admin";
-        private const string ReadRoles = "Admin,Supervisor,Receptionist,Stocker,Mechanic";
 
         private readonly IBranchService _service;
 
@@ -22,7 +21,7 @@ namespace Garage_Management.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = ReadRoles)]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<PagedResult<BranchResponse>>>> GetPaged(
             [FromQuery] ParamQuery query,
             CancellationToken ct = default)
@@ -32,7 +31,7 @@ namespace Garage_Management.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Roles = ReadRoles)]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<BranchResponse>>> GetById(int id, CancellationToken ct = default)
         {
             var data = await _service.GetByIdAsync(id, ct);
