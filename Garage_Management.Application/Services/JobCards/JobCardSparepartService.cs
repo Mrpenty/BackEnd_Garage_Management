@@ -1,9 +1,10 @@
+using Garage_Management.Application.DTOs.Iventories.StockTransactions;
 using Garage_Management.Application.DTOs.JobCards;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.JobCards;
+using Garage_Management.Application.Interfaces.Services.Inventories;
 using Garage_Management.Application.Interfaces.Services.JobCard;
 using Garage_Management.Base.Common.Enums;
-using Garage_Management.Base.Entities.Inventories;
 using Garage_Management.Base.Entities.JobCards;
 
 namespace Garage_Management.Application.Services.JobCards
@@ -13,15 +14,18 @@ namespace Garage_Management.Application.Services.JobCards
         private readonly IJobCardRepository _jobCardRepository;
         private readonly IJobCardSparePartRepository _jobCardSparePartRepository;
         private readonly IInventoryRepository _inventoryRepository;
+        private readonly IStockTransactionService _stockTransactionService;
 
         public JobCardSparePartService(
             IJobCardRepository jobCardRepository,
             IJobCardSparePartRepository jobCardSparePartRepository,
-            IInventoryRepository inventoryRepository)
+            IInventoryRepository inventoryRepository,
+            IStockTransactionService stockTransactionService)
         {
             _jobCardRepository = jobCardRepository;
             _jobCardSparePartRepository = jobCardSparePartRepository;
             _inventoryRepository = inventoryRepository;
+            _stockTransactionService = stockTransactionService;
         }
 
         public async Task<List<JobCardSparePartResponse>> GetAllAsync(CancellationToken cancellationToken)
@@ -61,19 +65,19 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 var existed = await _jobCardSparePartRepository.GetByIdAsync(jobCardId, item.SparePartId, ct);
                 if (existed != null)
-                    throw new InvalidOperationException($"Phu tung {item.SparePartId} da ton tai trong JobCard");
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} đã tồn tại trong JobCard");
 
                 var inventory = await _inventoryRepository.GetByIdAsync(item.SparePartId);
                 if (inventory == null)
-                    throw new InvalidOperationException($"Khong tim thay phu tung {item.SparePartId}");
+                    throw new InvalidOperationException($"Không tìm thấy phụ tùng {item.SparePartId}");
 
                 if (inventory.BranchId != jobCard.BranchId)
-                    throw new InvalidOperationException($"Phu tung {item.SparePartId} khong thuoc chi nhanh cua JobCard");
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} không thuộc chi nhánh của JobCard");
 
-                ValidateInventoryForSparePart(item.SparePartId, inventory);
+                ValidateInventoryForSparePart(item, inventory);
 
                 if (inventory.Quantity < item.Quantity)
-                    throw new InvalidOperationException($"Phu tung {item.SparePartId} khong du so luong ton kho");
+                    throw new InvalidOperationException($"Phụ tùng {item.SparePartId} không đủ số lượng tồn kho");
 
                 var unitPrice = inventory.SellingPrice!.Value;
                 var entity = new JobCardSparePart
@@ -87,6 +91,16 @@ namespace Garage_Management.Application.Services.JobCards
                     Note = item.Note,
                     CreatedAt = DateTime.UtcNow
                 };
+
+                await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
+                {
+                    SparePartId = item.SparePartId,
+                    TransactionType = TransactionType.ExportToJobCard,
+                    QuantityChange = item.Quantity,
+                    UnitPrice = unitPrice,
+                    JobCardId = jobCardId,
+                    Note = $"Xuất cho JobCard #{jobCardId}"
+                }, ct);
 
                 await _jobCardSparePartRepository.AddAsync(entity, ct);
                 entities.Add(entity);
@@ -113,23 +127,37 @@ namespace Garage_Management.Application.Services.JobCards
 
             var jobCard = await _jobCardRepository.GetByIdAsync(jobCardId);
             if (jobCard == null)
-                throw new InvalidOperationException("Khong tim thay JobCard");
+                throw new InvalidOperationException("Không tìm thấy JobCard");
 
             var hasChanges = false;
 
             if (dto.Quantity.HasValue && dto.Quantity.Value != entity.Quantity)
             {
-                var inventory = await _inventoryRepository.GetByIdAsync(sparePartId);
-                if (inventory == null)
-                    throw new InvalidOperationException($"Khong tim thay phu tung {sparePartId}");
-
-                if (inventory.BranchId != jobCard.BranchId)
-                    throw new InvalidOperationException($"Phu tung {sparePartId} khong thuoc chi nhanh cua JobCard");
-
-                ValidateInventoryForSparePart(sparePartId, inventory);
-
-                if (inventory.Quantity < dto.Quantity.Value)
-                    throw new InvalidOperationException($"Phu tung {sparePartId} khong du so luong ton kho");
+                var quantityDelta = dto.Quantity.Value - entity.Quantity;
+                if (quantityDelta > 0)
+                {
+                    await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
+                    {
+                        SparePartId = sparePartId,
+                        TransactionType = TransactionType.ExportToJobCard,
+                        QuantityChange = quantityDelta,
+                        UnitPrice = entity.UnitPrice,
+                        JobCardId = jobCardId,
+                        Note = $"Điều chỉnh xuất thêm cho JobCard #{jobCardId}"
+                    }, ct);
+                }
+                else
+                {
+                    await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
+                    {
+                        SparePartId = sparePartId,
+                        TransactionType = TransactionType.ReturnFromJobCard,
+                        QuantityChange = Math.Abs(quantityDelta),
+                        UnitPrice = entity.UnitPrice,
+                        JobCardId = jobCardId,
+                        Note = $"Điều chỉnh hoàn trả từ JobCard #{jobCardId}"
+                    }, ct);
+                }
 
                 entity.Quantity = dto.Quantity.Value;
                 entity.TotalAmount = entity.Quantity * entity.UnitPrice;
@@ -149,7 +177,7 @@ namespace Garage_Management.Application.Services.JobCards
             }
 
             if (!hasChanges)
-                throw new InvalidOperationException("Khong co du lieu de cap nhat");
+                throw new InvalidOperationException("Không có dữ liệu cập nhật");
 
             await _jobCardSparePartRepository.SaveAsync(ct);
             return Map(entity);
@@ -166,6 +194,24 @@ namespace Garage_Management.Application.Services.JobCards
             var entity = await _jobCardSparePartRepository.GetByIdAsync(jobCardId, sparePartId, ct);
             if (entity == null)
                 return false;
+
+            var jobCard = await _jobCardRepository.GetByIdAsync(entity.JobCardId);
+            if (jobCard == null)
+                throw new InvalidOperationException("Không tìm thấy JobCard");
+
+            var inventory = await _inventoryRepository.GetByIdAsync(entity.SparePartId);
+            if (inventory == null)
+                throw new InvalidOperationException("Không tìm thấy tồn kho");
+
+            await _stockTransactionService.CreateAsync(new StockTransactionCreateRequest
+            {
+                SparePartId = entity.SparePartId,
+                TransactionType = TransactionType.ReturnFromJobCard,
+                QuantityChange = entity.Quantity,
+                UnitPrice = entity.UnitPrice,
+                JobCardId = entity.JobCardId,
+                Note = $"Hoàn trả từ JobCard #{entity.JobCardId}"
+            }, ct);
 
             _jobCardSparePartRepository.Delete(entity);
             await _jobCardSparePartRepository.SaveAsync(ct);
@@ -188,16 +234,16 @@ namespace Garage_Management.Application.Services.JobCards
         private static void ValidateUpdateRequest(UpdateJobCardSparePartDto dto)
         {
             if (!dto.Quantity.HasValue && !dto.IsUnderWarranty.HasValue && dto.Note == null)
-                throw new InvalidOperationException("Khong co du lieu de cap nhat");
+                throw new InvalidOperationException("Không có dữ liệu để cập nhật");
 
             if (dto.Quantity.HasValue && dto.Quantity.Value <= 0)
-                throw new InvalidOperationException("Quantity phai lon hon 0");
+                throw new InvalidOperationException("Quantity phải lớn hơn 0");
 
             if (dto.Note != null && string.IsNullOrWhiteSpace(dto.Note))
-                throw new InvalidOperationException("Note khong duoc chi chua khoang trang");
+                throw new InvalidOperationException("Note không được chỉ chứa khoảng trắng");
 
             if (dto.Note?.Length > 500)
-                throw new InvalidOperationException("Note khong duoc vuot qua 500 ky tu");
+                throw new InvalidOperationException("Note không được vượt quá 500 ký tự");
         }
 
         private static void ValidateSparePartItems(List<AddSparePartToJobCardDto>? spareParts)
@@ -213,7 +259,7 @@ namespace Garage_Management.Application.Services.JobCards
                 .ToList();
 
             if (duplicateIds.Count > 0)
-                throw new InvalidOperationException($"SparePartId bi trung trong yeu cau: {string.Join(", ", duplicateIds)}");
+                throw new InvalidOperationException($"SparePartId bị trùng trong yêu cầu: {string.Join(", ", duplicateIds)}");
 
             foreach (var item in spareParts)
             {
@@ -233,16 +279,16 @@ namespace Garage_Management.Application.Services.JobCards
             }
         }
 
-        private static void ValidateInventoryForSparePart(int sparePartId, Inventory inventory)
+        private static void ValidateInventoryForSparePart(AddSparePartToJobCardDto item, Base.Entities.Inventories.Inventory inventory)
         {
             if (!inventory.IsActive)
-                throw new InvalidOperationException($"Phu tung {sparePartId} da ngung kinh doanh");
+                throw new InvalidOperationException($"Phu tung {item.SparePartId} da ngung kinh doanh");
 
             if (!inventory.SellingPrice.HasValue)
-                throw new InvalidOperationException($"Phu tung {sparePartId} chua co gia ban");
+                throw new InvalidOperationException($"Phu tung {item.SparePartId} chua co gia ban");
 
             if (inventory.SellingPrice.Value < 0)
-                throw new InvalidOperationException($"Gia ban cua phu tung {sparePartId} khong hop le");
+                throw new InvalidOperationException($"Gia ban cua phu tung {item.SparePartId} khong hop le");
         }
 
         private static void EnsureJobCardApprovedForSparePartCreation(JobCard jobCard)
