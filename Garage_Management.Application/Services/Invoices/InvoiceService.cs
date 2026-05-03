@@ -132,6 +132,8 @@ namespace Garage_Management.Application.Services.Invoices
         {
             string? customerName = null;
             string? licensePlate = null;
+            var services = new List<InvoiceServiceItemDto>();
+            var spareParts = new List<InvoiceSparePartItemDto>();
 
             if (invoice.JobCard != null)
             {
@@ -140,6 +142,38 @@ namespace Garage_Management.Application.Services.Invoices
                     customerName = $"{invoice.JobCard.Customer.FirstName} {invoice.JobCard.Customer.LastName}".Trim();
                 }
                 licensePlate = invoice.JobCard.Vehicle?.LicensePlate;
+
+                if (invoice.JobCard.Services != null)
+                {
+                    services = invoice.JobCard.Services
+                        .Select(s => new InvoiceServiceItemDto
+                        {
+                            JobCardServiceId = s.JobCardServiceId,
+                            ServiceId = s.ServiceId,
+                            ServiceName = s.Service?.ServiceName ?? string.Empty,
+                            Description = s.Description,
+                            Price = s.Price,
+                            Status = s.Status.ToString()
+                        })
+                        .ToList();
+                }
+
+                if (invoice.JobCard.SpareParts != null)
+                {
+                    spareParts = invoice.JobCard.SpareParts
+                        .Select(p => new InvoiceSparePartItemDto
+                        {
+                            SparePartId = p.SparePartId,
+                            PartCode = p.Inventory?.PartCode,
+                            PartName = p.Inventory?.PartName ?? string.Empty,
+                            Quantity = p.Quantity,
+                            UnitPrice = p.UnitPrice,
+                            TotalAmount = p.TotalAmount,
+                            IsUnderWarranty = p.IsUnderWarranty,
+                            Note = p.Note
+                        })
+                        .ToList();
+                }
             }
 
             return new InvoiceResponse
@@ -155,7 +189,9 @@ namespace Garage_Management.Application.Services.Invoices
                 CustomerName = customerName,
                 VehicleLicensePlate = licensePlate,
                 CreatedAt = invoice.CreatedAt,
-                UpdatedAt = invoice.UpdatedAt
+                UpdatedAt = invoice.UpdatedAt,
+                Services = services,
+                SpareParts = spareParts
             };
         }
     }

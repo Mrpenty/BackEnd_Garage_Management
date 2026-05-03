@@ -41,13 +41,10 @@ namespace Garage_Management.Application.Services.Inventories
                     .Include(x => x.SparePartCategory)
                     .AsQueryable();
 
-                if (!_currentUser.IsAdmin())
+                var branchId = _currentUser.GetCurrentBranchId();
+                if (branchId.HasValue)
                 {
-                    var branchId = _currentUser.GetCurrentBranchId();
-                    if (branchId.HasValue)
-                    {
-                        q = q.Where(x => x.BranchId == branchId.Value);
-                    }
+                    q = q.Where(x => x.BranchId == branchId.Value);
                 }
 
                 if (!string.IsNullOrWhiteSpace(query.Search))
@@ -157,7 +154,7 @@ namespace Garage_Management.Application.Services.Inventories
                     throw new InvalidOperationException("SparePartBrandId không tồn tại");
             }
 
-            var branchId = ResolveBranchIdForCreate(request.BranchId);
+            var branchId = ResolveBranchIdForCreate();
 
             // Validation PartCode duy nhất trong phạm vi chi nhánh (nếu có)
             var partCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim();
@@ -193,14 +190,8 @@ namespace Garage_Management.Application.Services.Inventories
             return detail == null ? Map(entity) : Map(detail);
         }
 
-        private int ResolveBranchIdForCreate(int? requestedBranchId)
+        private int ResolveBranchIdForCreate()
         {
-            if (_currentUser.IsAdmin())
-            {
-                if (requestedBranchId is not { } adminBranch || adminBranch <= 0)
-                    throw new InvalidOperationException("Admin phải chỉ định BranchId khi tạo phụ tùng");
-                return adminBranch;
-            }
             var scoped = _currentUser.GetCurrentBranchId();
             if (!scoped.HasValue)
                 throw new UnauthorizedAccessException("Không xác định được chi nhánh từ tài khoản hiện tại");
@@ -209,7 +200,6 @@ namespace Garage_Management.Application.Services.Inventories
 
         private void EnsureCanAccess(int branchId)
         {
-            if (_currentUser.IsAdmin()) return;
             var scoped = _currentUser.GetCurrentBranchId();
             if (scoped.HasValue && scoped.Value == branchId) return;
             throw new UnauthorizedAccessException("Không có quyền truy cập phụ tùng của chi nhánh khác");
