@@ -94,6 +94,19 @@ namespace Garage_Management.API.Controllers
             return Ok(ApiResponse<object>.SuccessResponse(new { }, "Deleted"));
         }
 
+        /// <summary>
+        /// Lấy danh sách phụ tùng theo BranchId do FE truyền (không lấy từ token).
+        /// </summary>
+        [HttpGet("by-branch/{branchId:int}")]
+        public async Task<ActionResult<ApiResponse<PagedResult<InventoryResponse>>>> GetByBranch(
+            int branchId,
+            [FromQuery] ParamQuery query,
+            CancellationToken ct = default)
+        {
+            var result = await _service.GetByBranchIdAsync(branchId, query, ct);
+            return Ok(result);
+        }
+
         [HttpGet("by-brand/{brandId:int}")]
         public async Task<ActionResult<ApiResponse<List<InventoryResponse>>>> GetByBrand(
             int brandId,

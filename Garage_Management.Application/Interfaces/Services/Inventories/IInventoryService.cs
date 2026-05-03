@@ -19,6 +19,11 @@ namespace Garage_Management.Application.Interfaces.Services.Inventories
         /// <returns>ApiResponse chứa PagedResult của InventoryResponse.</returns>
         Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default);
 
+        /// <summary>
+        /// Lấy danh sách phụ tùng theo BranchId được FE truyền vào (không lấy từ token).
+        /// </summary>
+        Task<ApiResponse<PagedResult<InventoryResponse>>> GetByBranchIdAsync(int branchId, ParamQuery query, CancellationToken ct = default);
+
         /// Author: KhanhDV
         /// Created Date: 24-03-2026
         /// <summary>

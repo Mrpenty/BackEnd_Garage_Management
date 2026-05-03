@@ -28,7 +28,17 @@ namespace Garage_Management.Application.Services.Inventories
             _currentUser = currentUser;
         }
 
-        public async Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
+        public Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
+            => BuildPagedAsync(_currentUser.GetCurrentBranchId(), query, ct);
+
+        public Task<ApiResponse<PagedResult<InventoryResponse>>> GetByBranchIdAsync(int branchId, ParamQuery query, CancellationToken ct = default)
+        {
+            if (branchId <= 0)
+                return Task.FromResult(ApiResponse<PagedResult<InventoryResponse>>.ErrorResponse("BranchId không hợp lệ"));
+            return BuildPagedAsync(branchId, query, ct);
+        }
+
+        private async Task<ApiResponse<PagedResult<InventoryResponse>>> BuildPagedAsync(int? branchId, ParamQuery query, CancellationToken ct)
         {
             try
             {
@@ -41,7 +51,6 @@ namespace Garage_Management.Application.Services.Inventories
                     .Include(x => x.SparePartCategory)
                     .AsQueryable();
 
-                var branchId = _currentUser.GetCurrentBranchId();
                 if (branchId.HasValue)
                 {
                     q = q.Where(x => x.BranchId == branchId.Value);
