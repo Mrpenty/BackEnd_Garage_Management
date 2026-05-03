@@ -18,7 +18,7 @@ namespace Garage_Management.UnitTest.Inventories
         {
             var repo = new Mock<IInventoryRepository>();
             var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
-            repo.Setup(x => x.GetByBrandIdAsync(2, It.IsAny<CancellationToken>()))
+            repo.Setup(x => x.GetByBrandIdAsync(2, It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<Inventory>
                 {
                     new Inventory { SparePartId = 1, PartName = "Bugi", SparePartBrandId = 2 },

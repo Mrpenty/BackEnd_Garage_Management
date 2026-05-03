@@ -4,6 +4,7 @@ using Garage_Management.Application.Interfaces.Repositories.Inventories;
 using Garage_Management.Application.Services.Inventories;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Inventories;
+using Garage_Management.UnitTest.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var inventory = new Inventory { SparePartId = 1, Quantity = 7, PartName = "Bugi" };
             inventoryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(inventory);
             repo.Setup(x => x.AddAsync(It.IsAny<StockTransaction>(), It.IsAny<CancellationToken>()))
@@ -45,7 +46,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             inventoryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Inventory { SparePartId = 1, Quantity = 10, PartName = "Bugi" });
 
             var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
@@ -67,7 +68,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var inventory = new Inventory { SparePartId = 1, Quantity = 10, PartName = "Bugi" };
             inventoryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(inventory);
             repo.Setup(x => x.AddAsync(It.IsAny<StockTransaction>(), It.IsAny<CancellationToken>()))
@@ -96,7 +97,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             inventoryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new Inventory { SparePartId = 1, Quantity = 10, PartName = "Bugi" });
 
             var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
@@ -119,7 +120,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             inventoryRepo.Setup(x => x.GetByIdAsync(999)).ReturnsAsync((Inventory?)null);
 
             var ex = await Assert.ThrowsExceptionAsync<System.InvalidOperationException>(() =>
@@ -141,7 +142,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var inventory = new Inventory { SparePartId = 1, BranchId = 3, Quantity = 10, PartName = "Bugi" };
             inventoryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(inventory);
 

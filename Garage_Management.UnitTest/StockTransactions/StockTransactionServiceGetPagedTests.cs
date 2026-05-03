@@ -21,7 +21,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = 10 };
 
             var data = new List<StockTransaction>
@@ -52,7 +52,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = 10, Filter = "import" };
 
             var data = BuildMixedTransactions().AsQueryable();
@@ -71,7 +71,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = 10 };
 
             repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<StockTransaction>(new List<StockTransaction>().AsQueryable()));
@@ -90,7 +90,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = 10, Filter = "export" };
 
             var data = BuildMixedTransactions().AsQueryable();
@@ -109,7 +109,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = 10, Filter = "return" };
 
             var data = BuildMixedTransactions().AsQueryable();
@@ -128,7 +128,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = 10, Filter = "adjust" };
 
             var data = BuildMixedTransactions().AsQueryable();
@@ -147,7 +147,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = 10, Search = "bugi" };
 
             var data = BuildMixedTransactions().AsQueryable();
@@ -166,7 +166,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 1, PageSize = -5 };
 
             var data = BuildMixedTransactions().AsQueryable();
@@ -185,7 +185,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var query = new ParamQuery { Page = 99, PageSize = 10 };
 
             var data = BuildMixedTransactions().AsQueryable();

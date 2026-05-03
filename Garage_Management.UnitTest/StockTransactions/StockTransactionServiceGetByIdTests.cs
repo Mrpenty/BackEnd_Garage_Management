@@ -3,6 +3,7 @@ using Garage_Management.Application.Interfaces.Repositories.Inventories;
 using Garage_Management.Application.Services.Inventories;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Entities.Inventories;
+using Garage_Management.UnitTest.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             repo.Setup(x => x.GetByIdAsync(99, It.IsAny<CancellationToken>())).ReturnsAsync((StockTransaction?)null);
 
             var result = await service.GetByIdAsync(99);
@@ -31,7 +32,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var entity = new StockTransaction
             {
                 StockTransactionId = 1,
@@ -61,7 +62,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var entity = new StockTransaction
             {
                 StockTransactionId = 2,
@@ -93,7 +94,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             var entity = new StockTransaction
             {
                 StockTransactionId = 3,
@@ -125,7 +126,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             repo.Setup(x => x.GetByIdAsync(0, It.IsAny<CancellationToken>())).ReturnsAsync((StockTransaction?)null);
 
             var result = await service.GetByIdAsync(0);
@@ -141,7 +142,7 @@ namespace Garage_Management.UnitTest.StockTransactions
         {
             var repo = new Mock<IStockTransactionRepository>();
             var inventoryRepo = new Mock<IInventoryRepository>();
-            var service = new StockTransactionService(repo.Object, inventoryRepo.Object);
+            var service = new StockTransactionService(repo.Object, inventoryRepo.Object, MockCurrentUser.AsAdmin());
             repo.Setup(x => x.GetByIdAsync(-1, It.IsAny<CancellationToken>())).ReturnsAsync((StockTransaction?)null);
 
             var result = await service.GetByIdAsync(-1);
