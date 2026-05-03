@@ -115,6 +115,80 @@ namespace Garage_Management.Application.Services.Accounts
             }
         }
 
+        public async Task<ApiResponse<CustomerDetailResponse>> GetDetailAsync(int customerId, CancellationToken ct = default)
+        {
+            if (customerId <= 0)
+                return ApiResponse<CustomerDetailResponse>.ErrorResponse("CustomerId không hợp lệ");
+
+            try
+            {
+                var customer = await _customerRepository.GetAll()
+                    .Include(c => c.User)
+                    .Include(c => c.Vehicles).ThenInclude(v => v.Brand)
+                    .Include(c => c.Vehicles).ThenInclude(v => v.Model)
+                    .Include(c => c.JobCards).ThenInclude(j => j.Vehicle)
+                    .Include(c => c.JobCards).ThenInclude(j => j.Branch)
+                    .Include(c => c.JobCards).ThenInclude(j => j.Services)
+                    .Include(c => c.JobCards).ThenInclude(j => j.SpareParts)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.CustomerId == customerId, ct);
+
+                if (customer == null)
+                    return ApiResponse<CustomerDetailResponse>.ErrorResponse("Không tìm thấy khách hàng");
+
+                var dto = new CustomerDetailResponse
+                {
+                    CustomerId = customer.CustomerId,
+                    FirstName = customer.FirstName ?? string.Empty,
+                    LastName = customer.LastName ?? string.Empty,
+                    FullName = $"{(customer.LastName ?? "").Trim()} {(customer.FirstName ?? "").Trim()}".Trim(),
+                    PhoneNumber = customer.User?.PhoneNumber,
+                    Email = customer.User?.Email,
+                    Address = customer.Address,
+                    UserId = customer.UserId,
+                    CreatedAt = customer.CreatedAt,
+                    Vehicles = customer.Vehicles
+                        .Select(v => new VehicleDto
+                        {
+                            VehicleId = v.VehicleId,
+                            LicensePlate = v.LicensePlate ?? string.Empty,
+                            Brand = v.Brand?.BrandName ?? string.Empty,
+                            Model = v.Model?.ModelName ?? string.Empty,
+                            Year = v.Year
+                        })
+                        .ToList(),
+                    RepairHistory = customer.JobCards
+                        .OrderByDescending(j => j.StartDate)
+                        .ThenByDescending(j => j.JobCardId)
+                        .Select(j => new CustomerJobCardSummaryDto
+                        {
+                            JobCardId = j.JobCardId,
+                            VehicleId = j.VehicleId,
+                            LicensePlate = j.Vehicle?.LicensePlate,
+                            BranchId = j.BranchId,
+                            BranchName = j.Branch?.Name,
+                            StartDate = j.StartDate,
+                            EndDate = j.EndDate,
+                            Status = (int)j.Status,
+                            StatusName = j.Status.ToString(),
+                            ProgressPercentage = j.ProgressPercentage,
+                            Note = j.Note,
+                            ServiceCount = j.Services?.Count ?? 0,
+                            SparePartCount = j.SpareParts?.Count ?? 0,
+                            CreatedAt = j.CreatedAt
+                        })
+                        .ToList()
+                };
+
+                return ApiResponse<CustomerDetailResponse>.SuccessResponse(dto, "Lấy chi tiết khách hàng thành công");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching customer detail for {CustomerId}", customerId);
+                return ApiResponse<CustomerDetailResponse>.ErrorResponse("Có lỗi xảy ra khi lấy chi tiết khách hàng");
+            }
+        }
+
         public async Task<ApiResponse<CustomerDto>> CreateCustomerByReceptionistAsync(CreateCustomerRequest request,CancellationToken ct = default)
         {
             var httpContext = _httpContextAccessor.HttpContext;

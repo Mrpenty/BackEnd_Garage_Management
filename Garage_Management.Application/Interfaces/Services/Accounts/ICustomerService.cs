@@ -20,5 +20,10 @@ namespace Garage_Management.Application.Interfaces.Services.Accounts
         /// Receptionist tạo khách hàng mới (tạo User + Customer)
         /// </summary>
         Task<ApiResponse<CustomerDto>> CreateCustomerByReceptionistAsync(CreateCustomerRequest request,CancellationToken ct = default);
+
+        /// <summary>
+        /// Lấy chi tiết khách hàng kèm danh sách xe và lịch sử sửa chữa.
+        /// </summary>
+        Task<ApiResponse<CustomerDetailResponse>> GetDetailAsync(int customerId, CancellationToken ct = default);
     }
 }

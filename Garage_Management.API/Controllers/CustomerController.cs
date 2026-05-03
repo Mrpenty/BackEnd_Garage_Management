@@ -42,6 +42,27 @@ namespace Garage_Management.API.Controllers
 
         }
         /// <summary>
+        /// Lấy chi tiết khách hàng (kèm danh sách xe và lịch sử sửa chữa).
+        /// </summary>
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetCustomerDetail(int id, CancellationToken ct)
+        {
+            try
+            {
+                var result = await _customerService.GetDetailAsync(id, ct);
+
+                if (!result.Success)
+                    return NotFound(result);
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi hệ thống"));
+            }
+        }
+
+        /// <summary>
         /// Tạo khách hàng mới bởi nhân viên lễ tân
         /// </summary>
         [Authorize(Roles = "Receptionist")]
