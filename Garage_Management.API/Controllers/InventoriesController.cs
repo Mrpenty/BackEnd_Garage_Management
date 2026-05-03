@@ -8,7 +8,7 @@ namespace Garage_Management.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [AllowAnonymous]
     public class InventoriesController : ControllerBase
     {
         private readonly IInventoryService _service;
