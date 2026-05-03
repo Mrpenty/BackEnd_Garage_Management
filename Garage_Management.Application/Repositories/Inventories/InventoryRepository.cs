@@ -39,11 +39,18 @@ namespace Garage_Management.Application.Repositories.Inventories
                     .Include(x => x.SparePartCategory)
                     .FirstOrDefaultAsync(x => x.SparePartId == id, ct);
 
-            public async Task<List<Inventory>> GetByBrandIdAsync(int brandId, CancellationToken ct = default)
-                => await _context.Inventories
+            public async Task<List<Inventory>> GetByBrandIdAsync(int brandId, int? branchId = null, CancellationToken ct = default)
+            {
+                var q = _context.Inventories
+                    .AsNoTracking()
                     .Include(x => x.SparePartBrand)
-                    .Where(x => x.SparePartBrandId == brandId)
-                    .ToListAsync(ct);
+                    .Where(x => x.SparePartBrandId == brandId);
+
+                if (branchId.HasValue)
+                    q = q.Where(x => x.BranchId == branchId.Value);
+
+                return await q.ToListAsync(ct);
+            }
 
             public async Task<bool> HasDependenciesAsync(int sparePartId, CancellationToken ct = default)
             {

@@ -329,7 +329,8 @@ namespace Garage_Management.Application.Services.Inventories
 
         public async Task<List<InventoryResponse>> GetByBrandIdAsync(int brandId, CancellationToken ct = default)
         {
-            var data = await _repo.GetByBrandIdAsync(brandId, ct);
+            int? branchFilter = _currentUser.IsAdmin() ? null : _currentUser.GetCurrentBranchId();
+            var data = await _repo.GetByBrandIdAsync(brandId, branchFilter, ct);
             return data.Select(Map).ToList();
         }
 

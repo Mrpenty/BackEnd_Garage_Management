@@ -1,6 +1,7 @@
 ﻿using Garage_Management.Application.DTOs.Iventories.StockTransactions;
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Interfaces.Repositories.Inventories;
+using Garage_Management.Application.Interfaces.Services.Auth;
 using Garage_Management.Application.Interfaces.Services.Inventories;
 using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Common.Models;
@@ -13,11 +14,16 @@ namespace Garage_Management.Application.Services.Inventories
     {
         private readonly IStockTransactionRepository _repo;
         private readonly IInventoryRepository _inventoryRepo;
+        private readonly ICurrentUserService _currentUser;
 
-        public StockTransactionService(IStockTransactionRepository repo, IInventoryRepository inventoryRepo)
+        public StockTransactionService(
+            IStockTransactionRepository repo,
+            IInventoryRepository inventoryRepo,
+            ICurrentUserService currentUser)
         {
             _repo = repo;
             _inventoryRepo = inventoryRepo;
+            _currentUser = currentUser;
         }
 
         public async Task<PagedResult<StockTransactionResponse>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
@@ -30,6 +36,13 @@ namespace Garage_Management.Application.Services.Inventories
                 .Include(x => x.Inventory)
                 .Include(x => x.Supplier)
                 .AsQueryable();
+
+            if (!_currentUser.IsAdmin())
+            {
+                var branchId = _currentUser.GetCurrentBranchId();
+                if (branchId.HasValue)
+                    q = q.Where(x => x.BranchId == branchId.Value);
+            }
 
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
@@ -74,7 +87,9 @@ namespace Garage_Management.Application.Services.Inventories
         public async Task<StockTransactionResponse?> GetByIdAsync(int id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id, ct);
-            return entity == null ? null : Map(entity);
+            if (entity == null) return null;
+            EnsureCanAccess(entity.BranchId);
+            return Map(entity);
         }
 
         public async Task<StockTransactionResponse> CreateAsync(StockTransactionCreateRequest request, CancellationToken ct = default)
@@ -82,6 +97,8 @@ namespace Garage_Management.Application.Services.Inventories
             var inventory = await _inventoryRepo.GetByIdAsync(request.SparePartId);
             if (inventory == null)
                 throw new InvalidOperationException("SparePartId không tồn tại");
+
+            EnsureCanAccess(inventory.BranchId);
 
             if (request.TransactionType != TransactionType.Adjustment && request.QuantityChange <= 0)
                 throw new InvalidOperationException("QuantityChange phải lớn hơn 0");
@@ -140,6 +157,14 @@ namespace Garage_Management.Application.Services.Inventories
 
             var detail = await _repo.GetByIdAsync(entity.StockTransactionId, ct);
             return detail == null ? Map(entity) : Map(detail);
+        }
+
+        private void EnsureCanAccess(int branchId)
+        {
+            if (_currentUser.IsAdmin()) return;
+            var scoped = _currentUser.GetCurrentBranchId();
+            if (scoped.HasValue && scoped.Value == branchId) return;
+            throw new UnauthorizedAccessException("Không có quyền truy cập giao dịch của chi nhánh khác");
         }
 
         private static StockTransactionResponse Map(StockTransaction entity)

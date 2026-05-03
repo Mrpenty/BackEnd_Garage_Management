@@ -310,7 +310,7 @@ namespace Garage_Management.Application.Services.Accounts
                 PhoneNumber = dto.PhoneNumber,
                 Email = $"{dto.PhoneNumber}@customer.local",
                 PhoneNumberConfirmed = false,
-                IsActive = false,
+                IsActive = true,
                 CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
 
             };

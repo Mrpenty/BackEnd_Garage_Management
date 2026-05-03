@@ -234,52 +234,52 @@ namespace Garage_Management.Application.Services.Appointments
             var hasCustomModel = !string.IsNullOrWhiteSpace(request.CustomVehicleModel);
             var hasLicensePlate = !string.IsNullOrWhiteSpace(request.LicensePlate);
 
-            if (!hasVehicleId &&
-                !(hasVehicleModelId && hasLicensePlate) &&
-                !(hasCustomBrand && hasCustomModel && hasLicensePlate))
-            {
-                throw new InvalidOperationException(
-                    "Bắt buộc phải có VehicleId hoặc (VehicleModelId + LicensePlate) hoặc (CustomVehicleBrand + CustomVehicleModel + LicensePlate)");
-            }
+            //if (!hasVehicleId &&
+            //    !(hasVehicleModelId && hasLicensePlate) &&
+            //    !(hasCustomBrand && hasCustomModel && hasLicensePlate))
+            //{
+            //    throw new InvalidOperationException(
+            //        "Bắt buộc phải có VehicleId hoặc (VehicleModelId + LicensePlate) hoặc (CustomVehicleBrand + CustomVehicleModel + LicensePlate)");
+            //}
 
-            if (request.VehicleId.HasValue)
-            {
-                if (request.VehicleModelId.HasValue ||
-                    !string.IsNullOrWhiteSpace(request.CustomVehicleBrand) ||
-                    !string.IsNullOrWhiteSpace(request.CustomVehicleModel) ||
-                    !string.IsNullOrWhiteSpace(request.LicensePlate))
-                {
-                    throw new InvalidOperationException("Khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống");
-                }
-            }
+            //if (request.VehicleId.HasValue)
+            //{
+            //    if (request.VehicleModelId.HasValue ||
+            //        !string.IsNullOrWhiteSpace(request.CustomVehicleBrand) ||
+            //        !string.IsNullOrWhiteSpace(request.CustomVehicleModel) ||
+            //        !string.IsNullOrWhiteSpace(request.LicensePlate))
+            //    {
+            //        throw new InvalidOperationException("Khi có VehicleId, VehicleModelId/CustomVehicleBrand/CustomVehicleModel/LicensePlate phải để trống");
+            //    }
+            //}
 
-            if (request.VehicleModelId.HasValue)
-            {
-                var model = await _vehicleModelRepo.GetByIdAsync(request.VehicleModelId.Value);
-                if (model == null)
-                    throw new InvalidOperationException("VehicleModelId không tồn tại");
+            //if (request.VehicleModelId.HasValue)
+            //{
+            //    var model = await _vehicleModelRepo.GetByIdAsync(request.VehicleModelId.Value);
+            //    if (model == null)
+            //        throw new InvalidOperationException("VehicleModelId không tồn tại");
 
-                if (!string.IsNullOrWhiteSpace(request.CustomVehicleBrand) ||
-                    !string.IsNullOrWhiteSpace(request.CustomVehicleModel))
-                {
-                    throw new InvalidOperationException("Khi có VehicleModelId, CustomVehicleBrand/CustomVehicleModel phải để trống");
-                }
-                if (string.IsNullOrWhiteSpace(request.LicensePlate))
-                {
-                    throw new InvalidOperationException("Khi có VehicleModelId, LicensePlate là bắt buộc");
-                }
-            }
-            else
-            {
-                if (hasCustomBrand ^ hasCustomModel)
-                {
-                    throw new InvalidOperationException("CustomVehicleBrand và CustomVehicleModel phải nhập cùng nhau");
-                }
-                if ((hasCustomBrand || hasCustomModel) && string.IsNullOrWhiteSpace(request.LicensePlate))
-                {
-                    throw new InvalidOperationException("Khi có CustomVehicleBrand/CustomVehicleModel thì LicensePlate là bắt buộc");
-                }
-            }
+            //    if (!string.IsNullOrWhiteSpace(request.CustomVehicleBrand) ||
+            //        !string.IsNullOrWhiteSpace(request.CustomVehicleModel))
+            //    {
+            //        throw new InvalidOperationException("Khi có VehicleModelId, CustomVehicleBrand/CustomVehicleModel phải để trống");
+            //    }
+            //    if (string.IsNullOrWhiteSpace(request.LicensePlate))
+            //    {
+            //        throw new InvalidOperationException("Khi có VehicleModelId, LicensePlate là bắt buộc");
+            //    }
+            //}
+            //else
+            //{
+            //    if (hasCustomBrand ^ hasCustomModel)
+            //    {
+            //        throw new InvalidOperationException("CustomVehicleBrand và CustomVehicleModel phải nhập cùng nhau");
+            //    }
+            //    if ((hasCustomBrand || hasCustomModel) && string.IsNullOrWhiteSpace(request.LicensePlate))
+            //    {
+            //        throw new InvalidOperationException("Khi có CustomVehicleBrand/CustomVehicleModel thì LicensePlate là bắt buộc");
+            //    }
+            //}
 
             if (request.VehicleId.HasValue)
             {

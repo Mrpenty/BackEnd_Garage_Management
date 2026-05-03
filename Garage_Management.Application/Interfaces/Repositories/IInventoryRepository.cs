@@ -12,7 +12,7 @@ namespace Garage_Management.Application.Interfaces.Repositories
 
         IQueryable<Inventory> Query();
 
-        Task<List<Inventory>> GetByBrandIdAsync(int brandId, CancellationToken ct = default);
+        Task<List<Inventory>> GetByBrandIdAsync(int brandId, int? branchId = null, CancellationToken ct = default);
         Task<bool> HasDependenciesAsync(int sparePartId, CancellationToken ct = default);
 
     }
