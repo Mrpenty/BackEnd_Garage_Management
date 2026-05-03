@@ -31,7 +31,7 @@ namespace Garage_Management.UnitTest.Inventories
             // Mặc định Query() trả về list rỗng
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(new List<Inventory>().AsQueryable()));
 
-            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsStaff());
+            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object);
         }
 
         private Inventory MakeEntity() => new Inventory
@@ -82,7 +82,7 @@ namespace Garage_Management.UnitTest.Inventories
                 SellingPrice = 40000m
             };
 
-            var result = await _service.UpdateAsync(1, request);
+            var result = await _service.UpdateAsync(1, 1, request);
 
             Assert.IsNotNull(result);
             Assert.AreEqual("BG-002", entity.PartCode);
@@ -101,7 +101,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.GetByIdAsync(999)).ReturnsAsync((Inventory?)null);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(999, new InventoryUpdateRequest { PartName = "Test" }));
+                () => _service.UpdateAsync(999, 1, new InventoryUpdateRequest { PartName = "Test" }));
             Assert.AreEqual("Id không tồn tại", ex.Message);
         }
 
@@ -115,7 +115,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(1, new InventoryUpdateRequest { MinQuantity = -1 }));
+                () => _service.UpdateAsync(1, 1, new InventoryUpdateRequest { MinQuantity = -1 }));
             Assert.AreEqual("Số lượng phụ tùng tối thiểu không hợp lệ", ex.Message);
         }
 
@@ -129,7 +129,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(1, new InventoryUpdateRequest { LastPurchasePrice = -100m }));
+                () => _service.UpdateAsync(1, 1, new InventoryUpdateRequest { LastPurchasePrice = -100m }));
             Assert.AreEqual("Giá mua cuối cùng không hợp lệ", ex.Message);
         }
 
@@ -143,7 +143,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(1, new InventoryUpdateRequest { SellingPrice = -50m }));
+                () => _service.UpdateAsync(1, 1, new InventoryUpdateRequest { SellingPrice = -50m }));
             Assert.AreEqual("Giá bán hiện tại không hợp lệ", ex.Message);
         }
 
@@ -158,7 +158,7 @@ namespace Garage_Management.UnitTest.Inventories
             _categoryRepo.Setup(x => x.GetByIdAsync(999)).ReturnsAsync((SparePartCategory?)null);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(1, new InventoryUpdateRequest { CategoryId = 999 }));
+                () => _service.UpdateAsync(1, 1, new InventoryUpdateRequest { CategoryId = 999 }));
             Assert.AreEqual("CategoryId không tồn tại", ex.Message);
         }
 
@@ -175,7 +175,7 @@ namespace Garage_Management.UnitTest.Inventories
             _brandRepo.Setup(x => x.GetByIdAsync(999)).ReturnsAsync((SparePartBrand?)null);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(1, new InventoryUpdateRequest { CategoryId = 1, SparePartBrandId = 999 }));
+                () => _service.UpdateAsync(1, 1, new InventoryUpdateRequest { CategoryId = 1, SparePartBrandId = 999 }));
             Assert.AreEqual("SparePartBrandId không tồn tại", ex.Message);
         }
 
@@ -196,7 +196,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(existing));
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateAsync(1, new InventoryUpdateRequest { PartCode = "DUP-001" }));
+                () => _service.UpdateAsync(1, 1, new InventoryUpdateRequest { PartCode = "DUP-001" }));
             Assert.AreEqual("PartCode đã tồn tại", ex.Message);
         }
 
@@ -218,7 +218,7 @@ namespace Garage_Management.UnitTest.Inventories
             }.AsQueryable();
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(existing));
 
-            var result = await _service.UpdateAsync(1, new InventoryUpdateRequest { PartCode = "DUP-001" });
+            var result = await _service.UpdateAsync(1, 1, new InventoryUpdateRequest { PartCode = "DUP-001" });
 
             Assert.IsNotNull(result);
             Assert.AreEqual("DUP-001", entity.PartCode);
@@ -236,7 +236,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
             _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.UpdateAsync(1, new InventoryUpdateRequest { PartName = "Bugi NGK mới" });
+            var result = await _service.UpdateAsync(1, 1, new InventoryUpdateRequest { PartName = "Bugi NGK mới" });
 
             Assert.IsNotNull(result);
             Assert.AreEqual("Bugi NGK mới", entity.PartName);
@@ -256,7 +256,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
             _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.UpdateAsync(1, new InventoryUpdateRequest { MinQuantity = 0 });
+            var result = await _service.UpdateAsync(1, 1, new InventoryUpdateRequest { MinQuantity = 0 });
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, entity.MinQuantity);
@@ -272,7 +272,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
             _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.UpdateAsync(1, new InventoryUpdateRequest { SellingPrice = 45000m });
+            var result = await _service.UpdateAsync(1, 1, new InventoryUpdateRequest { SellingPrice = 45000m });
 
             Assert.IsNotNull(result);
             Assert.AreEqual(45000m, entity.SellingPrice);

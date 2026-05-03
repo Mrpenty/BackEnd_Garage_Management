@@ -32,7 +32,7 @@ namespace Garage_Management.UnitTest.Inventories
             var emptyInventories = new List<Inventory>().AsQueryable();
             _repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(emptyInventories));
 
-            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsStaff());
+            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object);
         }
 
         private void SetupValidCategoryAndBrand()
@@ -67,7 +67,8 @@ namespace Garage_Management.UnitTest.Inventories
                 MinQuantity = 5,
                 LastPurchasePrice = 25000,
                 SellingPrice = 35000,
-                IsActive = true
+                IsActive = true,
+                BranchId = 1
             };
 
             var result = await _service.CreateAsync(request);
@@ -165,7 +166,8 @@ namespace Garage_Management.UnitTest.Inventories
                 Quantity = 0,
                 LastPurchasePrice = 18000,
                 SellingPrice = 28000,
-                IsActive = true
+                IsActive = true,
+                BranchId = 1
             };
 
             var result = await _service.CreateAsync(request);
@@ -198,7 +200,8 @@ namespace Garage_Management.UnitTest.Inventories
                 MinQuantity = null,
                 LastPurchasePrice = null,
                 SellingPrice = null,
-                IsActive = true
+                IsActive = true,
+                BranchId = 1
             };
 
             var result = await _service.CreateAsync(request);
@@ -341,7 +344,8 @@ namespace Garage_Management.UnitTest.Inventories
                 Quantity = 10,
                 CategoryId = 1,
                 SparePartBrandId = 1,
-                IsActive = true
+                IsActive = true,
+                BranchId = 1
             };
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
@@ -375,7 +379,8 @@ namespace Garage_Management.UnitTest.Inventories
                 Quantity = 10,
                 CategoryId = 1,
                 SparePartBrandId = 1,
-                IsActive = true
+                IsActive = true,
+                BranchId = 1
             };
 
             var result = await _service.CreateAsync(request);

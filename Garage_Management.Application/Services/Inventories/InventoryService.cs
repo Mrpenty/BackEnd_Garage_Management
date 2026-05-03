@@ -1,8 +1,6 @@
-﻿using Garage_Management.Application.DTOs.Iventories;
+using Garage_Management.Application.DTOs.Iventories;
 using Garage_Management.Application.Interfaces.Repositories;
-using Garage_Management.Application.Interfaces.Services.Auth;
 using Garage_Management.Application.Interfaces.Services.Inventories;
-using Garage_Management.Application.Services.Auth;
 using Garage_Management.Base.Common.Models;
 using Garage_Management.Base.Entities.Inventories;
 using Microsoft.EntityFrameworkCore;
@@ -14,22 +12,19 @@ namespace Garage_Management.Application.Services.Inventories
         private readonly IInventoryRepository _repo;
         private readonly ISparePartCategoryRepository _categoryRepo;
         private readonly ISparePartBrandRepository _brandRepo;
-        private readonly ICurrentUserService _currentUser;
 
         public InventoryService(
             IInventoryRepository repo,
             ISparePartCategoryRepository categoryRepo,
-            ISparePartBrandRepository brandRepo,
-            ICurrentUserService currentUser)
+            ISparePartBrandRepository brandRepo)
         {
             _repo = repo;
             _categoryRepo = categoryRepo;
             _brandRepo = brandRepo;
-            _currentUser = currentUser;
         }
 
-        public Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(ParamQuery query, CancellationToken ct = default)
-            => BuildPagedAsync(_currentUser.GetCurrentBranchId(), query, ct);
+        public Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(ParamQuery query, int? branchId = null, CancellationToken ct = default)
+            => BuildPagedAsync(branchId, query, ct);
 
         public Task<ApiResponse<PagedResult<InventoryResponse>>> GetByBranchIdAsync(int branchId, ParamQuery query, CancellationToken ct = default)
         {
@@ -52,9 +47,7 @@ namespace Garage_Management.Application.Services.Inventories
                     .AsQueryable();
 
                 if (branchId.HasValue)
-                {
                     q = q.Where(x => x.BranchId == branchId.Value);
-                }
 
                 if (!string.IsNullOrWhiteSpace(query.Search))
                 {
@@ -74,8 +67,8 @@ namespace Garage_Management.Application.Services.Inventories
                         q = q.Where(x => x.IsActive);
                     else if (filter == "inactive")
                         q = q.Where(x => !x.IsActive);
-                    else if (int.TryParse(filter, out var brandId))
-                        q = q.Where(x => x.SparePartBrandId == brandId);
+                    else if (int.TryParse(filter, out var brandFilterId))
+                        q = q.Where(x => x.SparePartBrandId == brandFilterId);
                 }
 
                 var orderBy = (query.OrderBy ?? string.Empty).Trim().ToLower();
@@ -117,37 +110,32 @@ namespace Garage_Management.Application.Services.Inventories
             }
         }
 
-        public async Task<InventoryResponse?> GetByIdAsync(int id, CancellationToken ct = default)
+        public async Task<InventoryResponse?> GetByIdAsync(int id, int branchId, CancellationToken ct = default)
         {
+            if (branchId <= 0) throw new InvalidOperationException("BranchId không hợp lệ");
             var entity = await _repo.GetByIdWithDetailsAsync(id, ct);
             if (entity == null) return null;
-            EnsureCanAccess(entity.BranchId);
+            EnsureBranchMatches(entity.BranchId, branchId);
             return Map(entity);
         }
 
         public async Task<InventoryResponse> CreateAsync(InventoryCreateRequest request, CancellationToken ct = default)
         {
-            // Validation tên phụ tùng
             if (string.IsNullOrWhiteSpace(request.PartName))
                 throw new InvalidOperationException("PartName không hợp lệ");
 
-            // Validation số lượng
             if (request.Quantity < 0)
                 throw new InvalidOperationException("Quantity không hợp lệ");
 
-            // Validation ngưỡng tồn tối thiểu
             if (request.MinQuantity.HasValue && request.MinQuantity.Value < 0)
                 throw new InvalidOperationException("MinQuantity không hợp lệ");
 
-            // Validation giá nhập gần nhất
             if (request.LastPurchasePrice.HasValue && request.LastPurchasePrice.Value < 0)
                 throw new InvalidOperationException("LastPurchasePrice không hợp lệ");
 
-            // Validation giá bán
             if (request.SellingPrice.HasValue && request.SellingPrice.Value <= 0)
                 throw new InvalidOperationException("SellingPrice không hợp lệ");
 
-            // Validation CategoryId tồn tại (nếu có)
             if (request.CategoryId.HasValue)
             {
                 var category = await _categoryRepo.GetByIdAsync(request.CategoryId.Value);
@@ -155,7 +143,6 @@ namespace Garage_Management.Application.Services.Inventories
                     throw new InvalidOperationException("CategoryId không tồn tại");
             }
 
-            // Validation SparePartBrandId tồn tại (nếu có)
             if (request.SparePartBrandId.HasValue)
             {
                 var brand = await _brandRepo.GetByIdAsync(request.SparePartBrandId.Value);
@@ -163,9 +150,10 @@ namespace Garage_Management.Application.Services.Inventories
                     throw new InvalidOperationException("SparePartBrandId không tồn tại");
             }
 
-            var branchId = ResolveBranchIdForCreate();
+            if (!request.BranchId.HasValue || request.BranchId.Value <= 0)
+                throw new InvalidOperationException("BranchId là bắt buộc");
+            var branchId = request.BranchId.Value;
 
-            // Validation PartCode duy nhất trong phạm vi chi nhánh (nếu có)
             var partCode = string.IsNullOrWhiteSpace(request.PartCode) ? null : request.PartCode.Trim();
             if (partCode != null)
             {
@@ -199,27 +187,13 @@ namespace Garage_Management.Application.Services.Inventories
             return detail == null ? Map(entity) : Map(detail);
         }
 
-        private int ResolveBranchIdForCreate()
+        public async Task<InventoryResponse?> UpdateAsync(int id, int branchId, InventoryUpdateRequest request, CancellationToken ct = default)
         {
-            var scoped = _currentUser.GetCurrentBranchId();
-            if (!scoped.HasValue)
-                throw new UnauthorizedAccessException("Không xác định được chi nhánh từ tài khoản hiện tại");
-            return scoped.Value;
-        }
-
-        private void EnsureCanAccess(int branchId)
-        {
-            var scoped = _currentUser.GetCurrentBranchId();
-            if (scoped.HasValue && scoped.Value == branchId) return;
-            throw new UnauthorizedAccessException("Không có quyền truy cập phụ tùng của chi nhánh khác");
-        }
-
-        public async Task<InventoryResponse?> UpdateAsync(int id, InventoryUpdateRequest request, CancellationToken ct = default)
-        {
+            if (branchId <= 0) throw new InvalidOperationException("BranchId không hợp lệ");
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null)
                 throw new InvalidOperationException("Id không tồn tại");
-            EnsureCanAccess(entity.BranchId);
+            EnsureBranchMatches(entity.BranchId, branchId);
 
             if (request.PartName != null)
             {
@@ -290,18 +264,19 @@ namespace Garage_Management.Application.Services.Inventories
             return detail == null ? Map(entity) : Map(detail);
         }
 
-        public async Task<InventoryResponse?> UpdateStatusAsync(int id, bool isActive, CancellationToken ct = default)
+        public async Task<InventoryResponse?> UpdateStatusAsync(int id, int branchId, bool isActive, CancellationToken ct = default)
         {
+            if (branchId <= 0) throw new InvalidOperationException("BranchId không hợp lệ");
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null)
                 throw new InvalidOperationException("Id không tồn tại");
-            EnsureCanAccess(entity.BranchId);
+            EnsureBranchMatches(entity.BranchId, branchId);
 
             if (isActive && !HasActiveSellingPrice(entity.SellingPrice))
                 throw new InvalidOperationException("Không thể kích hoạt phụ tùng chưa có giá bán (SellingPrice)");
 
             if (entity.IsActive == isActive)
-                return await GetByIdAsync(id, ct);
+                return await GetByIdAsync(id, branchId, ct);
 
             entity.IsActive = isActive;
             entity.UpdatedAt = DateTime.UtcNow;
@@ -309,14 +284,15 @@ namespace Garage_Management.Application.Services.Inventories
             _repo.Update(entity);
             await _repo.SaveAsync(ct);
 
-            return await GetByIdAsync(id, ct);
+            return await GetByIdAsync(id, branchId, ct);
         }
 
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+        public async Task<bool> DeleteAsync(int id, int branchId, CancellationToken ct = default)
         {
+            if (branchId <= 0) throw new InvalidOperationException("BranchId không hợp lệ");
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
-            EnsureCanAccess(entity.BranchId);
+            EnsureBranchMatches(entity.BranchId, branchId);
 
             if (await _repo.HasDependenciesAsync(id, ct))
                 throw new InvalidOperationException("Không thể xóa phụ tùng vì đã phát sinh dữ liệu liên quan");
@@ -326,11 +302,16 @@ namespace Garage_Management.Application.Services.Inventories
             return true;
         }
 
-        public async Task<List<InventoryResponse>> GetByBrandIdAsync(int brandId, CancellationToken ct = default)
+        public async Task<List<InventoryResponse>> GetByBrandIdAsync(int brandId, int? branchId = null, CancellationToken ct = default)
         {
-            int? branchFilter = _currentUser.IsAdmin() ? null : _currentUser.GetCurrentBranchId();
-            var data = await _repo.GetByBrandIdAsync(brandId, branchFilter, ct);
+            var data = await _repo.GetByBrandIdAsync(brandId, branchId, ct);
             return data.Select(Map).ToList();
+        }
+
+        private static void EnsureBranchMatches(int entityBranchId, int requestedBranchId)
+        {
+            if (entityBranchId == requestedBranchId) return;
+            throw new UnauthorizedAccessException("Không có quyền truy cập phụ tùng của chi nhánh khác");
         }
 
         private static System.Linq.Expressions.Expression<Func<Inventory, InventoryResponse>> MapExpression()

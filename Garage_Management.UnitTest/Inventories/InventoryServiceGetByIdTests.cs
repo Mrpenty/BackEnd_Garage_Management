@@ -1,7 +1,6 @@
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Services.Inventories;
 using Garage_Management.Base.Entities.Inventories;
-using Garage_Management.UnitTest.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -24,7 +23,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo = new Mock<IInventoryRepository>();
             _categoryRepo = new Mock<ISparePartCategoryRepository>();
             _brandRepo = new Mock<ISparePartBrandRepository>();
-            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsStaff());
+            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object);
         }
 
         /// <summary>
@@ -53,7 +52,7 @@ namespace Garage_Management.UnitTest.Inventories
             };
             _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.GetByIdAsync(1);
+            var result = await _service.GetByIdAsync(1, 1);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.SparePartId);
@@ -94,7 +93,7 @@ namespace Garage_Management.UnitTest.Inventories
             };
             _repo.Setup(x => x.GetByIdWithDetailsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.GetByIdAsync(2);
+            var result = await _service.GetByIdAsync(2, 1);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.SparePartId);
@@ -118,7 +117,7 @@ namespace Garage_Management.UnitTest.Inventories
         {
             _repo.Setup(x => x.GetByIdWithDetailsAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync((Inventory?)null);
 
-            var result = await _service.GetByIdAsync(999);
+            var result = await _service.GetByIdAsync(999, 1);
 
             Assert.IsNull(result);
         }
@@ -131,7 +130,7 @@ namespace Garage_Management.UnitTest.Inventories
         {
             _repo.Setup(x => x.GetByIdWithDetailsAsync(0, It.IsAny<CancellationToken>())).ReturnsAsync((Inventory?)null);
 
-            var result = await _service.GetByIdAsync(0);
+            var result = await _service.GetByIdAsync(0, 1);
 
             Assert.IsNull(result);
         }
@@ -144,13 +143,13 @@ namespace Garage_Management.UnitTest.Inventories
         {
             _repo.Setup(x => x.GetByIdWithDetailsAsync(-1, It.IsAny<CancellationToken>())).ReturnsAsync((Inventory?)null);
 
-            var result = await _service.GetByIdAsync(-1);
+            var result = await _service.GetByIdAsync(-1, 1);
 
             Assert.IsNull(result);
         }
 
         /// <summary>
-        /// UTCID06 - Abnormal: Staff BranchId=1 truy cập phụ tùng thuộc BranchId=2 → throw UnauthorizedAccessException
+        /// UTCID06 - Abnormal: Caller truyền branchId=99 nhưng phụ tùng thuộc BranchId=2 → throw UnauthorizedAccessException
         /// </summary>
         [TestMethod]
         public async Task UTCID06_GetByIdAsync_CrossBranchAccess_ThrowsUnauthorized()
@@ -163,38 +162,10 @@ namespace Garage_Management.UnitTest.Inventories
             };
             _repo.Setup(x => x.GetByIdWithDetailsAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            // _service được tạo với MockCurrentUser.AsStaff() → BranchId=1
+            // Caller truyền branchId=99 không khớp với BranchId=2 của entity → throw
             var ex = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
-                () => _service.GetByIdAsync(5));
+                () => _service.GetByIdAsync(5, 99));
             Assert.AreEqual("Không có quyền truy cập phụ tùng của chi nhánh khác", ex.Message);
-        }
-
-        /// <summary>
-        /// UTCID07 - Normal: Admin truy cập phụ tùng của bất kỳ chi nhánh nào → success
-        /// </summary>
-        [TestMethod]
-        public async Task UTCID07_GetByIdAsync_AdminAccessesAnyBranch_ReturnsResponse()
-        {
-            // Tạo service mới với AsAdmin để override setup default
-            var adminService = new InventoryService(
-                _repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsAdmin());
-
-            var entity = new Inventory
-            {
-                SparePartId = 5,
-                BranchId = 2, // Chi nhánh bất kỳ, khác chi nhánh caller
-                PartCode = "SP-005",
-                PartName = "Phụ tùng admin xem được",
-                Quantity = 15,
-                IsActive = true
-            };
-            _repo.Setup(x => x.GetByIdWithDetailsAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
-
-            var result = await adminService.GetByIdAsync(5);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(5, result.SparePartId);
-            Assert.AreEqual("SP-005", result.PartCode);
         }
     }
 }

@@ -1,7 +1,6 @@
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Services.Inventories;
 using Garage_Management.Base.Entities.Inventories;
-using Garage_Management.UnitTest.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
@@ -17,7 +16,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetByBrandIdAsync_ReturnsMappedList()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             repo.Setup(x => x.GetByBrandIdAsync(2, It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<Inventory>
                 {

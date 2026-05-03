@@ -1,7 +1,6 @@
 using Garage_Management.Application.Interfaces.Repositories;
 using Garage_Management.Application.Services.Inventories;
 using Garage_Management.Base.Entities.Inventories;
-using Garage_Management.UnitTest.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -24,7 +23,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo = new Mock<IInventoryRepository>();
             _categoryRepo = new Mock<ISparePartCategoryRepository>();
             _brandRepo = new Mock<ISparePartBrandRepository>();
-            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object, MockCurrentUser.AsStaff());
+            _service = new InventoryService(_repo.Object, _categoryRepo.Object, _brandRepo.Object);
         }
 
         private Inventory MakeEntity(bool isActive) => new Inventory
@@ -50,7 +49,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
             _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.UpdateStatusAsync(1, true);
+            var result = await _service.UpdateStatusAsync(1, 1, true);
 
             Assert.IsNotNull(result);
             Assert.IsTrue(entity.IsActive);
@@ -70,7 +69,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.SaveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
             _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.UpdateStatusAsync(1, false);
+            var result = await _service.UpdateStatusAsync(1, 1, false);
 
             Assert.IsNotNull(result);
             Assert.IsFalse(entity.IsActive);
@@ -88,7 +87,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
             _repo.Setup(x => x.GetByIdWithDetailsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-            var result = await _service.UpdateStatusAsync(1, true);
+            var result = await _service.UpdateStatusAsync(1, 1, true);
 
             Assert.IsNotNull(result);
             Assert.IsTrue(entity.IsActive);
@@ -106,7 +105,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.GetByIdAsync(999)).ReturnsAsync((Inventory?)null);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateStatusAsync(999, true));
+                () => _service.UpdateStatusAsync(999, 1, true));
             Assert.AreEqual("Id không tồn tại", ex.Message);
         }
 
@@ -118,7 +117,7 @@ namespace Garage_Management.UnitTest.Inventories
             _repo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(entity);
 
             var ex = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => _service.UpdateStatusAsync(1, true));
+                () => _service.UpdateStatusAsync(1, 1, true));
 
             Assert.AreEqual("Không thể kích hoạt phụ tùng chưa có giá bán (SellingPrice)", ex.Message);
             _repo.Verify(x => x.Update(It.IsAny<Inventory>()), Times.Never);

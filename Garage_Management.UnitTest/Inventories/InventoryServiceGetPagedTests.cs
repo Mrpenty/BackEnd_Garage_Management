@@ -18,7 +18,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_WithData_ReturnsSuccessPagedResult()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10 };
 
             var data = new List<Inventory>
@@ -50,7 +50,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_Empty_ReturnsEmptyPagedResult()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10 };
 
             repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(new List<Inventory>().AsQueryable()));
@@ -69,7 +69,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_SearchByKeyword_ReturnsMatches()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10, Search = "bugi" };
 
             var data = BuildMixedInventories().AsQueryable();
@@ -88,7 +88,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_FilterActive_ReturnsOnlyActive()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10, Filter = "active" };
 
             var data = BuildMixedInventories().AsQueryable();
@@ -107,7 +107,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_FilterInactive_ReturnsOnlyInactive()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10, Filter = "inactive" };
 
             var data = BuildMixedInventories().AsQueryable();
@@ -126,7 +126,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_AdminSeesAllBranches()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsAdmin());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = 10 };
 
             var data = new List<Inventory>
@@ -136,7 +136,8 @@ namespace Garage_Management.UnitTest.Inventories
             }.AsQueryable();
             repo.Setup(x => x.Query()).Returns(new TestAsyncEnumerable<Inventory>(data));
 
-            var result = await service.GetPagedAsync(query);
+            // branchId = null → không filter theo branch, thấy tất cả các chi nhánh
+            var result = await service.GetPagedAsync(query, null);
 
             Assert.IsTrue(result.Success);
             Assert.AreEqual(2, result.Data.Total);
@@ -149,7 +150,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_PageOutOfRange_ReturnsEmptyButCorrectTotal()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 99, PageSize = 10 };
 
             var data = BuildMixedInventories().AsQueryable();
@@ -169,7 +170,7 @@ namespace Garage_Management.UnitTest.Inventories
         public async Task GetPagedAsync_NegativePageSize_UsesDefault10()
         {
             var repo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object, MockCurrentUser.AsStaff());
+            var service = new InventoryService(repo.Object, new Mock<ISparePartCategoryRepository>().Object, new Mock<ISparePartBrandRepository>().Object);
             var query = new ParamQuery { Page = 1, PageSize = -5 };
 
             var data = BuildMixedInventories().AsQueryable();
