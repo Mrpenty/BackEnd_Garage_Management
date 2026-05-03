@@ -12,6 +12,9 @@ namespace Garage_Management.Application.Interfaces.Repositories
     {
         Task<Employee?> GetByUserIdAsync(int userId);
         
-        Task<List<Employee>> GetAllMechanicsAsync();
+        /// <summary>
+        /// Lấy nhân viên có role Identity "Mechanic", lọc tuỳ chọn theo chi nhánh.
+        /// </summary>
+        Task<List<Employee>> GetAllMechanicsAsync(int? branchId = null, CancellationToken ct = default);
     }
 }
