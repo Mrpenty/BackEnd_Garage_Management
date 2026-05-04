@@ -24,6 +24,9 @@ namespace Garage_Management.Application.DTOs.JobCards
         public JobCardStatus Status { get; set; }
         public DateTime StartDate { get; set; }
 
+        public int? AppointmentId { get; set; }
+        public DateTime? AppointmentDateTime { get; set; }
+
         public List<ServiceResponse> Services { get; set; } = new();
         public List<JobCardMechanicView> Mechanics { get; set; } = new();
 

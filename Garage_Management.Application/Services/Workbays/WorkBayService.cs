@@ -153,6 +153,8 @@ namespace Garage_Management.Application.Services.Workbays
                     },
                 Status = jobCard.Status,
                 StartDate = jobCard.StartDate,
+                AppointmentId = jobCard.AppointmentId,
+                AppointmentDateTime = jobCard.Appointment?.AppointmentDateTime,
                 Services = jobCard.Services
                     .Where(x => x.Service != null)
                     .Select(x => new DTOs.Services.ServiceResponse

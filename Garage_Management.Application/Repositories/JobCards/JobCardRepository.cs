@@ -80,6 +80,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                 .ThenInclude(s => s.Service)
             .Include(j => j.Mechanics)
                  .ThenInclude(m => m.Employee)
+            .Include(x => x.Appointment)
             .Where(j => j.Status != JobCardStatus.Completed)
             .AsQueryable();
 
@@ -254,6 +255,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                     .ThenInclude(m => m.Employee)
                 .Include(x => x.Services)
                     .ThenInclude(s => s.Service)
+                .Include(x => x.Appointment)
                 .Where(x => x.WorkBayId == workBayId)
                 .OrderBy(x => x.QueueOrder)
                 .ThenBy(x => x.StartDate)
@@ -274,6 +276,7 @@ namespace Garage_Management.Application.Repositories.JobCards
                     .ThenInclude(m => m.Employee)
                 .Include(x => x.Services)
                     .ThenInclude(s => s.Service)
+                .Include(x => x.Appointment)
                 .Where(x => x.WorkBayId.HasValue &&
                             workBayIds.Contains(x.WorkBayId.Value))
                 .OrderBy(x => x.QueueOrder)

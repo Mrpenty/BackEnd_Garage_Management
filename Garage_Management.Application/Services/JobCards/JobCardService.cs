@@ -205,6 +205,7 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 JobCardId = entity.JobCardId,
                 AppointmentId = entity.AppointmentId,
+                AppointmentDateTime = entity.Appointment?.AppointmentDateTime,
                 CustomerId = entity.CustomerId,
                 VehicleId = entity.VehicleId,
                 QueueOrder = entity.QueueOrder,
@@ -215,7 +216,7 @@ namespace Garage_Management.Application.Services.JobCards
                 Note = entity.Note,
                 SupervisorId = entity.SupervisorId
             };
-        
+
         }
 
         public async Task<JobCardDto?> GetByIdAsync(int id)
@@ -228,6 +229,7 @@ namespace Garage_Management.Application.Services.JobCards
             {
                 JobCardId = entity.JobCardId,
                 AppointmentId = entity.AppointmentId,
+                AppointmentDateTime = entity.Appointment?.AppointmentDateTime,
                 CustomerId = entity.CustomerId,
                 CustomerName = entity.Customer != null? $"{entity.Customer.LastName} {entity.Customer.FirstName}".Trim(): null,
                 VehicleId = entity.VehicleId,
@@ -398,6 +400,8 @@ namespace Garage_Management.Application.Services.JobCards
 
                 Status = x.Status,
                 StartDate = x.StartDate,
+                AppointmentId = x.AppointmentId,
+                AppointmentDateTime = x.Appointment != null ? x.Appointment.AppointmentDateTime : null,
                 Mechanics = x.Mechanics.Select(m => new JobCardMechanicView
                 {
                     MechanicId = m.EmployeeId,
