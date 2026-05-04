@@ -164,9 +164,14 @@ namespace Garage_Management.Application.Services.Appointments
 
         public async Task<PagedResult<AppointmentResponse>> GetPagedAsync(AppointmentQuery query, CancellationToken ct = default)
         {
-            // Branch scoping: non-Admin chỉ thấy appointment của branch mình.
+            // Guest (chưa đăng nhập) bắt buộc truyền Search → tránh leak toàn bộ lịch hẹn.
+            var isAnonymous = !_currentUser.GetCurrentUserId().HasValue;
+            if (isAnonymous && string.IsNullOrWhiteSpace(query.Search))
+                throw new InvalidOperationException("Khách chưa đăng nhập phải nhập số điện thoại để tra cứu");
+
+            // Branch scoping: non-Admin (đã đăng nhập) chỉ thấy appointment của branch mình.
             // Override luôn để chống FE/client spoof BranchId từ query string.
-            if (!_currentUser.IsAdmin())
+            if (!isAnonymous && !_currentUser.IsAdmin())
             {
                 var branchId = _currentUser.GetCurrentBranchId();
                 if (branchId.HasValue)
@@ -185,8 +190,12 @@ namespace Garage_Management.Application.Services.Appointments
 
         public async Task<AppointmentResponse> CreateAsync(AppointmentCreateRequest request, CancellationToken ct = default)
         {
-            // CustomerId will be provided by FE (no token-based resolution)
             var effectiveCustomerId = request.CustomerId;
+
+            // Guest (chưa đăng nhập) không được truyền CustomerId → chống spoof danh tính khách hàng đã có.
+            var isAnonymous = !_currentUser.GetCurrentUserId().HasValue;
+            if (isAnonymous && effectiveCustomerId.HasValue)
+                throw new InvalidOperationException("Khách chưa đăng nhập không được truyền CustomerId");
 
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
                 throw new InvalidOperationException("Mã khách hàng không hợp lệ");
@@ -202,24 +211,24 @@ namespace Garage_Management.Application.Services.Appointments
 
             //Logic: đã nhập customerId rồi thì không được nhập các thông tin còn lại nữa
 
-            //if (effectiveCustomerId.HasValue)
+            //            if (effectiveCustomerId.HasValue)
             //{
-            //    if (!string.IsNullOrWhiteSpace(request.FirstName) ||
-            //        !string.IsNullOrWhiteSpace(request.LastName) ||
-            //        !string.IsNullOrWhiteSpace(request.Phone))
-            //    {
-            //        throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName/LastName/Phone");
-            //    }
+            //                    if (!string.IsNullOrWhiteSpace(request.FirstName) ||
+//                            !string.IsNullOrWhiteSpace(request.LastName) ||
+//                            !string.IsNullOrWhiteSpace(request.Phone))
+                //    {
+            //                            throw new InvalidOperationException("Có CustomerId thì không được nhập FirstName/LastName/Phone");
+                //    }
             //}
             //else
             //{
-            //    if (string.IsNullOrWhiteSpace(request.FirstName) ||
-            //        string.IsNullOrWhiteSpace(request.LastName) ||
-            //        string.IsNullOrWhiteSpace(request.Phone))
-            //    {
-            //        throw new InvalidOperationException("Khách vãng lai cần FirstName, LastName và Phone");
-            //    }
-            //}
+            //                    if (string.IsNullOrWhiteSpace(request.FirstName) ||
+//                            string.IsNullOrWhiteSpace(request.LastName) ||
+//                            string.IsNullOrWhiteSpace(request.Phone))
+                //    {
+            //                            throw new InvalidOperationException("Khách vãng lai cần FirstName, LastName và Phone");
+                //    }
+            //            }
 
             if (effectiveCustomerId.HasValue)
             {

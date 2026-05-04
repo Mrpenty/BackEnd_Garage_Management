@@ -12,6 +12,7 @@ namespace Garage_Management.API.Controllers
     public class ReportsController : ControllerBase
     {
         private const string BranchReportRoles = "Admin,Supervisor,Accountant";
+        private const string ReceptionistReportRoles = "Admin,Supervisor,Receptionist";
         private const string AdminOnly = "Admin";
 
         private readonly IReportService _service;
@@ -49,6 +50,25 @@ namespace Garage_Management.API.Controllers
                 return NotFound(ApiResponse<BranchJobCardSummaryResponse>.ErrorResponse("Không tìm thấy chi nhánh"));
 
             return Ok(ApiResponse<BranchJobCardSummaryResponse>.SuccessResponse(data, "OK"));
+        }
+
+        /// <summary>
+        /// Báo cáo cho lễ tân: lịch hẹn theo trạng thái, no-show / huỷ / conversion rate,
+        /// walk-in vs theo lịch, số phiếu sửa do user hiện tại tạo.
+        /// </summary>
+        [HttpGet("branches/{branchId:int}/receptionist")]
+        [Authorize(Roles = ReceptionistReportRoles)]
+        public async Task<ActionResult<ApiResponse<ReceptionistReportResponse>>> GetReceptionistReport(
+            int branchId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
+            CancellationToken ct = default)
+        {
+            var data = await _service.GetReceptionistReportAsync(branchId, from, to, ct);
+            if (data == null)
+                return NotFound(ApiResponse<ReceptionistReportResponse>.ErrorResponse("Không tìm thấy chi nhánh"));
+
+            return Ok(ApiResponse<ReceptionistReportResponse>.SuccessResponse(data, "OK"));
         }
 
         [HttpGet("revenue-by-branch")]

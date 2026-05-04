@@ -1,6 +1,7 @@
 using Garage_Management.Application.DTOs.Reports;
 using Garage_Management.Application.Interfaces.Services.Auth;
 using Garage_Management.Application.Interfaces.Services.Reports;
+using Garage_Management.Base.Common.Enums;
 using Garage_Management.Base.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -136,6 +137,72 @@ namespace Garage_Management.Application.Services.Reports
                     GrandTotal = agg?.GrandTotal ?? 0m
                 };
             }).ToList();
+        }
+
+        public async Task<ReceptionistReportResponse?> GetReceptionistReportAsync(int branchId, DateTime? from, DateTime? to, CancellationToken ct = default)
+        {
+            EnsureCanAccess(branchId);
+
+            var branch = await _db.Branches.AsNoTracking()
+                .FirstOrDefaultAsync(b => b.BranchId == branchId && b.DeletedAt == null, ct);
+            if (branch == null) return null;
+
+            var apptQuery = _db.Appointments.AsNoTracking()
+                .Where(a => a.BranchId == branchId);
+            if (from.HasValue) apptQuery = apptQuery.Where(a => a.AppointmentDateTime >= from.Value);
+            if (to.HasValue) apptQuery = apptQuery.Where(a => a.AppointmentDateTime <= to.Value);
+
+            var statusGroups = await apptQuery
+                .GroupBy(a => a.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync(ct);
+
+            int CountFor(AppointmentStatus s) =>
+                statusGroups.FirstOrDefault(x => x.Status == s)?.Count ?? 0;
+
+            var breakdown = new AppointmentStatusBreakdown
+            {
+                Pending = CountFor(AppointmentStatus.Pending),
+                Confirmed = CountFor(AppointmentStatus.Confirmed),
+                ConvertedToJobCard = CountFor(AppointmentStatus.ConvertedToJobCard),
+                Completed = CountFor(AppointmentStatus.Completed),
+                Cancelled = CountFor(AppointmentStatus.Cancelled),
+                NoShow = CountFor(AppointmentStatus.NoShow)
+            };
+
+            var total = statusGroups.Sum(x => x.Count);
+            double Rate(int part) => total == 0 ? 0d : (double)part / total;
+
+            // Walk-in vs theo lịch (đếm trên JobCards trong khoảng)
+            var jcQuery = _db.JobCards.AsNoTracking()
+                .Where(j => j.BranchId == branchId && j.DeletedAt == null);
+            if (from.HasValue) jcQuery = jcQuery.Where(j => j.StartDate >= from.Value);
+            if (to.HasValue) jcQuery = jcQuery.Where(j => j.StartDate <= to.Value);
+
+            var walkIn = await jcQuery.CountAsync(j => j.AppointmentId == null, ct);
+            var apptBased = await jcQuery.CountAsync(j => j.AppointmentId != null, ct);
+
+            // Phiếu sửa do user hiện tại (lễ tân) tạo
+            var currentUserId = _currentUser.GetCurrentUserId();
+            var createdByMe = currentUserId.HasValue
+                ? await jcQuery.CountAsync(j => j.CreatedBy == currentUserId.Value, ct)
+                : 0;
+
+            return new ReceptionistReportResponse
+            {
+                BranchId = branch.BranchId,
+                BranchName = branch.Name,
+                FromDate = from,
+                ToDate = to,
+                TotalAppointments = total,
+                AppointmentsByStatus = breakdown,
+                NoShowRate = Rate(breakdown.NoShow),
+                CancelRate = Rate(breakdown.Cancelled),
+                ConversionRate = Rate(breakdown.ConvertedToJobCard + breakdown.Completed),
+                WalkInCount = walkIn,
+                AppointmentBasedCount = apptBased,
+                JobCardsCreatedByMe = createdByMe
+            };
         }
 
         private void EnsureCanAccess(int branchId)

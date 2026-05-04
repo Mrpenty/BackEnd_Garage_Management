@@ -21,9 +21,11 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Lấy danh sách lịch đặt có phân trang, lọc, tìm kiếm, sắp xếp
+        /// Lấy danh sách lịch đặt có phân trang, lọc, tìm kiếm, sắp xếp.
+        /// Guest (chưa đăng nhập) phải truyền Search (số điện thoại) để tra cứu lịch của chính mình.
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<PagedResult<AppointmentResponse>>>> GetPaged(
             [FromQuery] AppointmentQuery query,
             CancellationToken ct = default)
@@ -82,9 +84,10 @@ namespace Garage_Management.API.Controllers
         ///Author: KhanhDV
         ///Created Date: 13-2-2026
         /// <summary>
-        /// Tạo mới lịch đặt
+        /// Tạo mới lịch đặt. Cho phép cả guest (chưa đăng nhập) — guest phải cung cấp FirstName/LastName/Phone, không được truyền CustomerId.
         /// </summary>
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<AppointmentResponse>>> Create(
             [FromBody] AppointmentCreateRequest request,
             CancellationToken ct = default)
