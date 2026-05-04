@@ -165,13 +165,14 @@ namespace Garage_Management.Application.Services.Appointments
         public async Task<PagedResult<AppointmentResponse>> GetPagedAsync(AppointmentQuery query, CancellationToken ct = default)
         {
             // Guest (chưa đăng nhập) bắt buộc truyền Search → tránh leak toàn bộ lịch hẹn.
-            var isAnonymous = !_currentUser.GetCurrentUserId().HasValue;
-            if (isAnonymous && string.IsNullOrWhiteSpace(query.Search))
-                throw new InvalidOperationException("Khách chưa đăng nhập phải nhập số điện thoại để tra cứu");
+            //var isAnonymous = !_currentUser.GetCurrentUserId().HasValue;
+            //if (isAnonymous && string.IsNullOrWhiteSpace(query.Search))
+            //    throw new InvalidOperationException("Khách chưa đăng nhập phải nhập số điện thoại để tra cứu");
 
             // Branch scoping: non-Admin (đã đăng nhập) chỉ thấy appointment của branch mình.
             // Override luôn để chống FE/client spoof BranchId từ query string.
-            if (!isAnonymous && !_currentUser.IsAdmin())
+            if (!_currentUser.IsAdmin())
+            //if (!isAnonymous && !_currentUser.IsAdmin())
             {
                 var branchId = _currentUser.GetCurrentBranchId();
                 if (branchId.HasValue)
@@ -193,9 +194,9 @@ namespace Garage_Management.Application.Services.Appointments
             var effectiveCustomerId = request.CustomerId;
 
             // Guest (chưa đăng nhập) không được truyền CustomerId → chống spoof danh tính khách hàng đã có.
-            var isAnonymous = !_currentUser.GetCurrentUserId().HasValue;
-            if (isAnonymous && effectiveCustomerId.HasValue)
-                throw new InvalidOperationException("Khách chưa đăng nhập không được truyền CustomerId");
+            //var isAnonymous = !_currentUser.GetCurrentUserId().HasValue;
+            //if (isAnonymous && effectiveCustomerId.HasValue)
+            //    throw new InvalidOperationException("Khách chưa đăng nhập không được truyền CustomerId");
 
             if (effectiveCustomerId.HasValue && effectiveCustomerId.Value <= 0)
                 throw new InvalidOperationException("Mã khách hàng không hợp lệ");
